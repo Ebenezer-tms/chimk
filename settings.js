@@ -10,7 +10,7 @@ const settings = {
   storeWriteInterval: 10000,
   description: "This is a bot for managing group commands and automating tasks.",
   version: "1.0.1",
-  updateZipUrl: "https://github.com/superstar-zimtk/pretty-private-repohide/archive/refs/heads/main.zip",
+  updateZipUrl: "https://github.com/Ebenezer-tms/chimk/archive/refs/heads/main.zip",
 };
 
 module.exports = settings;
