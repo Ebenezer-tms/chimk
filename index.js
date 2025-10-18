@@ -422,6 +422,7 @@ function detectHost() {
 ┏━━━━━☆《 CONNECTED 》☆
 ┃➥ Prefix: [.]
 ┃➥ Bot: ᴘʀᴇᴛᴛʏ 𝐌ᴅ
+┃➥ host: ..........
 ┃➥ Status: Active
 ┃➥ Time: ${new Date().toLocaleString()}
 ┃➥ support: https://t.me/xhypher2025
