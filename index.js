@@ -195,10 +195,10 @@ function cleanupJunkFiles(botSocket) {
                 try {
                     if(fs.existsSync(filePath)) fs.unlinkSync(filePath);
                 } catch(e) {
-                    log(`[Junk Cleanup] Failed to delete file ${file}: ${e.message}`, 'red', true);
+                    log(`[Junk Cleanup] Failed to delete file ${file}: ${e.message}`, 'blue', true);
                 }
             });
-            log(`[Junk Cleanup] ${filteredArray.length} files deleted.`, 'yellow');
+            log(`[Junk Cleanup] ${filteredArray.length} files deleted.`, 'purple');
         }
     });
 }
@@ -275,10 +275,10 @@ async function checkAndHandleSessionFormat() {
                 envContent = envContent.replace(/^SESSION_ID=.*$/m, 'SESSION_ID=');
                 
                 fs.writeFileSync(envPath, envContent);
-                log('✅ Cleaned SESSION_ID entry in .env file.', 'green');
-                log('Please add a proper session ID and restart the bot.', 'yellow');
+                log('✅ Cleaned SESSION_ID entry in .env file.', 'blue');
+                log('Please add a proper session ID and restart the bot.', 'purple');
             } catch (e) {
-                log(`Failed to modify .env file. Please check permissions: ${e.message}`, 'red', true);
+                log(`Failed to modify .env file. Please check permissions: ${e.message}`, 'purple', true);
             }
             
             // Delay before exiting to allow user to read the message before automatic restart
@@ -296,12 +296,12 @@ async function checkAndHandleSessionFormat() {
 async function getLoginMethod() {
     const lastMethod = await getLastLoginMethod();
     if (lastMethod && sessionExists()) {
-        log(`Last login method detected: ${lastMethod}. Using it automatically.`, 'yellow');
+        log(`Last login method detected: ${lastMethod}. Using it automatically.`, 'blue');
         return lastMethod;
     }
     
     if (!sessionExists() && fs.existsSync(loginFile)) {
-        log(`Session files missing. Removing old login preference for clean re-login.`, 'yellow');
+        log(`Session files missing. Removing old login preference for clean re-login.`, 'purple');
         fs.unlinkSync(loginFile);
     }
 
@@ -309,7 +309,7 @@ async function getLoginMethod() {
     if (!process.stdin.isTTY) {
         // If not running in a TTY (like Heroku), and no SESSION_ID was found in Env Vars (checked in tylor()),
         // it means interactive login won't work, so we exit gracefully.
-        log("❌ No Session ID found in environment variables.", 'red');
+        log("❌ No Session ID found in environment variables.", 'blue');
         process.exit(1);
     }
 
@@ -590,7 +590,7 @@ async function startXeonBotInc() {
             }
         } else if (connection === 'open') { 
             console.log(chalk.magenta(`©SUPERSTAR CONSOLE`))
-            console.log(chalk.yellow(`🌿Connected to => ` + JSON.stringify(XeonBotInc.user, null, 2)))
+            console.log(chalk.purple(`🌿Connected to => ` + JSON.stringify(XeonBotInc.user, null, 2)))
             log('Pretty md connected', 'blue');      
             log(`GITHUB: Superstar-zimtk`, 'magenta');
             
@@ -664,7 +664,7 @@ async function checkSessionIntegrityAndClean() {
         clearSessionFiles(); // Use the helper function
         
         // 2. Add the requested 3-second delay after cleanup
-        log('Cleanup complete. Waiting 3 seconds for stability...', 'yellow');
+        log('Cleanup complete. Waiting 3 seconds for stability...', 'blue');
         await delay(3000);
     }
 }
@@ -679,7 +679,7 @@ async function checkSessionIntegrityAndClean() {
 function checkEnvStatus() {
     try {
         log("╔══════════════════════════", 'magenta');
-        log(`║ ✨️the xhypher bot 🚀`, 'blue');
+        log(`║➽ ✨️ The xhypher bot is running 🚀`, 'blue');
         log("╚══════════════════════════", 'magenta');
         
         // Use persistent: false for better behavior in some hosting environments
