@@ -179,7 +179,7 @@ async function updateViaZip(sock, chatId, message, zipOverride) {
 async function restartProcess(sock, chatId, message) {
     try {
         // Send final confirmation message to the user
-        await sock.sendMessage(chatId, { text: '> _Pretty Updated complete! Restarting 🔄 and clearing transient session data..._' }, { quoted: message });
+        await sock.sendMessage(chatId, { text: '> *Pretty Updated complete! Restarting 🔄 and clearing transient session data* ...' }, { quoted: message });
     } catch {}
     
     // 1. Gracefully close the Baileys socket
