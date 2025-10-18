@@ -50,7 +50,7 @@ async function helpCommand(sock, chatId, message) {
 
 let data = JSON.parse(fs.readFileSync('./data/messageCount.json'));
     const start = Date.now();
-    await sock.sendMessage(chatId, { text: '_Wait Loading Menu...♻️_' }, { quoted: message });
+    await sock.sendMessage(chatId, { text: 'Wait Loading Menu...♻️' }, { quoted: message });
     const end = Date.now();
     const ping = Math.round((end - start) / 2);
 
