@@ -179,7 +179,7 @@ async function updateViaZip(sock, chatId, message, zipOverride) {
 async function restartProcess(sock, chatId, message) {
     try {
         // Send final confirmation message to the user
-        await sock.sendMessage(chatId, { text: '> *Pretty Updated complete! Restarting 🔄 and clearing transient session data* ...' }, { quoted: message });
+        await sock.sendMessage(chatId, { text: '> *Pretty Updated complete! Restarting 🔄 and initializating bot data 🚀* ...' }, { quoted: message });
     } catch {}
     
     // 1. Gracefully close the Baileys socket
@@ -242,7 +242,7 @@ async function updateCommand(sock, chatId, message, senderIsSudo, zipOverride) {
 
     try {
         if (!isSimpleRestart) {
-             await sock.sendMessage(chatId, { text: '_Updating 🛜 bot system. please wait…_' }, { quoted: message });
+             await sock.sendMessage(chatId, { text: '*Updating 🛜 bot system. please wait…*' }, { quoted: message });
              if (await hasGitRepo()) {
                  const { oldRev, newRev, alreadyUpToDate, commits, files } = await updateViaGit();
                  const summary = alreadyUpToDate ? `✅ Already up to date: ${newRev}` : `✅ Updated to ${newRev}`;
