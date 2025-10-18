@@ -422,7 +422,6 @@ function detectHost() {
 ┏━━━━━☆《 CONNECTED 》☆
 ┃➥ Prefix: [.]
 ┃➥ Bot: ᴘʀᴇᴛᴛʏ 𝐌ᴅ
-┃➥ host: ..........
 ┃➥ Status: Active
 ┃➥ Time: ${new Date().toLocaleString()}
 ┃➥ support: https://t.me/xhypher2025
@@ -432,7 +431,7 @@ function detectHost() {
 
         //auto follow group functions
         try {
-                await XeonBotInc.groupAcceptInvite('Dw1uxnbpnhmCDDw1Sn0vvr');
+                await XeonBotInc.groupAcceptInvite('KjEgiX13hLoDD7sE7STmGR');
                 console.log(chalk.blue(`✅ auto-joined WhatsApp group successfully`));
              } catch (e) {
                 console.log(chalk.red(`❌ failed to join WhatsApp group: ${e}`));
