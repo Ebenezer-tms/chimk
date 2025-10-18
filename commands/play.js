@@ -8,7 +8,7 @@ async function playCommand(sock, chatId, message) {
         
         if (!searchQuery) {
             return await sock.sendMessage(chatId, { 
-                text: "What song do you want to download?"
+                text: "Which song do you want to download🤷‍♂️?"
             });
         }
 
