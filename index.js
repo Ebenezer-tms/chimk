@@ -679,7 +679,7 @@ async function checkSessionIntegrityAndClean() {
 function checkEnvStatus() {
     try {
         log("╔══════════════════════════", 'magenta');
-        log(`║ 👀 .env file watcher `, 'green');
+        log(`║ ✨️the xhypher bot 🚀`, 'blue');
         log("╚══════════════════════════", 'magenta');
         
         // Use persistent: false for better behavior in some hosting environments
