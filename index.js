@@ -198,7 +198,7 @@ function cleanupJunkFiles(botSocket) {
                     log(`[Junk Cleanup] Failed to delete file ${file}: ${e.message}`, 'blue', true);
                 }
             });
-            log(`[Junk Cleanup] ${filteredArray.length} files deleted.`, 'purple');
+            log(`[Junk Cleanup] ${filteredArray.length} files deleted.`, 'blue');
         }
     });
 }
@@ -301,7 +301,7 @@ async function getLoginMethod() {
     }
     
     if (!sessionExists() && fs.existsSync(loginFile)) {
-        log(`Session files missing. Removing old login preference for clean re-login.`, 'purple');
+        log(`Session files missing. Removing old login preference for clean re-login.`, 'blue');
         fs.unlinkSync(loginFile);
     }
 
@@ -355,7 +355,7 @@ async function downloadSessionData() {
             const base64Data = global.SESSION_ID.includes("XHYPHER:~") ? global.SESSION_ID.split("XHYPHER:~")[1] : global.SESSION_ID;
             const sessionData = Buffer.from(base64Data, 'base64');
             await fs.promises.writeFile(credsPath, sessionData);
-            log(`Session successfully saved.`, 'green');
+            log(`Session successfully saved.`, 'blue');
         }
     } catch (err) { log(`Error downloading session data: ${err.message}`, 'red', true); }
 }
@@ -590,7 +590,7 @@ async function startXeonBotInc() {
             }
         } else if (connection === 'open') { 
             console.log(chalk.magenta(`©SUPERSTAR CONSOLE`))
-            console.log(chalk.purple(`🌿Connected to => ` + JSON.stringify(XeonBotInc.user, null, 2)))
+            console.log(chalk.blue(`🌿Connected to => ` + JSON.stringify(XeonBotInc.user, null, 2)))
             log('Pretty md connected', 'blue');      
             log(`GITHUB: Superstar-zimtk`, 'magenta');
             
@@ -777,8 +777,8 @@ async function tylor() {
     
     // 6. Check for a valid *stored* session after cleanup
     if (sessionExists()) {
-        log("Valid session found, starting bot directly...", 'green'); 
-        log('Waiting 3 seconds for stable connection...', 'yellow');
+        log("Valid session found, starting bot directly...", 'blue'); 
+        log('Waiting 3 seconds for stable connection...', 'ble');
         await delay(3000);
         await startXeonBotInc();
         
