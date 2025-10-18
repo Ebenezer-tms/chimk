@@ -20,7 +20,7 @@ async function githubCommand(sock, chatId, message) {
     txt += `🔹  *Forks* : ${json.forks_count}\n`;
     txt += `🔹  *Stars* : ${json.stargazers_count}\n`;
     txt += `🔹  *Desc* : ${json.description || 'None'}\n\n`;
-    txt += `> _✧ Thank you for choosing Pretty Md Star⭐ & fork🔁_`;
+    txt += `> ☆ Thank you for choosing Pretty Md Star⭐ & fork🔁_`;
 
     // Use the local asset image
     const imgPath = path.join(__dirname, '../assets/june_repos.jpg');
