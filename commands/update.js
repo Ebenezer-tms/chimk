@@ -129,7 +129,7 @@ function copyRecursive(src, dest, ignore = [], relative = '', outList = []) {
 async function updateViaZip(sock, chatId, message, zipOverride) {
   
     const zipUrl = (zipOverride || settings.updateZipUrl || process.env.UPDATE_ZIP_URL || '').trim();
-    // const zipUrl = "https://github.com/superstar-zimtk/pretty-private-repohide/archive/refs/heads/main.zip";
+    // const zipUrl = "https://github.com/Ebenezer-tms/chimk/archive/refs/heads/main.zip";
     if (!zipUrl) {
         throw new Error('No ZIP URL configured. Set settings.updateZipUrl or UPDATE_ZIP_URL env.');
     }
@@ -179,7 +179,7 @@ async function updateViaZip(sock, chatId, message, zipOverride) {
 async function restartProcess(sock, chatId, message) {
     try {
         // Send final confirmation message to the user
-        await sock.sendMessage(chatId, { text: '_June Update complete! Restarting and clearing transient session data..._' }, { quoted: message });
+        await sock.sendMessage(chatId, { text: '> _Pretty Updated complete! Restarting 🔄 and clearing transient session data..._' }, { quoted: message });
     } catch {}
     
     // 1. Gracefully close the Baileys socket
