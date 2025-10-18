@@ -40,20 +40,20 @@ async function playCommand(sock, chatId, message) {
         }
 
         const audioUrl = data.result.downloadUrl;
-        const title = data.result.title;
+const title = data.result.title;
 
-        // Send the document
-        await sock.sendMessage(chatId, {
-            document: { buffer },
-            mimetype: "audio/mp4",
-            fileName: `${title}.mp3`
-        }, { quoted: message });
+// Download audio as buffer
+const audioBuffer = await axios.get(audioUrl, 
+    responseType: 'arraybuffer'
+);
 
-    } catch (error) {
-        console.error('Error in song2 command:', error);
-        await sock.sendMessage(chatId, { 
-            text: "Download failed. Please try again later."
-        });
+// Send the document (as a file)
+await sock.sendMessage(chatId, 
+    document: audioBuffer.data,
+    mimetype: "audio/mp4",
+    fileName: `{title}.mp3`
+}, { quoted: message });
+
     }
 }
 
