@@ -1,45 +1,76 @@
+
+
+//new song API 
+
+const yts = require('yt-search');
 const axios = require('axios');
 
-async function soraCommand(sock, chatId, message) {
+async function songCommand(sock, chatId, message) {
     try {
-        const rawText = message.message?.conversation?.trim() ||
-            message.message?.extendedTextMessage?.text?.trim() ||
-            message.message?.imageMessage?.caption?.trim() ||
-            message.message?.videoMessage?.caption?.trim() ||
-            '';
-
-        // Extract prompt after command keyword or use quoted text
-        const used = (rawText || '').split(/\s+/)[0] || '.sora';
-        const args = rawText.slice(used.length).trim();
-        const quoted = message.message?.extendedTextMessage?.contextInfo?.quotedMessage;
-        const quotedText = quoted?.conversation || quoted?.extendedTextMessage?.text || '';
-        const input = args || quotedText;
-
-        if (!input) {
-            await sock.sendMessage(chatId, { text: 'Provide a prompt. Example: .sora anime girl with short blue hair' }, { quoted: message });
-            return;
+        const text = message.message?.conversation || message.message?.extendedTextMessage?.text;
+        const searchQuery = text.split(' ').slice(1).join(' ').trim();
+        
+        if (!searchQuery) {
+            return await sock.sendMessage(chatId, { 
+                text: "What song do you want to download?"},{ quoted: message
+            });
         }
 
-        const apiUrl = `https://okatsu-rolezapiiz.vercel.app/ai/txt2video?text=${encodeURIComponent(input)}`;
-        const { data } = await axios.get(apiUrl, { timeout: 60000, headers: { 'user-agent': 'Mozilla/5.0' } });
-
-        const videoUrl = data?.videoUrl || data?.result || data?.data?.videoUrl;
-        if (!videoUrl) {
-            throw new Error('No videoUrl in API response');
+        // Search for the song
+        const { videos } = await yts(searchQuery);
+        if (!videos || videos.length === 0) {
+            return await sock.sendMessage(chatId, { 
+                text: "No songs found!"
+            });
         }
 
+        // Send loading message
         await sock.sendMessage(chatId, {
-            video: { url: videoUrl },
-            mimetype: 'video/mp4',
-            caption: `Prompt: ${input}`
+            text: "_Please wait your download is in progress_"},{ quoted: message
+        });
+
+        // Get the first video result
+        const video = videos[0];
+        const urlYt = video.url;
+
+        // Fetch audio data from API
+        const response = await axios.get(`https://api.goodnesstechhost.xyz/download/youtube/audio?url=${urlYt}`);
+        const data = response.data;
+
+        if (!data || !data.status || !data.result || !data.result.download_url) {
+            return await sock.sendMessage(chatId, { 
+                text: "Failed to fetch audio from the API. Please try again later."
+            });
+        }
+
+        const audioUrl = data.result.download_url;
+        const title = data.result.title;
+
+        // Send the audio
+        await sock.sendMessage(chatId, {
+            audio: { url: audioUrl },
+            mimetype: "audio/mpeg",
+            fileName: `${title}.mp3`
         }, { quoted: message });
+        
+        //successful react ✔️
+       await sock.sendMessage(chatId, { react: { text: '✔️', key: message.key } 
+        });
 
     } catch (error) {
-        console.error('[SORA] error:', error?.message || error);
-        await sock.sendMessage(chatId, { text: 'Failed to generate video. Try a different prompt later.' }, { quoted: message });
+        console.error('Error in song2 command:', error);
+        await sock.sendMessage(chatId, { 
+            text: "Download failed. Please try again later."
+        });
+        
+        //err react ❌
+            await sock.sendMessage(chatId, {
+            react: { text: '❌', key: message.key }
+        });
     }
 }
 
-module.exports = soraCommand;
+module.exports = songCommand; 
 
-
+/*Powered by June-md*
+*Credits to Keith MD*`*/
