@@ -13,7 +13,7 @@ async function playCommand(sock, chatId, message) {
         
         if (!searchQuery) {
             return await sock.sendMessage(chatId, { 
-                text: "What song do you want to download?"
+                text: "Which song do you want to download🤷‍♂️?"
             });
         }
         
@@ -25,7 +25,7 @@ async function playCommand(sock, chatId, message) {
         const { videos } = await yts(searchQuery);
         if (!videos || videos.length === 0) {
             return await sock.sendMessage(chatId, { 
-                text: "No songs found!"
+                text: "No songs found🤷‍♂️!"
             });
         }
 
@@ -44,7 +44,7 @@ async function playCommand(sock, chatId, message) {
 
         if (!data || !data.status || !data.result || !data.result.downloadUrl) {
             return await sock.sendMessage(chatId, { 
-                text: "Failed to fetch audio from the API. Please try again later."
+                text: "Failed to retrieve your song in api. Please try again later😅😅."
             });
         }
 
@@ -66,7 +66,7 @@ async function playCommand(sock, chatId, message) {
     } catch (error) {
         console.error('Error in song2 command:', error);
         await sock.sendMessage(chatId, { 
-            text: "Failedto retrieve your song in api. Please try again later😅😅."
+            text: "Failed to retrieve your song in api. Please try again later😅😅."
         });
         
         //err react ❌
