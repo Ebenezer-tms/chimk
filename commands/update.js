@@ -255,7 +255,7 @@ async function updateCommand(sock, chatId, message, senderIsSudo, zipOverride) {
         
         try {
             const v = require('../settings').version || '';
-            await sock.sendMessage(chatId, { text: `_Restarting bot ...🏂_` }, { quoted: message });
+            await sock.sendMessage(chatId, { text: `> *initialization started ...🆙️*` }, { quoted: message });
         } catch {
             await sock.sendMessage(chatId, { text: 'Restared Successfully Enjoy_' }, { quoted: message });
         }
