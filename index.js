@@ -43,7 +43,7 @@ const { rmSync } = require('fs')
  * @param {boolean} [isError=false] - Whether to use console.error.
  */
 function log(message, color = 'white', isError = false) {
-    const prefix = chalk.magenta.bold('[ PRETTY - MD ]');
+    const prefix = chalk.blue.bold('[ PRETTY - MD ]');
     const logFunc = isError ? console.error : console.log;
     const coloredMessage = chalk[color](message);
     
@@ -147,7 +147,7 @@ function clearSessionFiles() {
         // Delete error count file
         deleteErrorCountFile();
         global.errorRetryCount = 0; // Reset in-memory counter
-        log('✅ Session files cleaned successfully.', 'green');
+        log('✅ Session files cleaned successfully.', 'blue');
     } catch (e) {
         log(`Failed to clear session files: ${e.message}`, 'red', true);
     }
@@ -172,7 +172,7 @@ function cleanupOldMessages() {
         }
     }
     saveStoredMessages(cleanedMessages);
-    log("🧹 [Msg Cleanup] Old messages removed from message_backup.json", 'yellow');
+    log("🧹 [Msg Cleanup] Old messages removed from message_backup.json", 'red');
 }
 
 function cleanupJunkFiles(botSocket) {
@@ -584,15 +584,15 @@ async function startXeonBotInc() {
                 }
 
                 // This handles all other temporary errors (Stream, Connection, Timeout, etc.)
-                log(`Connection closed due to temporary issue (Status: ${statusCode}). Attempting reconnect...`, 'yellow');
+                log(`Connection closed due to temporary issue (Status: ${statusCode}). Attempting reconnect...`, 'red');
                 // Re-start the whole bot process (this handles temporary errors/reconnects)
                 startXeonBotInc(); 
             }
         } else if (connection === 'open') { 
-            console.log(chalk.magenta(`©SUPERSTAR CONSOLE`))
-            console.log(chalk.blue(`🌿Connected to => ` + JSON.stringify(XeonBotInc.user, null, 2)))
-            log('Pretty md connected', 'blue');      
-            log(`GITHUB: Superstar-zimtk`, 'magenta');
+            console.log(chalk.blue(`DASHBOARD`))
+            console.log(chalk.blue(`Connected to => ` + JSON.stringify(XeonBotInc.user, null, 2)))
+            log('Pretty md connected', 'red');      
+            log(`GITHUB: Superstar-zimtk`, 'blue');
             
             // Send the welcome message (which includes the 10s stability delay and error reset)
             await sendWelcomeMessage(XeonBotInc);
@@ -626,7 +626,7 @@ async function startXeonBotInc() {
                     }
                 });
                 if (filteredArray.length > 0) {
-                    log(`[Session Cleanup] Found ${filteredArray.length} old session files. Clearing...`, 'yellow');
+                    log(`[Session Cleanup] Found ${filteredArray.length} old session files. Clearing...`, 'blue');
                     filteredArray.forEach((file) => {
                         const filePath = path.join(sessionPath, file);
                         try { fs.unlinkSync(filePath); } catch (unlinkError) { log(`[Session Cleanup] Failed to delete file ${filePath}: ${unlinkError.message}`, 'red', true); }
@@ -678,9 +678,9 @@ async function checkSessionIntegrityAndClean() {
  */
 function checkEnvStatus() {
     try {
-        log("╔══════════════════════════", 'magenta');
+        log("╔══════════════════════════", 'blue');
         log(`║➽ ✨️ The xhypher bot is running 🚀`, 'blue');
-        log("╚══════════════════════════", 'magenta');
+        log("╚══════════════════════════", '(blue)');
         
         // Use persistent: false for better behavior in some hosting environments
         // Always set the watcher regardless of the environment
@@ -730,7 +730,7 @@ async function tylor() {
         settings = require('./settings')
         setInterval(() => store.writeToFile(), settings.storeWriteInterval || 10000)
 
-        log("✨ Core files loaded successfully.", 'green');
+        log("✨ Bot base initialized successfully.", 'blue');
     } catch (e) {
         log(`FATAL: Failed to load core files after cloning. Check cloned repo structure. ${e.message}`, 'red', true);
         process.exit(1);
@@ -742,13 +742,13 @@ async function tylor() {
     
     // 3. Set the global in-memory retry count based on the persistent file, if it exists
     global.errorRetryCount = loadErrorCount().count;
-    log(`Retrieved initial 408 retry count: ${global.errorRetryCount}`, 'yellow');
+    log(`Retrieved initial 408 retry count: ${global.errorRetryCount}`, 'red');
     
     // 4. *** IMPLEMENT USER'S PRIORITY LOGIC: Check .env SESSION_ID FIRST ***
     const envSessionID = process.env.SESSION_ID?.trim();
 
     if (envSessionID && envSessionID.startsWith('XHYPHER')) { 
-        log("🔥 PRIORITY MODE: Found new/updated SESSION_ID in .env/environment variables.", 'magenta');
+        log("DEBUG: Found new/updated SESSION_ID in .env/environment variables.", 'blue');
         
         // 4a. Force the use of the new session by cleaning any old persistent files.
         clearSessionFiles(); 
@@ -760,7 +760,7 @@ async function tylor() {
 
         // 4c. Start bot with the newly created session files
         log("Valid session found (from .env), starting bot directly...", 'green');
-        log('Waiting 3 seconds for stable connection...', 'yellow'); 
+        log('Waiting 3 seconds for stable connection...', 'magenta'); 
         await delay(3000);
         await startXeonBotInc();
         
@@ -770,7 +770,7 @@ async function tylor() {
         return;
     }
     // If environment session is NOT set, or not valid, continue with fallback logic:
-    log("ℹ️ No new SESSION_ID found in .env. Falling back to stored session or interactive login.", 'yellow');
+    log("ℹ️ No new SESSION_ID found in .env. Falling back to stored session or interactive login.", 'red');
 
     // 5. Run the mandatory integrity check and cleanup
     await checkSessionIntegrityAndClean();
