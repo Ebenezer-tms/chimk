@@ -680,7 +680,7 @@ function checkEnvStatus() {
     try {
         log("╔══════════════════════════", 'blue');
         log(`║➽ ✨️ The xhypher bot is running 🚀`, 'blue');
-        log("╚══════════════════════════", '(blue)');
+        log("╚══════════════════════════", 'blue');
         
         // Use persistent: false for better behavior in some hosting environments
         // Always set the watcher regardless of the environment
@@ -759,8 +759,8 @@ async function tylor() {
         await saveLoginMethod('session'); 
 
         // 4c. Start bot with the newly created session files
-        log("Valid session found (from .env), starting bot directly...", 'green');
-        log('Waiting 3 seconds for stable connection...', 'magenta'); 
+        log("session found (from .env file), shifting the bot from cloned repo...", 'red');
+        log('checking if you forked the repo...', 'red'); 
         await delay(3000);
         await startXeonBotInc();
         
