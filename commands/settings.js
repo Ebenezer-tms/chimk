@@ -41,15 +41,15 @@ async function settingsCommand(sock, chatId, message) {
         const antitagCfg = groupId ? (userGroupData.antitag && userGroupData.antitag[groupId]) : null;
 
         const lines = [];
-        lines.push('*BOT SETTINGS*');
+        lines.push('*⚙️Current Bot Settings:*');
         lines.push('');
-        lines.push(`🔹 Mode: ${mode.isPublic ? 'Public' : 'Private'}`);
-        lines.push(`🔹 Auto Status: ${autoStatus.enabled ? 'ON' : 'OFF'}`);
-        lines.push(`🔹 Autoread: ${autoread.enabled ? 'ON' : 'OFF'}`);
-        lines.push(`🔹 Autotyping: ${autotyping.enabled ? 'ON' : 'OFF'}`);
-        lines.push(`🔹 PM Blocker: ${pmblocker.enabled ? 'ON' : 'OFF'}`);
-        lines.push(`🔹 Anticall: ${anticall.enabled ? 'ON' : 'OFF'}`);
-        lines.push(`🔹 Auto Reaction: ${autoReaction ? 'ON' : 'OFF'}`);
+        lines.push(`🔸️ *Mode* : ${mode.isPublic ? 'Public' : 'Private'}`);
+        lines.push(`🔹 *Auto Status* : ${autoStatus.enabled ? 'ON' : 'OFF'}`);
+        lines.push(`🔸️ *Autoread* : ${autoread.enabled ? 'ON' : 'OFF'}`);
+        lines.push(`🔹️ *Autotyping* : ${autotyping.enabled ? 'ON' : 'OFF'}`);
+        lines.push(`🔸️ *PM Blocker* : ${pmblocker.enabled ? 'ON' : 'OFF'}`);
+        lines.push(`🔹 *Anticall* : ${anticall.enabled ? 'ON' : 'OFF'}`);
+        lines.push(`🔸️ *Auto Reaction* : ${autoReaction ? 'ON' : 'OFF'}`);
         if (groupId) {
             lines.push('');
             lines.push(`Group: ${groupId}`);
@@ -75,10 +75,14 @@ async function settingsCommand(sock, chatId, message) {
             }
         } else {
             lines.push('');
-            lines.push('> _Thanks for choosing Pretty md_.');
+            lines.push('> _Thanks for choosing June md_.');
         }
 
         await sock.sendMessage(chatId, { text: lines.join('\n') }, { quoted: message });
+                //successful react 
+            await sock.sendMessage(chatId, {
+            react: { text: '☑️', key: message.key }
+        });
     } catch (error) {
         console.error('Error in settings command:', error);
         await sock.sendMessage(chatId, { text: 'Failed to read settings.' }, { quoted: message });
@@ -86,5 +90,3 @@ async function settingsCommand(sock, chatId, message) {
 }
 
 module.exports = settingsCommand;
-
-
