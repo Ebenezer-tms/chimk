@@ -25,7 +25,6 @@ const { promoteCommand } = require('./commands/promote');
 const { demoteCommand } = require('./commands/demote');
 const muteCommand = require('./commands/mute');
 const unmuteCommand = require('./commands/unmute');
-const connectCommand = require('./commands/connect');
 const stickerCommand = require('./commands/sticker');
 const isAdmin = require('./lib/isAdmin');
 const warnCommand = require('./commands/warn');
@@ -121,6 +120,7 @@ const { anticallCommand, readState: readAnticallState } = require('./commands/an
 const { pmblockerCommand, readState: readPmBlockerState } = require('./commands/pmblocker');
 const settingsCommand = require('./commands/settings');
 const soraCommand = require('./commands/sora');
+const imgCommand = require('./commands/img');
 
 // Global settings
 global.packname = settings.packname;
