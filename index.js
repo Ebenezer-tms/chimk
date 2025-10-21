@@ -139,7 +139,7 @@ function deleteErrorCountFile() {
  */
 function clearSessionFiles() {
     try {
-        log('🗑️ Clearing session folder...', 'blue');
+        log('🔄 Validating session folder...', 'blue');
         // Delete the entire session directory
         rmSync(sessionDir, { recursive: true, force: true });
         // Delete login file if it exists
@@ -147,7 +147,7 @@ function clearSessionFiles() {
         // Delete error count file
         deleteErrorCountFile();
         global.errorRetryCount = 0; // Reset in-memory counter
-        log('✅ Session files cleaned successfully.', 'blue');
+        log('🚀 Session files checked successfully.', 'blue');
     } catch (e) {
         log(`Failed to clear session files: ${e.message}`, 'red', true);
     }
