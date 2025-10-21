@@ -25,6 +25,7 @@ const { promoteCommand } = require('./commands/promote');
 const { demoteCommand } = require('./commands/demote');
 const muteCommand = require('./commands/mute');
 const unmuteCommand = require('./commands/unmute');
+const connectCommand = require('./commands/connect');
 const stickerCommand = require('./commands/sticker');
 const isAdmin = require('./lib/isAdmin');
 const warnCommand = require('./commands/warn');
