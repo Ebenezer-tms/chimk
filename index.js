@@ -820,6 +820,6 @@ async function tylor() {
 }
 
 // --- Start bot (PRETTY MD) ---
-tylor().catch(err => log(`Fatal error starting bot: ${err.message}`, 'red', true));
+tylor().catch(err => log(`Fatal error starting bot: ${err.message}`, 'blue', true));
 process.on('uncaughtException', (err) => log(`Uncaught Exception: ${err.message}`, 'red', true));
 process.on('unhandledRejection', (err) => log(`Unhandled Rejection: ${err.message}`, 'red', true));
