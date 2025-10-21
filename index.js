@@ -427,7 +427,7 @@ function detectHost() {
 ┃➥ support: https://t.me/xhypher2025
 ┗━━━━━━━━━━━━━━━━━━━`
         });
-        log('✅ Bot successfully connected to Whatsapp.', 'green');
+        log('🔹️🎊 Bot successfully connected to Whatsapp.', 'cyan');
 
         //auto follow group functions
         try {
