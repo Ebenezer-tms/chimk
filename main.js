@@ -19,6 +19,8 @@ const { autoreadCommand, isAutoreadEnabled, handleAutoread } = require('./comman
 const getppCommand =require('./commands/getpp');
 
 // Command imports
+const startTime = Date.now();
+const uptimeCommand = require('./commands/uptime');
 const tagAllCommand = require('./commands/tagall');
 const helpCommand = require('./commands/help');
 const banCommand = require('./commands/ban');
@@ -1227,6 +1229,11 @@ async function handleGroupParticipantUpdate(sock, update) {
     } catch (error) {
         console.error('Error in handleGroupParticipantUpdate:', error);
     }
+}
+
+//Handle uptime
+if (command === 'uptime') {
+   await uptimeCommand(sock, chatId, m, startTime);
 }
 
 // Instead, export the handlers along with handleMessages
