@@ -20,7 +20,7 @@ async function songCommand(sock, chatId, message) {
         const { videos } = await yts(searchQuery);
         if (!videos || videos.length === 0) {
             return await sock.sendMessage(chatId, { 
-                text: "No songs found is your song resiston earth😅!"
+                text: "No songs found is your song resist on earth😅!"
             });
         }
 
