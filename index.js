@@ -45,7 +45,7 @@ const { rmSync } = require('fs')
  * @param {boolean} [isError=false] - Whether to use console.error.
  */
 function log(message, color = 'white', isError = false) {
-    const prefix = chalk.magenta.bold('[ PRETTY - MD ]');
+    const prefix = chalk.blue.bold('[ PRETTY - MD ]');
     const logFunc = isError ? console.error : console.log;
     const coloredMessage = chalk[color](message);
     
@@ -283,10 +283,10 @@ async function checkAndHandleSessionFormat() {
                 envContent = envContent.replace(/^SESSION_ID=.*$/m, 'SESSION_ID=');
                 
                 fs.writeFileSync(envPath, envContent);
-                log('✅ Cleaned SESSION_ID entry in .env file.', 'green');
-                log('Please add a proper session ID and restart the bot.', 'magenta');
+                log('✅ Cleaned SESSION_ID entry in .env file.', 'blue');
+                log('Please add a proper session ID and restart the bot.', 'cyan');
             } catch (e) {
-                log(`Failed to modify .env file. Please check permissions: ${e.message}`, 'magenta', true);
+                log(`Failed to modify .env file. Please check permissions: ${e.message}`, 'red', true);
             }
             
             // Delay before exiting to allow user to read the message before automatic restart
