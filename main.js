@@ -19,7 +19,7 @@ const { autoreadCommand, isAutoreadEnabled, handleAutoread } = require('./comman
 const getppCommand =require('./commands/getpp');
 
 // Command imports
-const uptimeCommand = require('./commands/uptime');
+
 const tagAllCommand = require('./commands/tagall');
 const helpCommand = require('./commands/help');
 const banCommand = require('./commands/ban');
@@ -209,7 +209,7 @@ return decode.user && decode.server ? `${decode.user}@${decode.server}` : jid;
  const command = userMessage 
  const time = new Date().toLocaleTimeString();
  
- console.log(chalk.bgHex('#121212').blue.bold(`
+ console.log(chalk.bgHex('#121212').indigo.bold(`
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   📥 INCOMING MESSAGE: ${time}
   👤 From: ${pushname}
@@ -1228,11 +1228,6 @@ async function handleGroupParticipantUpdate(sock, update) {
     } catch (error) {
         console.error('Error in handleGroupParticipantUpdate:', error);
     }
-}
-
-//Handle uptime
-if (command === 'uptime') {
-   await uptimeCommand(sock, chatId, m, startTime);
 }
 
 // Instead, export the handlers along with handleMessages
