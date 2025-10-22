@@ -10,6 +10,7 @@ const fs = require('fs');
 const fetch = require('node-fetch');
 const ytdl = require('ytdl-core');
 const path = require('path');
+//const chalk = require('chalk')
 const axios = require('axios');
 const ffmpeg = require('fluent-ffmpeg');
 const { isSudo } = require('./lib/index');
@@ -140,7 +141,7 @@ const channelInfo = {
     }
 };
 
-async function handleMessages(sock, messageUpdate, printLog) {
+async function handleMessages(sock, messageUpdate, printLog, groupMeta) {
     try {
         const { messages, type } = messageUpdate;
         if (type !== 'notify') return;
@@ -181,11 +182,42 @@ async function handleMessages(sock, messageUpdate, printLog) {
             message.message?.imageMessage?.caption?.trim() ||
             message.message?.videoMessage?.caption?.trim() ||
             '';
-
-        // Only log command usage
-        if (userMessage.startsWith('.')) {
-            console.log(`📝 Command used in ${isGroup ? 'group' : 'private'}: ${userMessage}`);
-        }
+/*━━━━━━━━━━━━━━━━━━━━*/
+  // Only log command usage    /*━━━━━━━━━━━━━━━━━━━━*/
+if (userMessage) { 
+ const chalk = require('chalk');
+    
+    /*━━━━━━━━━━━━━━━━━━━━*/
+      // safe  decoding of jid     /*━━━━━━━━━━━━━━━━━━━━*/
+sock.decodeJid = (jid) => {
+if (!jid) return jid;
+if (/:\d+@/gi.test(jid)) {
+let decode = jidDecode(jid) || {};
+return decode.user && decode.server ? `${decode.user}@${decode.server}` : jid;
+        } else return jid;
+    };
+        
+/*━━━━━━━━━━━━━━━━━━━━*/
+//if (userMessage.startWith(.)) {
+ const from = sock.decodeJid(message.key.remoteJid);
+ const participant = sock.decodeJid(message.key.participant || from);
+ const body = message.message.conversation || message.message.extendedTextMessage?.text || '';
+ const pushname = message.pushName || "Unknown User";
+ const chatType = chatId.endsWith('@g.us') ? 'Group' : 'Private';
+ const chatName = chatType === 'Group' ? (groupMeta?.subject || 'Unknown Group') : pushname;
+ const command = userMessage 
+ const time = new Date().toLocaleTimeString();
+ 
+ console.log(chalk.bgHex('#121212').blue.bold(`
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  📥 INCOMING MESSAGE: ${time}
+  👤 From: ${pushname}
+  💬 Chat Type: ${chatType}: ${chatName}
+  💭 Message: ${body || "—"}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+`)
+);   
+ }
         // Enforce private mode BEFORE any replies (except owner/sudo)
         try {
             const data = JSON.parse(fs.readFileSync('./data/messageCount.json'));
@@ -871,15 +903,16 @@ async function handleMessages(sock, messageUpdate, printLog) {
             case userMessage.startsWith('.fb') || userMessage.startsWith('.facebook'):
                 await facebookCommand(sock, chatId, message);
                 break;
-            case userMessage.startsWith('.music'):
+            case userMessage.startsWith('.play'):
                 await playCommand(sock, chatId, message);
                 break;
             case userMessage.startsWith('.spotify'):
                 await spotifyCommand(sock, chatId, message);
                 break;
-            case userMessage.startsWith('.play') || userMessage.startsWith('.mp3') || userMessage.startsWith('.ytmp3') || userMessage.startsWith('.song'):
+            case userMessage.startsWith('.song') || userMessage.startsWith('.mp3') || userMessage.startsWith('.ytmp3'):
                 await songCommand(sock, chatId, message);
                 break;
+    
             case userMessage.startsWith('.video') || userMessage.startsWith('.ytmp4'):
                 await videoCommand(sock, chatId, message);
                 break;
