@@ -19,7 +19,6 @@ const { autoreadCommand, isAutoreadEnabled, handleAutoread } = require('./comman
 const getppCommand =require('./commands/getpp');
 
 // Command imports
-const startTime = Date.now();
 const uptimeCommand = require('./commands/uptime');
 const tagAllCommand = require('./commands/tagall');
 const helpCommand = require('./commands/help');
