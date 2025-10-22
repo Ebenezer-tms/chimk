@@ -26,7 +26,7 @@ async function songCommand(sock, chatId, message) {
 
         // Send loading message
         await sock.sendMessage(chatId, {
-            text: "> *Wait we're downloading your song if u don't have patience go away😆*"},{ quoted: message
+            text: "> *Wait we're downloading your song if u don't have patiencego away😆*"},{ quoted: message
         });
 
         // Get the first video result
@@ -49,7 +49,7 @@ async function songCommand(sock, chatId, message) {
         // Send the audio
         await sock.sendMessage(chatId, {
             audio: { url: audioUrl },
-            mimetype: "audio/mpeg"
+            mimetype: "audio/mpeg",
             fileName: `${title}.mp3`
         }, { quoted: message });
         
