@@ -26,7 +26,7 @@ async function songCommand(sock, chatId, message) {
 
         // Send loading message
         await sock.sendMessage(chatId, {
-            text: "> *Wait we're downloading your song if u don't have patiencego away😆*"},{ quoted: message
+            text: "> *Wait we're downloading your song if u don't have patience go away😆*"},{ quoted: message
         });
 
         // Get the first video result
