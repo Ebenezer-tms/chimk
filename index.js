@@ -1,14 +1,15 @@
 /**
  * Pretty md Bot - A WhatsApp Bot
- * © 2025 superstar
+ * © 2025 superstar 
  * * NOTE: This is the combined codebase. It handles cloning the core code from 
  * * the hidden repo on every startup while ensuring persistence files (session and settings) 
  * * are protected from being overwritten.
  */
 
 // --- Environment Setup ---
-require('dotenv').config() // CRITICAL: Load .env variables first!
-
+const config = require('./config');
+/*━━━━━━━━━━━━━━━━━━━━*/
+require('dotenv').config(); // CRITICAL: Load .env variables first!
 // *******************************************************************
 // *** CRITICAL CHANGE: REQUIRED FILES (settings.js, main, etc.) ***
 // *** HAVE BEEN REMOVED FROM HERE AND MOVED BELOW THE CLONER RUN. ***
@@ -18,6 +19,7 @@ const fs = require('fs')
 const chalk = require('chalk')
 const path = require('path')
 const axios = require('axios')
+const os = require('os')
 const PhoneNumber = require('awesome-phonenumber')
 // The smsg utility also depends on other files, so we'll move its require statement.
 // const { smsg } = require('./lib/myfunc') 
@@ -43,7 +45,7 @@ const { rmSync } = require('fs')
  * @param {boolean} [isError=false] - Whether to use console.error.
  */
 function log(message, color = 'white', isError = false) {
-    const prefix = chalk.blue.bold('[ PRETTY - MD ]');
+    const prefix = chalk.magenta.bold('[ PRETTY - MD ]');
     const logFunc = isError ? console.error : console.log;
     const coloredMessage = chalk[color](message);
     
@@ -198,7 +200,7 @@ function cleanupJunkFiles(botSocket) {
                     log(`[Junk Cleanup] Failed to delete file ${file}: ${e.message}`, 'blue', true);
                 }
             });
-            log(`[Junk Cleanup] ${filteredArray.length} files deleted.`, 'blue');
+            log(`[Junk Cleanup] ${filteredArray.length} files deleted.`, 'yellow');
         }
     });
 }
@@ -215,13 +217,19 @@ const rl = process.stdin.isTTY ? readline.createInterface({ input: process.stdin
 // called after the clone, so we keep this definition but ensure 'settings' is available when called.
 const question = (text) => rl ? new Promise(resolve => rl.question(text, resolve)) : Promise.resolve(settings?.ownerNumber || global.phoneNumber)
 
+/*━━━━━━━━━━━━━━━━━━━━*/
 // --- Paths (PRETTY MD) ---
+/*━━━━━━━━━━━━━━━━━━━━*/
 const sessionDir = path.join(__dirname, 'session')
 const credsPath = path.join(sessionDir, 'creds.json')
 const loginFile = path.join(sessionDir, 'login.json')
-const envPath = path.join(__dirname, '.env') // Path to the .env file
+const envPath = path.join(process.cwd(), '.env');
+//const envPath = path.join(__dirname, '.env') // Path to the .env file
 
+/*━━━━━━━━━━━━━━━━━━━━*/
 // --- Login persistence (PRETTY MD) ---
+/*━━━━━━━━━━━━━━━━━━━━*/
+
 async function saveLoginMethod(method) {
     await fs.promises.mkdir(sessionDir, { recursive: true });
     await fs.promises.writeFile(loginFile, JSON.stringify({ method }, null, 2));
@@ -275,10 +283,10 @@ async function checkAndHandleSessionFormat() {
                 envContent = envContent.replace(/^SESSION_ID=.*$/m, 'SESSION_ID=');
                 
                 fs.writeFileSync(envPath, envContent);
-                log('✅ Cleaned SESSION_ID entry in .env file.', 'blue');
-                log('Please add a proper session ID and restart the bot.', 'purple');
+                log('✅ Cleaned SESSION_ID entry in .env file.', 'green');
+                log('Please add a proper session ID and restart the bot.', 'magenta');
             } catch (e) {
-                log(`Failed to modify .env file. Please check permissions: ${e.message}`, 'purple', true);
+                log(`Failed to modify .env file. Please check permissions: ${e.message}`, 'magenta', true);
             }
             
             // Delay before exiting to allow user to read the message before automatic restart
@@ -390,13 +398,14 @@ async function sendWelcomeMessage(XeonBotInc) {
     
     // CRITICAL: Wait 10 seconds for the connection to fully stabilize
     await delay(10000); 
-    
+
     // 🧩 Host Detection Function
 function detectHost() {
     const env = process.env;
 
     if (env.RENDER || env.RENDER_EXTERNAL_URL) return 'Render';
     if (env.DYNO || env.HEROKU_APP_DIR || env.HEROKU_SLUG_COMMIT) return 'Heroku';
+    if (env.PORTS || env.CYPHERX_HOST_ID) return "CypherXHost"; 
     if (env.VERCEL || env.VERCEL_ENV || env.VERCEL_URL) return 'Vercel';
     if (env.RAILWAY_ENVIRONMENT || env.RAILWAY_PROJECT_ID) return 'Railway';
     if (env.REPL_ID || env.REPL_SLUG) return 'Replit';
@@ -409,12 +418,17 @@ function detectHost() {
 
     return 'Unknown Host';
 }
+    
 
     try {
         if (!XeonBotInc.user || global.isBotConnected) return;
 
         global.isBotConnected = true;
         const pNumber = XeonBotInc.user.id.split(':')[0] + '@s.whatsapp.net';
+        let data = JSON.parse(fs.readFileSync('./data/messageCount.json'));
+        const currentMode = data.isPublic ? 'public' : 'private';    
+        const hostName = detectHost();
+   
 
         // Send the message
         await XeonBotInc.sendMessage(pNumber, {
@@ -422,8 +436,9 @@ function detectHost() {
 ┏━━━━━☆《 CONNECTED 》☆
 ┃➥ Prefix: [.]
 ┃➥ Bot: ᴘʀᴇᴛᴛʏ 𝐌ᴅ
-┃➥ Status: Active
+┃➥ Mode: ${currentMode}
 ┃➥ Time: ${new Date().toLocaleString()}
+┃➥ Host: ${hostName}
 ┃➥ support: https://t.me/xhypher2025
 ┗━━━━━━━━━━━━━━━━━━━`
         });
@@ -444,8 +459,8 @@ function detectHost() {
                 } catch (e) {
                     console.log(chalk.red(`❌ failed to follow channel: ${e}`));
                   }
-                
-
+                  
+               
         // NEW: Reset the error counter on successful connection
         deleteErrorCountFile();
         global.errorRetryCount = 0;
@@ -590,8 +605,8 @@ async function startXeonBotInc() {
             }
         } else if (connection === 'open') { 
             console.log(chalk.blue(`DASHBOARD`))
-            console.log(chalk.blue(`Connected to => ` + JSON.stringify(XeonBotInc.user, null, 2)))
-            log('Pretty md connected', 'red');      
+            console.log(chalk.blue(`Pretty md Connected to => ` + JSON.stringify(XeonBotInc.user, null, 2)))
+            log('Pretty md connected', 'blue');      
             log(`GITHUB: Superstar-zimtk`, 'blue');
             
             // Send the welcome message (which includes the 10s stability delay and error reset)
@@ -679,7 +694,7 @@ async function checkSessionIntegrityAndClean() {
 function checkEnvStatus() {
     try {
         log("╔══════════════════════════", 'blue');
-        log(`║➽ ✨️ The xhypher bot is running 🚀`, 'blue');
+        log(`║➽ ✨️The xhypher bot is running 🚀 `, 'blue');
         log("╚══════════════════════════", 'blue');
         
         // Use persistent: false for better behavior in some hosting environments
@@ -703,7 +718,7 @@ function checkEnvStatus() {
 // -------------------------------------------------------------
 
 
-// --- Main login flow (PRETTY MD) ---
+// --- Main login flow (JUNE MD) ---
 async function tylor() {
     
     // 1. MANDATORY: Run the codebase cloner FIRST
@@ -759,8 +774,8 @@ async function tylor() {
         await saveLoginMethod('session'); 
 
         // 4c. Start bot with the newly created session files
-        log("session found (from .env file), shifting the bot from cloned repo...", 'red');
-        log('checking if you forked the repo...', 'red'); 
+        log("session found (from .env file), shifting the bot from cloned repo...", 'blue');
+        log('Waiting 3 seconds for stable connection...', 'yellow'); 
         await delay(3000);
         await startXeonBotInc();
         
@@ -778,7 +793,7 @@ async function tylor() {
     // 6. Check for a valid *stored* session after cleanup
     if (sessionExists()) {
         log("Valid session found, starting bot directly...", 'blue'); 
-        log('Waiting 3 seconds for stable connection...', 'ble');
+        log('Waiting 3 seconds for stable connection...', 'blue');
         await delay(3000);
         await startXeonBotInc();
         
