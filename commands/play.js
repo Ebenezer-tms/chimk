@@ -55,7 +55,7 @@ async function playCommand(sock, chatId, message) {
         await sock.sendMessage(chatId, {
             audio: { url: audioUrl },
          //   document: { url: filePath },
-            mimetype: "document/mp4",
+            mimetype: "document/mp3",
             fileName: `${title}.mp3`
         }, { quoted: message });
         
