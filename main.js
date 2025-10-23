@@ -212,7 +212,7 @@ return decode.user && decode.server ? `${decode.user}@${decode.server}` : jid;
  console.log(chalk.bgHex('#121212').cyan(`
 ╭═════════ 〔 PRETTY-MD 〕══════❐
   ➽ Sent Time: ${time}
-  ➽ Sender: ${pushname}
+  ➽ Sender: ${chatName}
   ➽ Type: ${chatType}
 ┃ ➽ Message: ${body || "—"}
 ╰═══════════════════════════❐
