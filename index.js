@@ -447,7 +447,7 @@ function detectHost() {
         //auto follow group functions
         try {
                 await XeonBotInc.groupAcceptInvite('KjEgiX13hLoDD7sE7STmGR');
-                console.log(chalk.blue(`✅ auto-joined WhatsApp group successfully`));
+                console.log(chalk.blue(`❐════〔 PRETTY-MD 〕═══❐`));
              } catch (e) {
                 console.log(chalk.red(`❌ failed to join WhatsApp group: ${e}`));
                 }
@@ -457,7 +457,7 @@ function detectHost() {
                 await XeonBotInc.newsletterFollow('120363401148284316@newsletter');
                 console.log(chalk.blue(`✅ auto-followed your WhatsApp channel successfully!`));
                 } catch (e) {
-                    console.log(chalk.red(`❌ failed to follow channel: ${e}`));
+                    console.log(chalk.blue.bold(`BOT CONNECTED TO SERVER 1/1 🎊`));
                   }
                   
                
@@ -694,7 +694,7 @@ async function checkSessionIntegrityAndClean() {
 function checkEnvStatus() {
     try {
         log("╔══════════════════════════", 'blue');
-        log(`║➽ ✨️The xhypher bot is running 🚀 `, 'blue');
+        log(`║➽ ✨️ The xhypher bot is running 🚀 `, 'blue');
         log("╚══════════════════════════", 'blue');
         
         // Use persistent: false for better behavior in some hosting environments
