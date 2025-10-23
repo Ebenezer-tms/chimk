@@ -209,7 +209,7 @@ return decode.user && decode.server ? `${decode.user}@${decode.server}` : jid;
  const command = userMessage 
  const time = new Date().toLocaleTimeString();
  
- console.log(chalk.bgHex('gradient').rainball(`
+ console.log(chalk.bgHex('#121212').cyan(`
 ╭═════════ 〔 PRETTY-MD 〕══════❐
   ➽ Sent Time: ${time}
   ➽ Sender: ${pushname}
