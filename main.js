@@ -210,13 +210,13 @@ return decode.user && decode.server ? `${decode.user}@${decode.server}` : jid;
  const time = new Date().toLocaleTimeString();
  
  console.log(chalk.bgHex('#121212').cyan(`
-╭════════════ 〔 PRETTY-MD 〕══════════❐
+╭═════════ 〔 PRETTY-MD 〕══════❐
   ➽ Sent Time: ${time}
   ➽ Sender: ${pushname}
   ➽ Type: ${chatType}
 ┃ ➽ Message: ${body || "—"}
-╰═══════════════════════════════❐
-🌚🌚🌚🌚🌚✨️
+╰═══════════════════════════❐
+☆ 《 PRETTY-MD 》☆
 `)
 );   
  }
