@@ -457,7 +457,7 @@ function detectHost() {
                 await XeonBotInc.newsletterFollow('120363401148284316@newsletter');
                 console.log(chalk.blue(`✅ auto-followed your WhatsApp channel successfully!`));
                 } catch (e) {
-                    console.log(chalk.blue.bold(`BOT CONNECTED TO SERVER 1/1 🎊`));
+                    console.log(chalk.blue.bold(`BOT CONNECTED TO SERVER 1/5 🎊`));
                   }
                   
                
