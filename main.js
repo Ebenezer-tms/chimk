@@ -122,6 +122,7 @@ const { anticallCommand, readState: readAnticallState } = require('./commands/an
 const { pmblockerCommand, readState: readPmBlockerState } = require('./commands/pmblocker');
 const settingsCommand = require('./commands/settings');
 const soraCommand = require('./commands/sora');
+const apkCommand = require('./commands/apk')
 
 // Global settings
 global.packname = settings.packname;
@@ -409,6 +410,10 @@ return decode.user && decode.server ? `${decode.user}@${decode.server}` : jid;
             case userMessage.startsWith('.attp'):
                 await attpCommand(sock, chatId, message);
                 break;
+
+            case userMessage.startsWith('.apk'):
+                await apkCommand(sock, chatId, message);
+                break;    
 
             case userMessage === '.settings':
                 await settingsCommand(sock, chatId, message);
