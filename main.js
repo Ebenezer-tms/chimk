@@ -96,6 +96,7 @@ const instagramCommand = require('./commands/instagram');
 const facebookCommand = require('./commands/facebook');
 const spotifyCommand = require('./commands/spotify');
 const playCommand = require('./commands/play');
+const play2Command = require('./commands/play2');
 const tiktokCommand = require('./commands/tiktok');
 const songCommand = require('./commands/song');
 const aiCommand = require('./commands/ai');
@@ -122,6 +123,7 @@ const { pmblockerCommand, readState: readPmBlockerState } = require('./commands/
 const settingsCommand = require('./commands/settings');
 const soraCommand = require('./commands/sora');
 const apkCommand = require('./commands/apk')
+const song2Command = require('./commands/song2');
 
 // Global settings
 global.packname = settings.packname;
@@ -917,8 +919,14 @@ return decode.user && decode.server ? `${decode.user}@${decode.server}` : jid;
             case userMessage.startsWith('.play'):
                 await playCommand(sock, chatId, message);
                 break;
+            case userMessage.startsWith('.play2'):
+                await play2Command(sock, chatId, message);
+                break;
             case userMessage.startsWith('.spotify'):
                 await spotifyCommand(sock, chatId, message);
+                break;
+            case userMessage.startsWith('.song') || userMessage.startsWith('.mp3') || userMessage.startsWith('.ytmp3'):
+                await songCommand(sock, chatId, message);
                 break;
             case userMessage.startsWith('.song') || userMessage.startsWith('.mp3') || userMessage.startsWith('.ytmp3'):
                 await songCommand(sock, chatId, message);
