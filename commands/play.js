@@ -39,7 +39,7 @@ async function playCommand(sock, chatId, message) {
         const urlYt = video.url;
 
         // Fetch audio data from API
-        const response = await axios.get(`https://api.akuari.my.id/downloader/youtube?link=${urlYt}`);
+        const response = await axios.get(`https://api.privatezia.biz.id/api/downloader/ytmp3?url=${urlYt}`);
         const data = response.data;
 
         if (!data || !data.status || !data.result || !data.result.downloadUrl) {
@@ -53,7 +53,8 @@ async function playCommand(sock, chatId, message) {
 
         // Send the audio
         await sock.sendMessage(chatId, {
-            document: { url: filePath },
+            audio: { url: audioUrl },
+         //   document: { url: filePath },
             mimetype: "audio/mpeg",
             fileName: `${title}.mp3`
         }, { quoted: message });
