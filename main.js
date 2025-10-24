@@ -19,7 +19,6 @@ const { autoreadCommand, isAutoreadEnabled, handleAutoread } = require('./comman
 const getppCommand =require('./commands/getpp');
 
 // Command imports
-
 const tagAllCommand = require('./commands/tagall');
 const helpCommand = require('./commands/help');
 const banCommand = require('./commands/ban');
@@ -143,7 +142,7 @@ const channelInfo = {
     }
 };
 
-async function handleMessages(sock, messageUpdate, printLog, groupMeta) {
+async function handleMessages(sock, messageUpdate, printLog ) {
     try {
         const { messages, type } = messageUpdate;
         if (type !== 'notify') return;
@@ -187,8 +186,7 @@ async function handleMessages(sock, messageUpdate, printLog, groupMeta) {
 /*━━━━━━━━━━━━━━━━━━━━*/
   // Only log command usage    /*━━━━━━━━━━━━━━━━━━━━*/
 if (userMessage) { 
- const chalk = require('chalk');
-    
+  
     /*━━━━━━━━━━━━━━━━━━━━*/
       // safe  decoding of jid     /*━━━━━━━━━━━━━━━━━━━━*/
 sock.decodeJid = (jid) => {
@@ -198,16 +196,20 @@ let decode = jidDecode(jid) || {};
 return decode.user && decode.server ? `${decode.user}@${decode.server}` : jid;
         } else return jid;
     };
-        
+ /*━━━━━━━━━━━━━━━━━━━━*/
+  // *****();log() imports only  
 /*━━━━━━━━━━━━━━━━━━━━*/
-//if (userMessage.startWith(.)) {
+  const chalk = require('chalk');
+ const groupMetadata = isGroup
+  ? await sock.groupMetadata(chatId).catch(() => ({}))
+  : {};
  const from = sock.decodeJid(message.key.remoteJid);
  const participant = sock.decodeJid(message.key.participant || from);
  const body = message.message.conversation || message.message.extendedTextMessage?.text || '';
  const pushname = message.pushName || "Unknown User";
  const chatType = chatId.endsWith('@g.us') ? 'Group' : 'Private';
- const chatName = chatType === 'Group' ? (groupMeta?.subject || 'Unknown Group') : pushname;
- const command = userMessage 
+ const chatName = chatType === 'Group' ? (groupMetadata?.subject || 'Unknown Group') : pushname;
+ const command = messageUpdate
  const time = new Date().toLocaleTimeString();
  
  console.log(chalk.bgHex('#121212').cyan(`
@@ -217,7 +219,7 @@ return decode.user && decode.server ? `${decode.user}@${decode.server}` : jid;
   ➽ Type: ${chatType}
 ┃ ➽ Message: ${body || "—"}
 ╰═══════════════════════════❐
-☆ 《 PRETTY-MD 》☆
+☆ 《 PRETTY-MD 》☆.
 `)
 );   
  }
@@ -410,10 +412,12 @@ return decode.user && decode.server ? `${decode.user}@${decode.server}` : jid;
             case userMessage.startsWith('.attp'):
                 await attpCommand(sock, chatId, message);
                 break;
-
+                
+                
             case userMessage.startsWith('.apk'):
                 await apkCommand(sock, chatId, message);
-                break;    
+                break;
+                
 
             case userMessage === '.settings':
                 await settingsCommand(sock, chatId, message);
