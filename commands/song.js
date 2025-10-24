@@ -48,7 +48,7 @@ async function songCommand(sock, chatId, message) {
 
         // Send the audio
         await sock.sendMessage(chatId, {
-            document: { url: filePath },
+            audio: { url: audioUrl },
             mimetype: "audio/mpeg",
             fileName: `${title}.mp3`
         }, { quoted: message });
