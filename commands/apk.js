@@ -40,7 +40,7 @@
 🔹️ *App Name:* ${app.name}
 🔹️ *Last Updated:* ${app.updated}
 🔹️ *Size:* ${sizeMB} MB
-💻 > *Pretty md is on fire*
+> Pretty md is on fire
 `.trim();
 
         // React upload
