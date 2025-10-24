@@ -219,7 +219,7 @@ return decode.user && decode.server ? `${decode.user}@${decode.server}` : jid;
   ➽ Type: ${chatType}
 ┃ ➽ Message: ${body || "—"}
 ╰═══════════════════════════❐
-☆ 《 PRETTY-MD 》☆.
+☆ 《 PRETTY-MD 》☆
 `)
 );   
  }
