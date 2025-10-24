@@ -37,9 +37,9 @@
         const sizeMB = (app.size / (1024 * 1024)).toFixed(2);
 
         const caption = `
-🔹️*App Name:* ${app.name}
-🔹️*Last Updated:* ${app.updated}
-🔹️*Size:* ${sizeMB} MB
+🔹️ *App Name:* ${app.name}
+🔹️ *Last Updated:* ${app.updated}
+🔹️ *Size:* ${sizeMB} MB
 💻 > *Pretty md is on fire*
 `.trim();
 
