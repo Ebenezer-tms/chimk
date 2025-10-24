@@ -37,10 +37,10 @@
         const sizeMB = (app.size / (1024 * 1024)).toFixed(2);
 
         const caption = `
- *App Name:* ${app.name}
- *Package:* ${app.package}
- *Last Updated:* ${app.updated}
- *Size:* ${sizeMB} MB
+🔹️*App Name:* ${app.name}
+🔹️*Last Updated:* ${app.updated}
+🔹️*Size:* ${sizeMB} MB
+💻 > *Pretty md is on fire*
 `.trim();
 
         // React upload
@@ -54,7 +54,7 @@
             contextInfo: {
                 externalAdReply: {
                     title: app.name,
-                    body: "pretty md",
+                    body: "🎊 downloded successfully✔️",
                     mediaType: 1,
                     sourceUrl: app.file.path_alt,
                     thumbnailUrl: app.icon,
