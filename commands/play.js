@@ -8,7 +8,7 @@ async function playdocCommand(sock, chatId, message) {
         // React to the command first
         await sock.sendMessage(chatId, {
             react: {
-                text: "🎧",
+                text: "",
                 key: message.key
             }
         });
