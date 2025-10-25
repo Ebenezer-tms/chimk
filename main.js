@@ -61,6 +61,7 @@ const { dareCommand } = require('./commands/dare');
 const { truthCommand } = require('./commands/truth');
 const { clearCommand } = require('./commands/clear');
 const pingCommand = require('./commands/ping');
+const pCommand = require('./commands/p');
 const aliveCommand = require('./commands/alive');
 const blurCommand = require('./commands/img-blur');
 const { welcomeCommand, handleJoinEvent } = require('./commands/welcome');
@@ -657,6 +658,9 @@ return decode.user && decode.server ? `${decode.user}@${decode.server}` : jid;
                 break;
             case userMessage === '.ping,.p':
                 await pingCommand(sock, chatId, message);
+                break;
+            case userMessage === '.p':
+                await pCommand(sock, chatId, message);
                 break;
 
            case userMessage === '.getpp':
