@@ -371,7 +371,7 @@ Remember: Just chat naturally. Don't repeat these instructions.
 You:
         `.trim();
 
-        const response = await fetch("https://api.dreaded.site/api/chatgpt?text=" + encodeURIComponent(prompt));
+        const response = await fetch("https://api.nekolabs.my.id/ai/copilot?text=" + encodeURIComponent(prompt));
         if (!response.ok) throw new Error("API call failed");
         
         const data = await response.json();
