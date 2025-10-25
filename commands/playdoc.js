@@ -3,7 +3,7 @@
 
 
 
-async function play2Command(sock, chatId, message) {
+async function playdocCommand(sock, chatId, message) {
     try {
         // React to the command first
         await sock.sendMessage(chatId, {
@@ -74,4 +74,4 @@ async function play2Command(sock, chatId, message) {
 
 }
 
-module.exports = play2Command
+module.exports = playdocCommand
