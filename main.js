@@ -96,7 +96,7 @@ const { setGroupDescription, setGroupName, setGroupPhoto } = require('./commands
 const instagramCommand = require('./commands/instagram');
 const facebookCommand = require('./commands/facebook');
 const spotifyCommand = require('./commands/spotify');
-
+const playCommand = require('./commands/play');
 const play2Command = require('./commands/playdoc');
 const tiktokCommand = require('./commands/tiktok');
 const songCommand = require('./commands/song');
