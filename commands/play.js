@@ -8,7 +8,7 @@ async function playdocCommand(sock, chatId, message) {
         // React to the command first
         await sock.sendMessage(chatId, {
             react: {
-                text: "🎵",
+                text: "🎧",
                 key: message.key
             }
         });
@@ -28,7 +28,7 @@ async function playdocCommand(sock, chatId, message) {
 
         if (!query) {
             return await sock.sendMessage(chatId, {
-                text: '*🎵 Audio Player*\nPlease provide a song name to play.*'
+                text: 'which song do you want to download 🤷‍♂️?'
             }, { quoted: message });
         }
 
