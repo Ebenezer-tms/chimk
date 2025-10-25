@@ -40,6 +40,10 @@ async function playdocCommand(sock, chatId, message) {
             return await sock.sendMessage(chatId, {
                 text: '*❌ No Results Found*\nNo songs found for your query. Please try different keywords.*'
             }, { quoted: message });
+             // Send loading message
+        await sock.sendMessage(chatId, {
+            text: "_Please wait your download is in progress_"
+        });
         }
 
         const safeTitle = video.title.replace(/[\\/:*?"<>|]/g, '');
