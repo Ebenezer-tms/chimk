@@ -1,3 +1,51 @@
+const axios = require("axios");
+
+ async function aiCommand( sock, chatId, message ) {
+        try {
+ await sock.sendMessage(chatId, {
+            react: { text: '🛰️', key: message.key }
+        }); 
+            
+ const text = message.message?.conversation || message.message?.extendedTextMessage?.text;
+       
+           if (!text) {
+ await sock.sendMessage(chatId, { 
+                text: "Please provide a question after .gpt or .gemini\n\nExample: .gpt write a basic html code"
+            });
+        }
+  const res = await axios.get(    `https://api.nekolabs.my.id/ai/copilot?text=${encodeURIComponent(text)}`
+            );
+ if (!res.data || !res.data.result || !res.data.result.text){
+ await sock.sendMessage(chatId, { 
+                text: "Error occurrd"},{ quoted: message
+            });
+        }
+  
+ await sock.sendMessage(chatId, {
+                text: res.data.result.text
+            },{ quoted: message });
+  
+  await sock.sendMessage(chatId, {
+            react: { text: '✅', key: message.key }
+        });            
+            
+        } catch (err) {
+            console.error(err);
+   await sock.sendMessage(chatId, { 
+                text: "❎ Error occured"
+            },{ quoted: message });
+            
+        }
+    };
+
+module.exports = aiCommand;
+
+
+
+
+
+
+/*
 const axios = require('axios');
 const fetch = require('node-fetch');
 
@@ -97,3 +145,5 @@ async function aiCommand(sock, chatId, message) {
 }
 
 module.exports = aiCommand; 
+
+*/
