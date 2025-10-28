@@ -252,7 +252,7 @@ function sessionExists() {
 async function checkEnvSession() {
     const envSessionID = process.env.SESSION_ID;
     if (envSessionID) {
-        if (!envSessionID.includes("CYPHER-X:~")) { 
+        if (!envSessionID.includes("XHYPHER:~")) { 
             log("🚨 WARNING: Environment SESSION_ID is missing the required prefix 'XHYPHER:~'. Assuming BASE64 format.", 'red'); 
         }
         global.SESSION_ID = envSessionID.trim();
@@ -269,7 +269,7 @@ async function checkAndHandleSessionFormat() {
     
     if (sessionId && sessionId.trim() !== '') {
         // Only check if it's set and non-empty
-        if (!sessionId.trim().startsWith('CYPHER-X')) {
+        if (!sessionId.trim().startsWith('XHYPHER')) {
             log(chalk.red.bgBlack('================================================='), 'white');
             log(chalk.white.bgRed('❌ ERROR: Invalid SESSION_ID in .env'), 'white');
             log(chalk.white.bgRed('The session ID MUST start with "XHYPHER".'), 'white');
@@ -341,8 +341,8 @@ async function getLoginMethod() {
         let sessionId = await question(chalk.bgBlack(chalk.greenBright(`Paste your Session ID here: `)));
         sessionId = sessionId.trim();
         // Pre-check the format during interactive entry as well
-        if (!sessionId.includes("CYPHER-X:~")) { 
-            log("Invalid Session ID format! Must contain 'CYPHER-X:~'.", 'red'); 
+        if (!sessionId.includes("XHYPHER:~")) { 
+            log("Invalid Session ID format! Must contain 'XHYPHER:~'.", 'red'); 
             process.exit(1); 
         }
         global.SESSION_ID = sessionId;
@@ -360,7 +360,7 @@ async function downloadSessionData() {
         await fs.promises.mkdir(sessionDir, { recursive: true });
         if (!fs.existsSync(credsPath) && global.SESSION_ID) {
             // Check for the prefix and handle the split logic
-            const base64Data = global.SESSION_ID.includes("CYPHER-X:~") ? global.SESSION_ID.split("CYPHER-X:~")[1] : global.SESSION_ID;
+            const base64Data = global.SESSION_ID.includes("XHYPHER:~") ? global.SESSION_ID.split("XHYPHER:~")[1] : global.SESSION_ID;
             const sessionData = Buffer.from(base64Data, 'base64');
             await fs.promises.writeFile(credsPath, sessionData);
             log(`Session successfully saved.`, 'blue');
