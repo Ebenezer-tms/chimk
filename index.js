@@ -341,8 +341,8 @@ async function getLoginMethod() {
         let sessionId = await question(chalk.bgBlack(chalk.greenBright(`Paste your Session ID here: `)));
         sessionId = sessionId.trim();
         // Pre-check the format during interactive entry as well
-        if (!sessionId.includes("XHYPHER:~")) { 
-            log("Invalid Session ID format! Must contain 'XHYPHER:~'.", 'red'); 
+        if (!sessionId.includes("CYPHER-X:~")) { 
+            log("Invalid Session ID format! Must contain 'CYPHER-X:~'.", 'red'); 
             process.exit(1); 
         }
         global.SESSION_ID = sessionId;
