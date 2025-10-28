@@ -360,7 +360,7 @@ async function downloadSessionData() {
         await fs.promises.mkdir(sessionDir, { recursive: true });
         if (!fs.existsSync(credsPath) && global.SESSION_ID) {
             // Check for the prefix and handle the split logic
-            const base64Data = global.SESSION_ID.includes("XHYPHER:~") ? global.SESSION_ID.split("XHYPHER:~")[1] : global.SESSION_ID;
+            const base64Data = global.SESSION_ID.includes("CYPHER-X:~") ? global.SESSION_ID.split("XHYPHER:~")[1] : global.SESSION_ID;
             const sessionData = Buffer.from(base64Data, 'base64');
             await fs.promises.writeFile(credsPath, sessionData);
             log(`Session successfully saved.`, 'blue');
