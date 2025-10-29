@@ -180,6 +180,7 @@ const { truthCommand } = require('./commands/truth');
 const { clearCommand } = require('./commands/clear');
 const pingCommand = require('./commands/ping');
 const aliveCommand = require('./commands/alive');
+const tutorialCommand = require('./commands/tutorial');
 const blurCommand = require('./commands/img-blur');
 const githubCommand = require('./commands/github');
 /*━━━━━━━━━━━━━━━━━━━━*/
@@ -845,6 +846,10 @@ return decode.user && decode.server ? `${decode.user}@${decode.server}` : jid;
                   userMessage === `${prefix}p`:
                 await pingCommand(sock, chatId, message);
                 break;
+          
+           case userMessage === `${prefix}tutorial`:
+                await tutorialCommand(sock, chatId, message);
+                break
                 
             case userMessage === `${prefix}bible`:
                 await bibleCommand(sock, chatid, message);
