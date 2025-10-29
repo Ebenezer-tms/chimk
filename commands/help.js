@@ -61,14 +61,12 @@ const hostName = detectHost();
     
     const helpMessage = `
 ┏❐  *❴《 😍Pretty-𝙼𝙳-𝙱𝙾𝚃😍 》❵* ❐
-┃➽ *Owner:* ${settings.botOwner}
-┃➽ *prefix:* [.]
-┃➽ *Mode:* ${currentMode}
-┃➽ *Host:* ${hostName}
-┃➽ *Speed:* ${ping} ms
-┃➽ *Uptime:* ${uptimeFormatted}
-┃➽ *Plugins:* 200
-┃➽ *version:* ${settings.version}
+├◆ *Owner:* ${settings.botOwner}
+├◆ *Mode:* ${currentMode}
+├◆ *Host:* ${hostName}
+├◆ *Speed:* ${ping} ms
+├◆ *Uptime:* ${uptimeFormatted}
+├◆ *version:* ${settings.version}
 ┃➽ *ᴜsᴀɢᴇ:* 96 MB of 8 GB
 ┃➽ *ʀᴀᴍ:* [███████░░░] 68%
 ┗❐
