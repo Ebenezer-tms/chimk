@@ -240,7 +240,9 @@ const { igsCommand } = require('./commands/igs');
 /*━━━━━━━━━━━━━━━━━━━━*/
 const settingsCommand = require('./commands/settings');
 const soraCommand = require('./commands/sora');
-const apkCommand = require('./commands/apk')
+const apkCommand = require('./commands/apk');
+const bibleCommand = require('./commands/bible');
+const quranCommand = require('./commands/quran');
 /*━━━━━━━━━━━━━━━━━━━━*/
 
 /*━━━━━━━━━━━━━━━━━━━━*/
@@ -840,8 +842,16 @@ return decode.user && decode.server ? `${decode.user}@${decode.server}` : jid;
                   userMessage === `${prefix}p`:
                 await pingCommand(sock, chatId, message);
                 break;
-
-           case userMessage === `${prefix}getpp`:
+                
+            case userMessage === `${prefix}bible`:
+                await bibleCommand(sock, chatid, message);
+                break;
+                
+            case userMessage === `${prefix}quran`:
+                await quranCommand(sock, chatid, message);
+                break;
+           
+            case userMessage === `${prefix}getpp`:
                await getppCommand(sock, chatId, message);
               break;
                 
