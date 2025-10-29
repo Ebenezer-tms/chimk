@@ -67,187 +67,187 @@ const hostName = detectHost();
 ├◆ *Speed:* ${ping} ms
 ├◆ *Uptime:* ${uptimeFormatted}
 ├◆ *version:* ${settings.version}
-┃➽ *ᴜsᴀɢᴇ:* 96 MB of 8 GB
-┃➽ *ʀᴀᴍ:* [███████░░░] 68%
+├◆➽ *ᴜsᴀɢᴇ:* 96 MB of 8 GB
+├◆➽ *ʀᴀᴍ:* [███████░░░] 68%
 ┗❐
   ${readmore}
 ┏❐《 *AI MENU* 》 ❐
-┃ .Ai
-┃ .gpt
-┃ .gemini
-┃ .imagine
-┃ .flux
+┃├◆ .Ai
+┃├◆ .gpt
+┃├◆ .gemini
+┃├◆ .imagine
+┃├◆ .flux
 ┗❐   
 
 ┏❐《 *OWNER MENU* 》 ❐
-┃ .ban
-┃ .restart
-┃ .unban
-┃ .promote
-┃ .demote
-┃ .mute 
-┃ .unmute
-┃ .delete
-┃ .kick
-┃ .warnings
-┃ .antilink
-┃ .antibadword
-┃ .clear
-┃ .chatbot
+┃├◆ .ban
+┃├◆ .restart
+┃├◆ .unban
+┃├◆ .promote
+┃├◆ .demote
+┃├◆ .mute 
+┃├◆ .unmute
+┃├◆ .delete
+┃├◆ .kick
+┃├◆ .warnings
+┃├◆ .antilink
+┃├◆ .antibadword
+┃├◆ .clear
+┃├◆ .chatbot
 ┗❐
 
 ┏❐《 *GROUP MENU* 》 ❐
-┃ .promote
-┃ .demote
-┃ .settings
-┃ .welcome
-┃ .setgpp
-┃ .getgpp
-┃ .listadmin
-┃ .goodbye
-┃ .tagnoadmin
-┃ .tag 
-┃ .antilink
-┃ .set welcome
-┃ .listadmin
-┃ .groupinfo
-┃ .admins 
-┃ .warn
-┃ .revoke
-┃ .resetlink
-┃ .open
-┃ .close
-┃ .mention
+┃├◆ .promote
+┃├◆ .demote
+┃├◆ .settings
+┃├◆ .welcome
+┃├◆ .setgpp
+┃├◆ .getgpp
+┃├◆ .listadmin
+┃├◆ .goodbye
+┃├◆ .tagnoadmin
+┃├◆ .tag 
+┃├◆ .antilink
+┃├◆ .set welcome
+┃├◆ .listadmin
+┃├◆ .groupinfo
+┃├◆ .admins 
+┃├◆ .warn
+┃├◆ .revoke
+┃├◆ .resetlink
+┃├◆ .open
+┃├◆ .close
+┃├◆ .mention
 ┗❐
   ${readmore}
 ┏❐《 *SETTING MENU* 》❐
-┃ .mode
-┃ .autostatus
-┃ .pmblock
-┃ .setmention
-┃ .autoread
-┃ .clearsession
-┃ .antidelete
-┃ .cleartmp
-┃ .autoreact
-┃ .getpp
-┃ .setpp
-┃ .sudo
-┃ .autotyping 
+┃├◆ .mode
+┃├◆ .autostatus
+┃├◆ .pmblock
+┃├◆ .setmention
+┃├◆ .autoread
+┃├◆ .clearsession
+┃├◆ .antidelete
+┃├◆ .cleartmp
+┃├◆ .autoreact
+┃├◆ .getpp
+┃├◆ .setpp
+┃├◆ .sudo
+┃├◆ .autotyping 
 ┗❐
   
 ┏❐《 *MAIN MENU* 》❐
-┃ .url
-┃ .tagall
-┃ .yts
-┃ .play
-┃ .trt
-┃ .alive
-┃ .ping 
-┃ .vv
-┃ .video
-┃ .song
-┃ .ssweb
-┃ .instagram
-┃ .facebook
-┃ .tiktok 
-┃ .ytmp4
+┃├◆ .url
+┃├◆ .tagall
+┃├◆ .yts
+┃├◆ .play
+┃├◆ .trt
+┃├◆ .alive
+┃├◆ .ping 
+┃├◆ .vv
+┃├◆ .video
+┃├◆ .song
+┃├◆ .ssweb
+┃├◆ .instagram
+┃├◆ .facebook
+┃├◆ .tiktok 
+┃├◆ .ytmp4
 ┗❐
 
 ┏❐《 *STICKER MENU* 》❐
-┃ .blur
-┃ .simage 
-┃ .sticker
-┃ .tgsticker
-┃ .meme
-┃ .take 
-┃ .emojimix
+┃├◆ .blur
+┃├◆ .simage 
+┃├◆ .sticker
+┃├◆ .tgsticker
+┃├◆ .meme
+┃├◆ .take 
+┃├◆ .emojimix
 ┗❐
 
 ┏❐《 *GAME MENU* 》❐
-┃ .tictactoe 
-┃ .hangman
-┃ .guess 
-┃ .trivia
-┃ .answer
-┃ .truth
-┃ .dare
-┃ .8ball
+┃├◆ .tictactoe 
+┃├◆ .hangman
+┃├◆ .guess 
+┃├◆ .trivia
+┃├◆ .answer
+┃├◆ .truth
+┃├◆ .dare
+┃├◆ .8ball
 ┗❐
   ${readmore}
 ┏❐《 *MAKER MENU* 》❐
-┃ .compliment
-┃ .insult
-┃ .flirt 
-┃ .shayari
-┃ .goodnight
-┃ .roseday
-┃ .character
-┃ .wasted
-┃ .ship 
-┃ .simp
-┃ .stupid
+┃├◆ .compliment
+┃├◆ .insult
+┃├◆ .flirt 
+┃├◆ .shayari
+┃├◆ .goodnight
+┃├◆ .roseday
+┃├◆ .character
+┃├◆ .wasted
+┃├◆ .ship 
+┃├◆ .simp
+┃├◆ .stupid
 ┗❐
 
 ┏❐《 *ANIME MENU* 》❐
-┃ .neko
-┃ .waifu
-┃ .loli
-┃ .nom 
-┃ .poke 
-┃ .cry 
-┃ .kiss 
-┃ .pat 
-┃ .hug 
-┃ .wink 
-┃ .facepalm 
+┃├◆ .neko
+┃├◆ .waifu
+┃├◆ .loli
+┃├◆ .nom 
+┃├◆ .poke 
+┃├◆ .cry 
+┃├◆ .kiss 
+┃├◆ .pat 
+┃├◆ .hug 
+┃├◆ .wink 
+┃├◆ .facepalm 
 ┗❐
  
 ┏❐《 *MAKER MENU* 》❐
-┃ .metallic 
-┃ .ice 
-┃ .snow
-┃ .impressive
-┃ .matrix
-┃ .light
-┃ .neon
-┃ .devil
-┃ .purple
-┃ .thunder
-┃ .leaves
-┃ .1917 
-┃ .arena
-┃ .hacker
-┃ .sand
-┃ .blackpink
-┃ .glitch
-┃ .fire 
+┃├◆ .metallic 
+┃├◆ .ice 
+┃├◆ .snow
+┃├◆ .impressive
+┃├◆ .matrix
+┃├◆ .light
+┃├◆ .neon
+┃├◆ .devil
+┃├◆ .purple
+┃├◆ .thunder
+┃├◆ .leaves
+┃├◆ .1917 
+┃├◆ .arena
+┃├◆ .hacker
+┃├◆ .sand
+┃├◆ .blackpink
+┃├◆ .glitch
+┃├◆ .fire 
 ┗❐
  ${readmore}
 ┏❐《 *IMG EDIT* 》❐
-┃ .heart
-┃ .horny
-┃ .circle
-┃ .lgbt
-┃ .lolice
-┃ .stupid
-┃ .namecard 
-┃ .tweet
-┃ .ytcomment 
-┃ .comrade 
-┃ .gay 
-┃ .glass 
-┃ .jail 
-┃ .passed 
-┃ .triggered
+┃├◆ .heart
+┃├◆ .horny
+┃├◆ .circle
+┃├◆ .lgbt
+┃├◆ .lolice
+┃├◆ .stupid
+┃├◆ .namecard 
+┃├◆ .tweet
+┃├◆ .ytcomment 
+┃├◆ .comrade 
+┃├◆ .gay 
+┃├◆ .glass 
+┃├◆ .jail 
+┃├◆ .passed 
+┃├◆ .triggered
 ┗❐
 
 ┏❐《 *GITHUB CMD* 》❐
-┃ .git
-┃ .github
-┃ .sc
-┃ .script
-┃ .repo
+┃├◆ .git
+┃├◆ .github
+┃├◆ .sc
+┃├◆ .script
+┃├◆ .repo
 ┗❐
 `;
 
