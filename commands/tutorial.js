@@ -1,5 +1,4 @@
-js
-  module.exports = async (sock, m, command, args) => {
+module.exports = async (sock, m, command, args) => {
   const tutorials = `
 📚 *Bot Tutorial Links:*
 
