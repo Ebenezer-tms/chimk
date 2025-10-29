@@ -848,11 +848,10 @@ return decode.user && decode.server ? `${decode.user}@${decode.server}` : jid;
                 break;
           
            case userMessage === `${prefix}tutorial`:
-                await tutorial(sock, m, command, args);
-   }
-            
-                
-            case userMessage === `${prefix}bible`:
+                await tutorialCommand(sock, m, command, args);
+                break;
+           
+           case userMessage === `${prefix}bible`:
                 await bibleCommand(sock, chatid, message);
                 break;
                 
