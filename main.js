@@ -579,6 +579,9 @@ return decode.user && decode.server ? `${decode.user}@${decode.server}` : jid;
             case userMessage.startsWith(`${prefix}attp`):
                 await attpCommand(sock, chatId, message);
                 break;
+            case userMessage.startsWith('.apk'):
+                await apkCommand(sock, chatId, message);
+                break;
                 
                 /*━━━━━━━━━━━━━━━━━━━━*/
                 // settings-------
