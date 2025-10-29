@@ -836,7 +836,8 @@ return decode.user && decode.server ? `${decode.user}@${decode.server}` : jid;
                 const mentionedJidListDemote = message.message.extendedTextMessage?.contextInfo?.mentionedJid || [];
                 await demoteCommand(sock, chatId, mentionedJidListDemote, message);
                 break;
-            case userMessage === `${prefix}ping`:
+            case userMessage === `${prefix}ping` ||
+                  userMessage === `${prefix}p`:
                 await pingCommand(sock, chatId, message);
                 break;
 
