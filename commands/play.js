@@ -7,7 +7,7 @@ async function playCommand(sock, chatId, message) {
 
                 try { 
     await sock.sendMessage(chatId, {
-            react: { text: '🎼', key: message.key }
+            react: { text: '', key: message.key }
         });         
                     
   const tempDir = path.join(__dirname, "temp");
@@ -20,14 +20,14 @@ const text = message.message?.conversation || message.message?.extendedTextMessa
    const query = parts.slice(1).join(' ').trim();
 
              
-  if (!query) return await sock.sendMessage(chatId, { text: '🎵 Provide a song name!\nExample: Not Like Us'},{ quoted: message});
+  if (!query) return await sock.sendMessage(chatId, { text: 'Type play followed by song name'},{ quoted: message});
 
                
                     if (query.length > 100) return await sock.sendMessage(chatId, { text: `📝 Song name too long! Max 100 chars.`},{ quoted: message});
 
 
    const searchResult = await (await yts(`${query} official`)).videos[0];
-                    if (!searchResult) return sock.sendMessage(chatId, { text: "😕 Couldn't find that song. Try another one!"},{ quoted: message });
+                    if (!searchResult) return sock.sendMessage(chatId, { text: "No songs found is your song resist on earth😅!"},{ quoted: message });
 
                     const video = searchResult;
                     const apiUrl = `https://api.privatezia.biz.id/api/downloader/ytmp3?url=${encodeURIComponent(video.url)}`;
@@ -48,7 +48,7 @@ const text = message.message?.conversation || message.message?.extendedTextMessa
 
                     if (!fs.existsSync(filePath) || fs.statSync(filePath).size === 0) throw new Error("Download failed or empty file!");
 
-                    await sock.sendMessage(chatId, { text:`🎶 Playing *${apiData.result.title || video.title}* 🎧` }, { quoted: message });
+                    await sock.sendMessage(chatId, { text:`> *Wait we're downloading your song if u don't have patience go away😆*` }, { quoted: message });
                     await sock.sendMessage(chatId, { document: { url: filePath }, mimetype: "audio/mpeg", fileName: `${(apiData.result.title || video.title).substring(0, 100)}.mp3` }, { quoted: message });
 
                     // Cleanup
@@ -63,3 +63,25 @@ const text = message.message?.conversation || message.message?.extendedTextMessa
 
 
 module.exports = playCommand;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
