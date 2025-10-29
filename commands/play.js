@@ -15,7 +15,7 @@ async function playdocCommand(sock, chatId, message) {
 
         const axios = require('axios');
         const yts = require('yt-search');
-        const BASE_URL = ('https://api.privatezia.biz.id/api/downloader/ytmp3?url=${urlYt}`)';
+        const BASE_URL = 'https://api.privatezia.biz.id/api/downloader/ytmp3?url=${urlYt}';
 
         // Extract query from message
         const q = message.message?.conversation || 
