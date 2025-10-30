@@ -133,66 +133,67 @@ async function setvarCommand(sock, chatId, senderId, message, userMessage, prefi
 
         const cmdList = `
     
-┏❐ ◇《 *CURRENT BOT SETTINGS* 》◇ ❐    
-┃➽ *1. \`Mode\`*
-┃   - Current Status: ${getConfigValue('MODE', settings.commandMode || 'public')}
-┃➽   - Usage: ${prefix}mode private/public
+┏❐  *⚙️ CURRENT BOT SETTINGS* ❐    
 ┃
-┃➽ *2. \`Auto Typing\`*
-┃   - Current Status: ${getConfigValue('AUTOTYPING', 'off')}
-┃   - Usage: ${prefix}autotyping on/off
+┃➽ *1. 《 Mode 》*
+┃ 🔹️ - Current Status: ${getConfigValue('MODE', settings.commandMode || 'public')}
+┃ 🔹️ - Usage: ${prefix}mode private/public
 ┃
-┃➽ *3. \`Always Online\`*
-┃   - Current Status: ${getConfigValue('ALWAYSONLINE', 'off')}
-┃   - Usage: ${prefix}alwaysonline on/off
+┃➽ *2. 《 Auto Typing 》*
+┃ 🔸️ - Current Status: ${getConfigValue('AUTOTYPING', 'off')}
+┃ 🔸️ - Usage: ${prefix}autotyping on/off
 ┃
-┃➽ *4. \`Auto Recording\`*
-┃   - Current Status: ${getConfigValue('AUTORECORDING', 'off')}
-┃   - Usage: ${prefix}autorecording on/off
+┃➽ *3. 《 Always Online 》*
+┃ 🔹️ - Current Status: ${getConfigValue('ALWAYSONLINE', 'off')}
+┃ 🔹️ - Usage: ${prefix}alwaysonline on/off
 ┃
-┃➽ *5. \`Auto Read Status\`*
-┃   - Current Status: ${getConfigValue('AUTOSTATUSREACT', 'off')}
-┃   - Usage: ${prefix}autostatusreact on/off
+┃➽ *4. 《 Auto Recording 》*
+┃ 🔸️ - Current Status: ${getConfigValue('AUTORECORDING', 'off')}
+┃ 🔸️ - Usage: ${prefix}autorecording on/off
 ┃
-┃➽ *6. \`Anti Bad Word\`*
-┃   - Current Status: ${getConfigValue('ANTIBADWORD', 'off')}
-┃   - Usage: ${prefix}antibad on/off
+┃➽ *5. 《 Auto Read Status 》*
+┃ 🔹️ - Current Status: ${getConfigValue('AUTOSTATUSREACT', 'off')}
+┃ 🔹️ - Usage: ${prefix}autostatusreact on/off
 ┃
-┃➽ *7. \`Anti Delete\`*
-┃   - Current Status: ${getConfigValue('ANTIDELETE', 'off')}
-┃   - Usage: ${prefix}antidelete on/off
+┃➽ *6. 《 Anti Bad Word 》*
+┃ 🔸️ - Current Status: ${getConfigValue('ANTIBADWORD', 'off')}
+┃ 🔸️ - Usage: ${prefix}antibad on/off
 ┃
-┃➽ *8. \`Auto Sticker\`*
-┃   - Current Status: ${getConfigValue('AUTOSTICKER', 'off')}
-┃   - Usage: ${prefix}autosticker on/off
+┃➽ *7. 《 Anti Delete 》*
+┃ 🔹️ - Current Status: ${getConfigValue('ANTIDELETE', 'off')}
+┃ 🔹️ - Usage: ${prefix}antidelete on/off
 ┃
-┃➽ *9. \`Auto Reply\`*
-┃   - Current Status: ${getConfigValue('AUTOREPLY', 'off')}
-┃   - Usage: ${prefix}autoreply on/off
+┃➽ *8. 《 Auto Sticker 》*
+┃ 🔸️ - Current Status: ${getConfigValue('AUTOSTICKER', 'off')}
+┃ 🔸️ - Usage: ${prefix}autosticker on/off
 ┃
-┃➽ *10. \`Auto React\`*
-┃   - Current Status: ${getConfigValue('AUTOREACT', 'off')}
-┃   - Usage: ${prefix}autoreact on/off
+┃➽ *9. 《 Auto Reply 》*
+┃ 🔹️ - Current Status: ${getConfigValue('AUTOREPLY', 'off')}
+┃ 🔹️ - Usage: ${prefix}autoreply on/off
 ┃
-┃➽ *11. \`Status Reply\`*
-┃   - Current Status: ${getConfigValue('AUTOSTATUSREPLY', 'off')}
-┃   - Usage: ${prefix}autostatusreply on/off
+┃➽ *10. 《 Auto React 》*
+┃ 🔸️ - Current Status: ${getConfigValue('AUTOREACT', 'off')}
+┃ 🔸️ - Usage: ${prefix}autoreact on/off
 ┃
-┃➽ *12. \`Anti Link\`*
-┃   - Current Status: ${getConfigValue('ANTILINK', 'off')}
-┃   - Usage: ${prefix}antilink on/off
+┃➽ *11. 《 Status Reply 》*
+┃ 🔹️ - Current Status: ${getConfigValue('AUTOSTATUSREPLY', 'off')}
+┃ 🔹️ - Usage: ${prefix}autostatusreply on/off
 ┃
-┃➽ *13. \`Anti Bot\`*
-┃   - Current Status: ${getConfigValue('ANTIBOT', 'off')}
-┃   - Usage: ${prefix}antibot off/warn/delete/kick
+┃➽ *12. 《 Anti Link 》*
+┃ 🔸️ - Current Status: ${getConfigValue('ANTILINK', 'off')}
+┃ 🔸️ - Usage: ${prefix}antilink on/off
 ┃
-┃➽ *14. \`Heart React\`*
-┃   - Current Status: ${getConfigValue('HEARTREACT', 'off')}
-┃   - Usage: ${prefix}heartreact on/off
+┃➽ *13. 《 Anti Bot 》*
+┃ 🔹️ - Current Status: ${getConfigValue('ANTIBOT', 'off')}
+┃ 🔹️ - Usage: ${prefix}antibot off/warn/delete/kick
 ┃
-┃ *15. \`Set Prefix\`*
-┃   - Current Prefix: ${prefix}
-┃   - Usage: ${prefix}setprefix <new_prefix>
+┃➽ *14. 《 Heart React 》*
+┃ 🔸️ - Current Status: ${getConfigValue('HEARTREACT', 'off')}
+┃ 🔸️ - Usage: ${prefix}heartreact on/off
+┃
+┃ *15. 《 Set Prefix 》*
+┃ 🔹️ - Current Prefix: ${prefix}
+┃ 🔹️ - Usage: ${prefix}setprefix <new_prefix>
 ┗❐                      
 
 📌 *Note*: Replace \`"on/off"\` with the desired state to enable or disable a feature.
