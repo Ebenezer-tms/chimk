@@ -60,7 +60,7 @@ const currentMode = data.isPublic ? 'public' : 'private';
 const hostName = detectHost();
     
     const helpMessage = `
-┏❐  *❴《 ${config.BOT_NAME} 》❵* ❐
+┏❐  *❴《 ${getconfig.BOTNAME} 》❵* ❐
 ├◆ *Owner:* ${settings.botOwner}
 ├◆ *Mode:* ${currentMode}
 ├◆ *Host:* ${hostName}
