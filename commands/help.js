@@ -60,15 +60,16 @@ const currentMode = data.isPublic ? 'public' : 'private';
 const hostName = detectHost();
     
     const helpMessage = `
-┏❐  *❴《 😍Pretty-𝙼𝙳-𝙱𝙾𝚃😍 》❵* ❐
+┏❐  *❴《 ${pushname} 》❵* ❐
 ├◆ *Owner:* ${settings.botOwner}
 ├◆ *Mode:* ${currentMode}
 ├◆ *Host:* ${hostName}
 ├◆ *Speed:* ${ping} ms
+├◆ *Prefix:* ${prefix}
 ├◆ *Uptime:* ${uptimeFormatted}
 ├◆ *version:* ${settings.version}
-├◆➽ *ᴜsᴀɢᴇ:* 96 MB of 8 GB
-├◆➽ *ʀᴀᴍ:* [███████░░░] 68%
+├◆ *ᴜsᴀɢᴇ:* 96 MB of 8 GB
+├◆ *ʀᴀᴍ:* [███████░░░] 68%
 ┗❐
   ${readmore}
 ┏❐《 *AI MENU* 》 ❐
