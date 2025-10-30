@@ -59,13 +59,7 @@ const uptimeFormatted = formatTime(uptimeInSeconds);
 const currentMode = data.isPublic ? 'public' : 'private';    
 const hostName = detectHost();
 
-    // Generate Menu Function
-const generateMenu = (pushname, currentMode, hostName, ping, uptimeFormatted, prefix = '.') => {
-    const memoryUsage = process.memoryUsage();
-    const botUsedMemory = memoryUsage.heapUsed;
-    const totalMemory = os.totalmem();
-    const systemUsedMemory = totalMemory - os.freemem();
-    
+
     
     const helpMessage = `
 ┏❐  *❴《 😍PRETTY-MD😍 》❵* ❐
