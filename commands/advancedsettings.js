@@ -201,7 +201,7 @@ async function setvarCommand(sock, chatId, senderId, message, userMessage, prefi
 
         try {
             await sock.sendMessage(chatId, {
-                image: { url: 'https://files.catbox.moe/18il7k.jpg' },
+                image: { url: '' },
                 caption: cmdList
             }, { quoted: message });
         } catch (e) {
