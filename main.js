@@ -1392,7 +1392,7 @@ return decode.user && decode.server ? `${decode.user}@${decode.server}` : jid;
                 // RemoveBackgroundCommand
                 /*━━━━━━━━━━━━━━━━━━━━*/
             case userMessage.startsWith(`${prefix}restart`):
-            case userMessage.startsWith(`${prefix}uptime`):
+            case userMessage.startsWith(`${prefix}update`):
             case userMessage.startsWith(`${prefix}reboot`):
                 {
                     const parts = rawText.trim().split(/\s+/);
