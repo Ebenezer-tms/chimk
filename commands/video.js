@@ -54,6 +54,9 @@ async function videoCommand(sock, chatId, message) {
         
         if (!searchQuery) {
             await sock.sendMessage(chatId, { text: 'What video do you want to download?' }, { quoted: message });
+            await sock.sendMessage(chatId, {
+            react: { text: '🎥', key: message.key }
+        });
             return;
         }
 
@@ -82,9 +85,11 @@ async function videoCommand(sock, chatId, message) {
             const captionTitle = videoTitle || searchQuery;
             if (thumb) {
                 await sock.sendMessage(chatId, {
-                    image: { url: thumb },
-                    caption: `*${captionTitle}*\n> _🏂searching video data..._`
+                    image: { url: null },
+                    caption: `_🏂searching video data..._`
                 }, { quoted: message });
+
+           
             }
         } catch (e) { console.error('[VIDEO] thumb error:', e?.message || e); }
         
@@ -99,10 +104,14 @@ async function videoCommand(sock, chatId, message) {
         // Get video: try Izumi first, then Okatsu fallback
         let videoData;
         try {
+        await sock.sendMessage(chatId, {
+            react: { text: '🎥', key: message.key }
+        });
             videoData = await getIzumiVideoByUrl(videoUrl);
         } catch (e1) {
             videoData = await getOkatsuVideoByUrl(videoUrl);
         }
+       
 
         // Send video directly using the download URL
         await sock.sendMessage(chatId, {
@@ -111,6 +120,11 @@ async function videoCommand(sock, chatId, message) {
             fileName: `${videoData.title || videoTitle || 'video'}.mp4`,
             caption: `*${videoData.title || videoTitle || 'Video'}*`
         }, { quoted: message });
+
+        //react sucess
+        await sock.sendMessage(chatId, {
+            react: { text: '☑️', key: message.key }
+        });
 
 
     } catch (error) {
