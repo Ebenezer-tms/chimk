@@ -66,7 +66,6 @@ const hostName = detectHost();
 ├◆ *Owner:* ${settings.botOwner}
 ├◆ *Mode:* ${currentMode}
 ├◆ *Host:* ${hostName}
-├◆ *Prefix:* [${prefix}]
 ├◆ *Speed:* ${ping} ms
 ├◆ *Uptime:* ${uptimeFormatted}
 ├◆ *version:* ${settings.version}
