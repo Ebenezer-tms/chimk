@@ -65,7 +65,6 @@ const hostName = detectHost();
 ├◆ *Mode:* ${currentMode}
 ├◆ *Host:* ${hostName}
 ├◆ *Speed:* ${ping} ms
-├◆ *Prefix:* ${prefix}
 ├◆ *Uptime:* ${uptimeFormatted}
 ├◆ *version:* ${settings.version}
 ├◆ *ᴜsᴀɢᴇ:* 96 MB of 8 GB
