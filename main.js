@@ -245,6 +245,7 @@ const soraCommand = require('./commands/sora');
 const apkCommand = require('./commands/apk');
 const bibleCommand = require('./commands/bible');
 const quranCommand = require('./commands/quran');
+const imgCommand = require('./commands/img');
 /*━━━━━━━━━━━━━━━━━━━━*/
 
 /*━━━━━━━━━━━━━━━━━━━━*/
@@ -1171,6 +1172,10 @@ return decode.user && decode.server ? `${decode.user}@${decode.server}` : jid;
             case userMessage.startsWith(`${prefix}spotify`): 
                 await spotifyCommand(sock, chatId, message);
                 break;
+
+           case userMessage.startsWith(`${prefix}img`):
+             await imgCommand(sock, chatId, message);
+              break;
                 
             case userMessage.startsWith(`${prefix}song`) ||                                userMessage.startsWith(`${prefix}mp3`):
                 await songCommand(sock, chatId, message);
