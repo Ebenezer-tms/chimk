@@ -1,6 +1,6 @@
 
 const axios = require('axios');
-main({
+({
   'pattern': "img",
   'alias': ["image", "pinterest", "pinimg"],
   'react': '🖼️',
