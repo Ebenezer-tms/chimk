@@ -245,7 +245,7 @@ const soraCommand = require('./commands/sora');
 const apkCommand = require('./commands/apk');
 const bibleCommand = require('./commands/bible');
 const quranCommand = require('./commands/quran');
-const imgCommand = require('./commands/img');
+
 /*━━━━━━━━━━━━━━━━━━━━*/
 
 /*━━━━━━━━━━━━━━━━━━━━*/
