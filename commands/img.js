@@ -1,43 +1,32 @@
 const axios = require('axios');
-const cheerio = require('cheerio');
+const fs = require('fs');
+const path = require('path');
 
-const imgCommand = async (sock, chatId, message) => {
-  try {
+module.exports = async function imgCommand(sock, chatId, message) {
     const text = message.message?.conversation || message.message?.extendedTextMessage?.text;
     const searchQuery = text.split(' ').slice(1).join(' ');
 
     if (!searchQuery) {
-      return await sock.sendMessage(chatId, { text: 'Please provide a keyword to search an image.' }, { quoted: message });
+        return sock.sendMessage(chatId, { text: '❌ Please provide a keyword to search for an image.' });
     }
 
-    const url = `https://www.bing.com/images/search?q=encodeURIComponent(searchQuery)   form=HDRSC2`;
+    try {
+        const apiUrl = `https://api.akuari.my.id/search/image?query=${encodeURIComponent(searchQuery)}`;
+        const response = await axios.get(apiUrl);
 
-    const response = await axios.get(url);
-    const = cheerio.load(response.data);
-    const imageUrls = [];
+        if (!response.data || !response.data.result || response.data.result.length === 0) {
+            return sock.sendMessage(chatId, { text: '❌ No image found for that query.' });
+        }
 
-    ('a.iusc').each((i, el) => 
-      const m =(el).attr('m');
-      if (m) {
-        const match = m.match(/"murl":"(.*?)"/);
-        if (match) imageUrls.push(match[1]);
-      }
-    });
+        const imageUrl = response.data.result[0];
+        const image = await axios.get(imageUrl, { responseType: 'arraybuffer' });
+      await sock.sendMessage(chatId, 
+            image: Buffer.from(image.data),
+            caption: `🔍 Result for: *{searchQuery}*`
+        }, { quoted: message });
 
-    if (imageUrls.length === 0) {
-      return await sock.sendMessage(chatId, { text: '❌ No images found!' }, { quoted: message });
+    } catch (error) {
+        console.error('IMG COMMAND ERROR:', error.message);
+        await sock.sendMessage(chatId, { text: '⚠️ Error fetching image.' });
     }
-  const imageBuffer = await axios.get(imageUrls[0], { responseType: 'arraybuffer' });
-
-    await sock.sendMessage(chatId, {
-      image: Buffer.from(imageBuffer.data),
-      caption: `🖼️ Result for: *${searchQuery}*`
-    }, { quoted: message });
-
-  } catch (err) {
-    console.error(err);
-    await sock.sendMessage(chatId, { text: '⚠️ Error fetching image.' }, { quoted: message });
-  }
 };
-
-module.exports = imgCommand;
