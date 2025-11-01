@@ -80,4 +80,4 @@ const pushname = message.pushName || "Unknown User";
   }
 }
 
-module.exports = githubCommand; 
+module.exports = tutorialCommand; 
