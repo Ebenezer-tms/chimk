@@ -30,18 +30,17 @@ async function uptimeCommand(sock, chatId, message) {
         const host = os.platform();
 
         const uptimeMessage =
-            `👋 \`\`\` Hello ${userName}, I'm alive now \`\`\`\n\n` +
-            `_*This ${settings.botName || "Knight Bot"} WhatsApp Bot is made for your easy use. This bot is currently active🪄*_\n\n` +
+            `👋 \`Hello ${userName}, I'm alive now\` \n\n` +
+            `*This ${settings.botName || "> *Pretty md"} WhatsApp Bot is made for your easy use. This bot is currently active*\n\n` +
             `> *Version:* ${settings.version}\n` +
             `> *Memory:* ${usedMemory}MB / ${totalMemory}GB\n` +
             `> *Runtime:* ${botUptime}\n` +
-            `> *Host:* ${host}\n\n` +
-            `*${settings.botName || "Knight Bot"} Online*\n\n` +
-            `*🧚Follow our channel:* https://whatsapp.com/channel/0029Va8YUl50bIdtVMYnYd0E\n\n` +
-            `> ρσωєяє∂ ву ${settings.ownerName || "Héctor Manuel"}`;
+            `*${settings.botName || "Pretty md"} Online*\n\n` +
+            `*🧚Follow our channel:* https://whatsapp.com/channel/0029Vb9qprVJuyAJxcTO252t\n\n` +
+            `> ρσωєяє∂ ву ${settings.ownerName || "Xhyper Tech"}`;
 
         // Resolve the local image path
-        const imagePath = path.resolve(__dirname, "../assets/menu.jpg");
+        const imagePath = path.resolve(__dirname, "../assets/IMG-20250819-WA0001(1).jpg");
 
         // Send local image
         await sock.sendMessage(chatId, {
