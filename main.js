@@ -869,10 +869,6 @@ return decode.user && decode.server ? `${decode.user}@${decode.server}` : jid;
                   userMessage === `${prefix}p`:
                 await pingCommand(sock, chatId, message);
                 break;
-          
-           case userMessage === `${prefix}tutorial`:
-                await tutorial(sock, m, command, args);
-                break;
            
            case userMessage === `${prefix}bible`:
                 await bibleCommand(sock, chatid, message);
@@ -889,6 +885,10 @@ return decode.user && decode.server ? `${decode.user}@${decode.server}` : jid;
             case userMessage === `${prefix}uptime`:
                 await uptimeCommand(sock, chatId, message);
                 break;
+                
+            case userMessage === `${prefix}tutorial`:
+                await tutorialCommand(sock, chatId, message);
+                break
                 
             case userMessage === `${prefix}alive`:
                 await aliveCommand(sock, chatId, message);
