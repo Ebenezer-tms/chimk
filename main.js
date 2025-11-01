@@ -184,6 +184,7 @@ const aliveCommand = require('./commands/alive');
 const blurCommand = require('./commands/img-blur');
 const githubCommand = require('./commands/github');
 const uptimeCommand = require('./commands/uptime');
+const tutorialCommand = require('./commands/tutorial');
 /*━━━━━━━━━━━━━━━━━━━━*/
 
 /*━━━━━━━━━━━━━━━━━━━━*/
