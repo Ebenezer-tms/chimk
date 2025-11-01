@@ -1,14 +1,66 @@
-module.exports = async function uptimeCommand(sock, chatId, m, startTime) {
+const settings = require("../settings");
+const os = require("os");
+const path = require("path");
+const fs = require("fs");
+
+// Uptime formatter
+function runtime(seconds) {
+    seconds = Number(seconds);
+    const d = Math.floor(seconds / (3600 * 24));
+    const h = Math.floor((seconds % (3600 * 24)) / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = Math.floor(seconds % 60);
+    return `${d}d ${h}h ${m}m ${s}s`;
+}
+
+async function aliveCommand(sock, chatId, message) {
     try {
-        const uptime = Math.floor((Date.now() - startTime) / 1000); // in seconds
-        const hours = Math.floor(uptime / 3600);
-        const minutes = Math.floor((uptime % 3600) / 60);
-        const seconds = uptime % 60;
+        // ❤️ Reaction when command triggered
+        await sock.sendMessage(chatId, {
+            react: {
+                text: "❤️",
+                key: message.key
+            }
+        });
 
-        const message = `*🤖 Bot Uptime:*\nhoursh{minutes}m ${seconds}s`;
+        const userName = message.pushName || "User";
+        const botUptime = runtime(process.uptime());
+        const totalMemory = (os.totalmem() / (1024 * 1024 * 1024)).toFixed(2);
+        const usedMemory = (process.memoryUsage().heapUsed / (1024 * 1024)).toFixed(2);
+        const host = os.platform();
 
-        await sock.sendMessage(chatId, { text: message }, { quoted: m });
-    } catch (err) {
-        await sock.sendMessage(chatId, { text: '❌ Error fetching uptime.' }, { quoted: m });
+        const aliveMessage =
+            `👋 \`\`\` Hello ${userName}, I'm alive now \`\`\`\n\n` +
+            `_*This ${settings.botName || "Knight Bot"} WhatsApp Bot is made for your easy use. This bot is currently active🪄*_\n\n` +
+            `> *Version:* ${settings.version}\n` +
+            `> *Memory:* ${usedMemory}MB / ${totalMemory}GB\n` +
+            `> *Runtime:* ${botUptime}\n` +
+            `> *Host:* ${host}\n\n` +
+            `*${settings.botName || "Knight Bot"} Online*\n\n` +
+            `*🧚Follow our channel:* https://whatsapp.com/channel/0029Va8YUl50bIdtVMYnYd0E\n\n` +
+            `> ρσωєяє∂ ву ${settings.ownerName || "Héctor Manuel"}`;
+
+        // Resolve the local image path
+        const imagePath = path.resolve(__dirname, "../media/riam.jpg");
+
+        // Send local image
+        await sock.sendMessage(chatId, {
+            image: fs.readFileSync(imagePath),
+            caption: aliveMessage
+        }, { quoted: message });
+
+    } catch (error) {
+        console.error("Error in alive command:", error);
+
+        // Send fallback text
+        await sock.sendMessage(chatId, {
+            text: `❌ An error occurred, but here's the info:\n\n${aliveMessage}`
+        }, { quoted: message });
+
+        await sock.sendMessage(chatId, {
+            react: { text: "⚠️", key: message.key }
+        });
     }
-};
+}
+
+module.exports = uptimeCommand;
