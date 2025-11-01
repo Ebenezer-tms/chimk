@@ -41,7 +41,7 @@ async function aliveCommand(sock, chatId, message) {
             `> ρσωєяє∂ ву ${settings.ownerName || "Héctor Manuel"}`;
 
         // Resolve the local image path
-        const imagePath = path.resolve(__dirname, "../media/riam.jpg");
+        const imagePath = path.resolve(__dirname, "../assets/menu.jpg");
 
         // Send local image
         await sock.sendMessage(chatId, {
