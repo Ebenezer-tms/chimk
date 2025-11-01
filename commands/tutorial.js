@@ -3,7 +3,7 @@ const fetch = require('node-fetch');
 const fs = require('fs');
 const path = require('path');
 
-async function githubCommand(sock, chatId, message) {
+async function tutorialCommand(sock, chatId, message) {
 /*━━━━━━━━━━━━━━━━━━━━*/
 // fake kontak 
 /*━━━━━━━━━━━━━━━━━━━━*/
@@ -30,7 +30,7 @@ async function githubCommand(sock, chatId, message) {
   const fkontak = createFakeContact(message);
     
 const pushname = message.pushName || "Unknown User";
-    const res = await fetch('https://api.github.com/repos/vinpink2/June-md');
+    const res = await fetch('https://api.github.com/repos/superstar-zimtk/Pretty-md');
     if (!res.ok) throw new Error('Error fetching repository data');
     const json = await res.json();
 
@@ -47,7 +47,7 @@ const pushname = message.pushName || "Unknown User";
     txt += `@${pushname} _Thank you for choosing June  Star ⭐ & fork 🔁 The repository_`;
 
     // Use the local asset image
-    const imgPath = path.join(__dirname, '../assets/menu2.jpg');
+    const imgPath = path.join(__dirname, '../assets/IMG-20250819-WA0001(1).jpg');
     const imgBuffer = fs.readFileSync(imgPath);
 
     /*await sock.sendMessage(chatId, { image: imgBuffer, caption: txt }, { quoted: message });*/
@@ -60,7 +60,7 @@ const pushname = message.pushName || "Unknown User";
                     title: 'June Official Repo',
                     body: `${pushname}`,
                     mediaType: 1,
-                    sourceUrl: "https://github.com/Vinpink2",
+                    sourceUrl: "https://github.com/superstar-zimtk",
                     thumbnailUrl: "https://files.catbox.moe/a0gfje.jpg",
                     renderLargerThumbnail: false,
                     showAdAttribution: false
