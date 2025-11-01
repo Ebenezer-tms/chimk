@@ -1,296 +1,64 @@
-const settings = require('../settings');
-const fs = require('fs');
-const path = require('path');
-const os = require('os');
+const settings = require("../settings");
+const os = require("os");
+const path = require("path");
+const fs = require("fs");
 
-const more = String.fromCharCode(8206);
-const readmore = more.repeat(4001);
-
-
-
-function formatTime(seconds) {
-    const days = Math.floor(seconds / (24 * 60 * 60));
-    seconds = seconds % (24 * 60 * 60);
-    const hours = Math.floor(seconds / (60 * 60));
-    seconds = seconds % (60 * 60);
-    const minutes = Math.floor(seconds / 60);
-    seconds = Math.floor(seconds % 60);
-
-    let time = '';
-    if (days > 0) time += `${days}d `;
-    if (hours > 0) time += `${hours}h `;
-    if (minutes > 0) time += `${minutes}m `;
-    if (seconds > 0 || time === '') time += `${seconds}s`;
-
-    return time.trim();
+// Uptime formatter
+function runtime(seconds) {
+    seconds = Number(seconds);
+    const d = Math.floor(seconds / (3600 * 24));
+    const h = Math.floor((seconds % (3600 * 24)) / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = Math.floor(seconds % 60);
+    return `${d}d ${h}h ${m}m ${s}s`;
 }
-
-// 🧩 Host Detection Function
-function detectHost() {
-    const env = process.env;
-
-    if (env.RENDER || env.RENDER_EXTERNAL_URL) return 'Render';
-    if (env.DYNO || env.HEROKU_APP_DIR || env.HEROKU_SLUG_COMMIT) return 'Heroku';
-    if (env.VERCEL || env.VERCEL_ENV || env.VERCEL_URL) return 'Vercel';
-    if (env.RAILWAY_ENVIRONMENT || env.RAILWAY_PROJECT_ID) return 'Railway';
-    if (env.REPL_ID || env.REPL_SLUG) return 'Replit';
-
-    const hostname = os.hostname().toLowerCase();
-    if (!env.CLOUD_PROVIDER && !env.DYNO && !env.VERCEL && !env.RENDER) {
-        if (hostname.includes('vps') || hostname.includes('server')) return 'VPS';
-        return 'Panel';
-    }
-
-    return 'Unknown Host';
-}
-
 
 async function tutorialCommand(sock, chatId, message) {
-    
-
-let data = JSON.parse(fs.readFileSync('./data/messageCount.json'));
-    const start = Date.now();
-    await sock.sendMessage(chatId, { text: '_Wait Loading Menu...♻️_' }, { quoted: message });
-    const end = Date.now();
-    const ping = Math.round((end - start) / 2);
-
-const uptimeInSeconds = process.uptime();
-const uptimeFormatted = formatTime(uptimeInSeconds);
-const currentMode = data.isPublic ? 'public' : 'private';    
-const hostName = detectHost();
-    
-    const helpMessage = `
-┏❐  *❴ 😍Pretty-𝙼𝙳-𝙱𝙾𝚃😍 ❵* ❐
-┃➥ *Owner:* ${settings.botOwner}
-┃➥ *prefix:* [.]
-┃➥ *Mode:* ${currentMode}
-┃➥ *Host:* ${hostName}
-┃➥ *Speed:* ${ping} ms
-┃➥ *Uptime:* ${uptimeFormatted}
-┃➥ *Plugins:* 200
-┃➥ *version:* ${settings.version}
-┃➥ *ᴜsᴀɢᴇ:* 96 MB of 8 GB
-┃➥ *ʀᴀᴍ:* [███████░░░] 68%
-┗❐
-  
-┏❐《 *AI MENU* 》 ❐
-┃ .Ai
-┃ .gpt
-┃ .gemini
-┃ .imagine
-┃ .flux
-┗❐   
-
-┏❐《 *OWNER MENU* 》 ❐
-┃ .ban
-┃ .restart
-┃ .unban
-┃ .promote
-┃ .demote
-┃ .mute 
-┃ .unmute
-┃ .delete
-┃ .kick
-┃ .warnings
-┃ .antilink
-┃ .antibadword
-┃ .clear
-┃ .chatbot
-┗❐
-
-┏❐《 *GROUP MENU* 》 ❐
-┃ .promote
-┃ .demote
-┃ .settings
-┃ .welcome
-┃ .setgpp
-┃ .getgpp
-┃ .listadmin
-┃ .goodbye
-┃ .tagnoadmin
-┃ .tag 
-┃ .antilink
-┃ .set welcome
-┃ .listadmin
-┃ .groupinfo
-┃ .admins 
-┃ .warn
-┃ .revoke
-┃ .resetlink
-┃ .open
-┃ .close
-┃ .mention
-┗❐
-  
-┏❐《 *SETTING MENU* 》❐
-┃ .mode
-┃ .autostatus
-┃ .pmblock
-┃ .setmention
-┃ .autoread
-┃ .clearsession
-┃ .antidelete
-┃ .cleartmp
-┃ .autoreact
-┃ .getpp
-┃ .setpp
-┃ .sudo
-┃ .autotyping 
-┗❐
-  
-┏❐《 *MAIN MENU* 》❐
-┃ .url
-┃ .tagall
-┃ .yts
-┃ .play
-┃ .trt
-┃ .alive
-┃ .ping 
-┃ .vv
-┃ .video
-┃ .song
-┃ .ssweb
-┃ .instagram
-┃ .facebook
-┃ .tiktok 
-┃ .ytmp4
-┗❐
-
-┏❐《 *STICKER MENU* 》❐
-┃ .blur
-┃ .simage 
-┃ .sticker
-┃ .tgsticker
-┃ .meme
-┃ .take 
-┃ .emojimix
-┗❐
-
-┏❐《 *GAME MENU* 》❐
-┃ .tictactoe 
-┃ .hangman
-┃ .guess 
-┃ .trivia
-┃ .answer
-┃ .truth
-┃ .dare
-┃ .8ball
-┗❐
-  
-┏❐《 *MAKER MENU* 》❐
-┃ .compliment
-┃ .insult
-┃ .flirt 
-┃ .shayari
-┃ .goodnight
-┃ .roseday
-┃ .character
-┃ .wasted
-┃ .ship 
-┃ .simp
-┃ .stupid
-┗❐
-
-┏❐《 *ANIME MENU* 》❐
-┃ .neko
-┃ .waifu
-┃ .loli
-┃ .nom 
-┃ .poke 
-┃ .cry 
-┃ .kiss 
-┃ .pat 
-┃ .hug 
-┃ .wink 
-┃ .facepalm 
-┗❐
- 
-┏❐《 *MAKER MENU* 》❐
-┃ .metallic 
-┃ .ice 
-┃ .snow
-┃ .impressive
-┃ .matrix
-┃ .light
-┃ .neon
-┃ .devil
-┃ .purple
-┃ .thunder
-┃ .leaves
-┃ .1917 
-┃ .arena
-┃ .hacker
-┃ .sand
-┃ .blackpink
-┃ .glitch
-┃ .fire 
-┗❐
- 
-┏❐《 *IMG EDIT* 》❐
-┃ .heart
-┃ .horny
-┃ .circle
-┃ .lgbt
-┃ .lolice
-┃ .stupid
-┃ .namecard 
-┃ .tweet
-┃ .ytcomment 
-┃ .comrade 
-┃ .gay 
-┃ .glass 
-┃ .jail 
-┃ .passed 
-┃ .triggered
-┗❐
-
-┏❐《 *GITHUB CMD* 》❐
-┃ .git
-┃ .github
-┃ .sc
-┃ .script
-┃ .repo
-┗❐
-`;
-
     try {
-        const imagePath = path.join(__dirname, '../assets/menu.jpg');
-        if (fs.existsSync(imagePath)) {
-            const imageBuffer = fs.readFileSync(imagePath);
-            await sock.sendMessage(
-                chatId,
-                {
-                    image: imageBuffer,
-                    caption: helpMessage,
-                    contextInfo: {
-                        forwardingScore: 1,
-                        isForwarded: true,
-                        forwardedNewsletterMessageInfo: {
-                            newsletterJid: '120363401148284316@newsletter',
-                            newsletterName: 'pretty Official',
-                            serverMessageId: -1
-                        }
-                    }
-                },
-                { quoted: message }
-            );
-        } else {
-            await sock.sendMessage(chatId, {
-                text: helpMessage,
-                contextInfo: {
-                    forwardingScore: 1,
-                    isForwarded: true,
-                    forwardedNewsletterMessageInfo: {
-                        newsletterJid: '.120363401148284316@newsletter',
-                        newsletterName: 'Pretty Official',
-                        serverMessageId: -1
-                    }
-                }
-            });
-        }
+        // ❤️ Reaction when command triggered
+        await sock.sendMessage(chatId, {
+            react: {
+                text: "❤️",
+                key: message.key
+            }
+        });
+
+        const userName = message.pushName || "User";
+        const botUptime = runtime(process.uptime());
+        const totalMemory = (os.totalmem() / (1024 * 1024 * 1024)).toFixed(2);
+        const usedMemory = (process.memoryUsage().heapUsed / (1024 * 1024)).toFixed(2);
+        const host = os.platform();
+
+        const uptimeMessage =
+            `👋 \`Hello ${userName}, I'm alive now\` \n\n` +
+            `*This ${settings.botName || "> *Pretty md"} WhatsApp Bot is made for your easy use. This bot is currently active*\n\n` +
+            `> *Version:* ${settings.version}\n` +
+            `> *Memory:* ${usedMemory}MB / ${totalMemory}GB\n` +
+            `> *Runtime:* ${botUptime}\n` +
+            `*${settings.botName || "Pretty md"} Online*\n\n` +
+            `*🧚Follow our channel:* https://whatsapp.com/channel/0029Vb9qprVJuyAJxcTO252t\n\n` +
+            `> ρσωєяє∂ ву ${settings.ownerName || "Xhyper Tech"}`;
+
+        // Resolve the local image path
+        const imagePath = path.resolve(__dirname, "../assets/IMG-20250819-WA0001(1).jpg");
+
+        // Send local image
+        await sock.sendMessage(chatId, {
+            image: fs.readFileSync(imagePath),
+            caption: uptimeMessage
+        }, { quoted: message });
+
     } catch (error) {
-        console.error('Error in help command:', error);
-        await sock.sendMessage(chatId, { text: helpMessage });
+        console.error("Error in alive command:", error);
+
+        // Send fallback text
+        await sock.sendMessage(chatId, {
+            text: `❌ An error occurred, but here's the info:\n\n${uptimeMessage}`
+        }, { quoted: message });
+
+        await sock.sendMessage(chatId, {
+            react: { text: "⚠️", key: message.key }
+        });
     }
 }
 
