@@ -45,7 +45,7 @@ function detectHost() {
 }
 
 
-async function helpCommand(sock, chatId, message) {
+async function tutorialCommand(sock, chatId, message) {
     
 
 let data = JSON.parse(fs.readFileSync('./data/messageCount.json'));
