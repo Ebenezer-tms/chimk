@@ -184,6 +184,7 @@ const aliveCommand = require('./commands/alive');
 const tutorialCommand = require('./commands/tutorial');
 const blurCommand = require('./commands/img-blur');
 const githubCommand = require('./commands/github');
+const uptimeCommand = require('./commands/uptime');
 /*━━━━━━━━━━━━━━━━━━━━*/
 
 /*━━━━━━━━━━━━━━━━━━━━*/
@@ -884,6 +885,10 @@ return decode.user && decode.server ? `${decode.user}@${decode.server}` : jid;
             case userMessage === `${prefix}getpp`:
                await getppCommand(sock, chatId, message);
               break;
+
+            case userMessage === `${prefix}uptime`:
+                await uptimeCommand(sock, chatId, message);
+                break;
                 
             case userMessage === `${prefix}alive`:
                 await aliveCommand(sock, chatId, message);
