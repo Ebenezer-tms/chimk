@@ -50,7 +50,7 @@ function downloadFile(url, dest, visited = new Set()) {
             const client = useHttps ? require('https') : require('http');
             const req = client.get(url, {
                 headers: {
-                    'User-Agent': 'Pretty-md-Updater/1.0',
+                    'User-Agent': 'pretty-md-Updater/1.0',
                     'Accept': '*/*'
                 }
             }, res => {
@@ -129,7 +129,7 @@ function copyRecursive(src, dest, ignore = [], relative = '', outList = []) {
 async function updateViaZip(sock, chatId, message, zipOverride) {
   
     const zipUrl = (zipOverride || settings.updateZipUrl || process.env.UPDATE_ZIP_URL || '').trim();
-    // const zipUrl = "https://github.com/Ebenezer-tms/chimk/archive/refs/heads/main.zip";
+    // const zipUrl = "https://github.com/https://github.com/Ebenezer-tms/chimk/archive/refs/heads/main.zip";
     if (!zipUrl) {
         throw new Error('No ZIP URL configured. Set settings.updateZipUrl or UPDATE_ZIP_URL env.');
     }
@@ -179,7 +179,7 @@ async function updateViaZip(sock, chatId, message, zipOverride) {
 async function restartProcess(sock, chatId, message) {
     try {
         // Send final confirmation message to the user
-        await sock.sendMessage(chatId, { text: '> *Pretty Updated complete! Restarting 🔄 and initializating bot data 🚀* ...' }, { quoted: message });
+        await sock.sendMessage(chatId, { text: '> *Pretty Updated completely! Restarting 🔄 and initializating bot data 🚀* ...' }, { quoted: message });
     } catch {}
     
     // 1. Gracefully close the Baileys socket
@@ -243,6 +243,11 @@ async function updateCommand(sock, chatId, message, senderIsSudo, zipOverride) {
     try {
         if (!isSimpleRestart) {
              await sock.sendMessage(chatId, { text: '*Updating 🛜 bot system. please wait…*' }, { quoted: message });
+            // rection ✅
+            await sock.sendMessage(chatId, {
+            react: { text: '🆙', key: message.key }
+        });
+            
              if (await hasGitRepo()) {
                  const { oldRev, newRev, alreadyUpToDate, commits, files } = await updateViaGit();
                  const summary = alreadyUpToDate ? `✅ Already up to date: ${newRev}` : `✅ Updated to ${newRev}`;
@@ -256,6 +261,11 @@ async function updateCommand(sock, chatId, message, senderIsSudo, zipOverride) {
         try {
             const v = require('../settings').version || '';
             await sock.sendMessage(chatId, { text: `> *initialization started ...🆙️*` }, { quoted: message });
+// react again
+            await sock.sendMessage(chatId, {
+            react: { text: '💓', key: message.key }
+        });
+            
         } catch {
             await sock.sendMessage(chatId, { text: 'Restared Successfully Enjoy_' }, { quoted: message });
         }
