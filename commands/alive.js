@@ -72,7 +72,7 @@ const hostName = detectHost();
 ┃➥ *ᴜsᴀɢᴇ:* 96 MB of 8 GB
 ┃➥ *ʀᴀᴍ:* [███████░░░] 68%
 ┗❐
-  ${readmore}
+  
 ┏❐《 *AI MENU* 》 ❐
 ┃ .Ai
 ┃ .gpt
@@ -121,7 +121,7 @@ const hostName = detectHost();
 ┃ .close
 ┃ .mention
 ┗❐
-  ${readmore}
+  
 ┏❐《 *SETTING MENU* 》❐
 ┃ .mode
 ┃ .autostatus
@@ -176,7 +176,7 @@ const hostName = detectHost();
 ┃ .dare
 ┃ .8ball
 ┗❐
-  ${readmore}
+  
 ┏❐《 *MAKER MENU* 》❐
 ┃ .compliment
 ┃ .insult
@@ -225,7 +225,7 @@ const hostName = detectHost();
 ┃ .glitch
 ┃ .fire 
 ┗❐
- ${readmore}
+ 
 ┏❐《 *IMG EDIT* 》❐
 ┃ .heart
 ┃ .horny
