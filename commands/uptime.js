@@ -13,7 +13,7 @@ function runtime(seconds) {
     return `${d}d ${h}h ${m}m ${s}s`;
 }
 
-async function aliveCommand(sock, chatId, message) {
+async function uptimeCommand(sock, chatId, message) {
     try {
         // ❤️ Reaction when command triggered
         await sock.sendMessage(chatId, {
@@ -29,7 +29,7 @@ async function aliveCommand(sock, chatId, message) {
         const usedMemory = (process.memoryUsage().heapUsed / (1024 * 1024)).toFixed(2);
         const host = os.platform();
 
-        const aliveMessage =
+        const uptimeMessage =
             `👋 \`\`\` Hello ${userName}, I'm alive now \`\`\`\n\n` +
             `_*This ${settings.botName || "Knight Bot"} WhatsApp Bot is made for your easy use. This bot is currently active🪄*_\n\n` +
             `> *Version:* ${settings.version}\n` +
@@ -46,7 +46,7 @@ async function aliveCommand(sock, chatId, message) {
         // Send local image
         await sock.sendMessage(chatId, {
             image: fs.readFileSync(imagePath),
-            caption: aliveMessage
+            caption: uptimeMessage
         }, { quoted: message });
 
     } catch (error) {
@@ -54,7 +54,7 @@ async function aliveCommand(sock, chatId, message) {
 
         // Send fallback text
         await sock.sendMessage(chatId, {
-            text: `❌ An error occurred, but here's the info:\n\n${aliveMessage}`
+            text: `❌ An error occurred, but here's the info:\n\n${uptimeMessage}`
         }, { quoted: message });
 
         await sock.sendMessage(chatId, {
