@@ -417,12 +417,24 @@ function detectHost() {
     }
 
     return 'Unknown Host';
+}
+    
 
+    try {
+        if (!XeonBotInc.user || global.isBotConnected) return;
+
+        global.isBotConnected = true;
+        const pNumber = XeonBotInc.user.id.split(':')[0] + '@s.whatsapp.net';
+        let data = JSON.parse(fs.readFileSync('./data/messageCount.json'));
+        const currentMode = data.isPublic ? 'public' : 'private';    
+        const hostName = detectHost();
+   
 
         // Send the message
         await XeonBotInc.sendMessage(pNumber, {
             text: `
 ┏━━━━━☆《 CONNECTED 》☆
+┃➥ Prefix: [.]
 ┃➥ Bot: ᴘʀᴇᴛᴛʏ 𝐌ᴅ
 ┃➥ Mode: ${currentMode}
 ┃➥ Time: ${new Date().toLocaleString()}
