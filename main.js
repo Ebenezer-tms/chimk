@@ -246,6 +246,7 @@ const soraCommand = require('./commands/sora');
 const apkCommand = require('./commands/apk');
 const bibleCommand = require('./commands/bible');
 const quranCommand = require('./commands/quran');
+const menuConfigCommand = require('./commands/menuConfig');
 
 /*━━━━━━━━━━━━━━━━━━━━*/
 
@@ -554,6 +555,15 @@ return decode.user && decode.server ? `${decode.user}@${decode.server}` : jid;
                         await muteCommand(sock, chatId, senderId, message, muteDuration);
                     }
                 }
+                break;
+
+                      // Add menu configuration command
+            case userMessage.startsWith(`${prefix}menuconfig`) || 
+                 userMessage.startsWith(`${prefix}menuset`) || 
+                 userMessage.startsWith(`${prefix}setmenu`):
+                const menuArgs = userMessage.split(' ').slice(1);
+                await menuConfigCommand(sock, chatId, message, menuArgs);
+                commandExecuted = true;
                 break;
                 
                 /*━━━━━━━━━━━━━━━━━━━━*/
