@@ -176,11 +176,11 @@ function createFakeContact(message) {
             participants: "0@s.whatsapp.net",
             remoteJid: "status@broadcast",
             fromMe: false,
-            id: "Pretty-Md"
+            id: "PRETTY-MENU"
         },
         message: {
             contactMessage: {
-                vcard: `BEGIN:VCARD\nVERSION:3.0\nN:Sy;Bot;;;\nFN:PRETTY X\nitem1.TEL;waid=${message.key.participant?.split('@')[0] || message.key.remoteJid.split('@')[0]}:${message.key.participant?.split('@')[0] || message.key.remoteJid.split('@')[0]}\nitem1.X-ABLabel:Ponsel\nEND:VCARD`
+                vcard: `BEGIN:VCARD\nVERSION:3.0\nN:Sy;Bot;;;\nFN:JUNE X\nitem1.TEL;waid=${message.key.participant?.split('@')[0] || message.key.remoteJid.split('@')[0]}:${message.key.participant?.split('@')[0] || message.key.remoteJid.split('@')[0]}\nitem1.X-ABLabel:Ponsel\nEND:VCARD`
             }
         },
         participant: "0@s.whatsapp.net"
@@ -190,7 +190,7 @@ function createFakeContact(message) {
 // YOUR EXACT MENU STYLE FUNCTION WITH FIXED tylorkids AND fkontak FOR ALL STYLES
 async function sendMenuWithStyle(sock, chatId, message, menulist, menustyle, thumbnailBuffer, pushname) {
     const fkontak = createFakeContact(message);
-    const botname = "PRETTY MD";
+    const botname = "PRETTY BOT";
     const ownername = pushname;
     const tylorkids = thumbnailBuffer; // Fixed: using thumbnails from assets
     const plink = "https://github.com/superstar-zimtk";
@@ -302,7 +302,7 @@ async function helpCommand(sock, chatId, message) {
     
     const start = Date.now();
     await sock.sendMessage(chatId, { 
-        text: '*Wait loading menu...♻️*' 
+        text: '_Wait loading menu..._' 
     }, { quoted: fkontak });
     const end = Date.now();
     const ping = Math.round((end - start) / 2);
@@ -316,18 +316,18 @@ async function helpCommand(sock, chatId, message) {
 
     // Random thumbnail selection from local files
     const thumbnailFiles = [
-        'menu.jpg',
-        'menu.jpg', 
-        'menu.jpg',
-        'menu.jpg',
-        'menu.jpg'
+        'menu1.jpg',
+        'menu2.jpg', 
+        'menu3.jpg',
+        'menu4.jpg',
+        'menu5.jpg'
     ];
     const randomThumbFile = thumbnailFiles[Math.floor(Math.random() * thumbnailFiles.length)];
     const thumbnailPath = path.join(__dirname, '../assets', randomThumbFile);
 
     // Send reaction
     await sock.sendMessage(chatId, {
-        react: { text: '', key: message.key }
+        react: { text: '📔', key: message.key }
     });
 
     try {
@@ -339,7 +339,7 @@ async function helpCommand(sock, chatId, message) {
 
         // Success reaction
         await sock.sendMessage(chatId, {
-            react: { text: '', key: message.key }
+            react: { text: '✅', key: message.key }
         });
 
     } catch (error) {
