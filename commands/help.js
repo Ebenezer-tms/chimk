@@ -74,7 +74,7 @@ const generateMenu = (pushname, currentMode, hostName, ping, uptimeFormatted, pr
     menu += `├◆ *Mode:* ${currentMode}\n`;
     menu += `├◆ *Host:* ${hostName}\n`;
     menu += `├◆ *Speed:* ${ping} ms\n`;
-    menu += `├◆ *Prefix:* ${prefix2}\n`;
+    menu += `├◆ *Prefix:* [${prefix2}\n`;]
     
     if (menuSettings.showUptime) {
         menu += `├◆ *Uptime:* ${uptimeFormatted}\n`;
@@ -120,7 +120,7 @@ const generateMenu = (pushname, currentMode, hostName, ping, uptimeFormatted, pr
     menu += `┗❐\n\n`;
 
     // Game Menu
-    menu += `┏❐ \`GAME MENU\` ❐\n`;
+    menu += `┏❐ 《 *GAME MENU* 》 ❐\n`;
     menu += `┃├◆ .tictactoe\n┃├◆ .hangman\n┃├◆ .guess\n┃├◆ .trivia\n┃├◆ .answer\n┃├◆ .truth\n┃├◆ .dare\n┃├◆ .8ball\n`;
     menu += `┗❐\n\n`;
 
@@ -176,11 +176,11 @@ function createFakeContact(message) {
             participants: "0@s.whatsapp.net",
             remoteJid: "status@broadcast",
             fromMe: false,
-            id: "PRETTY-MENU"
+            id: "Pretty-Md"
         },
         message: {
             contactMessage: {
-                vcard: `BEGIN:VCARD\nVERSION:3.0\nN:Sy;Bot;;;\nFN:JUNE X\nitem1.TEL;waid=${message.key.participant?.split('@')[0] || message.key.remoteJid.split('@')[0]}:${message.key.participant?.split('@')[0] || message.key.remoteJid.split('@')[0]}\nitem1.X-ABLabel:Ponsel\nEND:VCARD`
+                vcard: `BEGIN:VCARD\nVERSION:3.0\nN:Sy;Bot;;;\nFN:PRETTY X\nitem1.TEL;waid=${message.key.participant?.split('@')[0] || message.key.remoteJid.split('@')[0]}:${message.key.participant?.split('@')[0] || message.key.remoteJid.split('@')[0]}\nitem1.X-ABLabel:Ponsel\nEND:VCARD`
             }
         },
         participant: "0@s.whatsapp.net"
@@ -190,7 +190,7 @@ function createFakeContact(message) {
 // YOUR EXACT MENU STYLE FUNCTION WITH FIXED tylorkids AND fkontak FOR ALL STYLES
 async function sendMenuWithStyle(sock, chatId, message, menulist, menustyle, thumbnailBuffer, pushname) {
     const fkontak = createFakeContact(message);
-    const botname = "PRETTY BOT";
+    const botname = "PRETTY MD";
     const ownername = pushname;
     const tylorkids = thumbnailBuffer; // Fixed: using thumbnails from assets
     const plink = "https://github.com/superstar-zimtk";
@@ -302,7 +302,7 @@ async function helpCommand(sock, chatId, message) {
     
     const start = Date.now();
     await sock.sendMessage(chatId, { 
-        text: '_Wait loading menu..._' 
+        text: '*Wait loading menu...♻️*' 
     }, { quoted: fkontak });
     const end = Date.now();
     const ping = Math.round((end - start) / 2);
@@ -327,7 +327,7 @@ async function helpCommand(sock, chatId, message) {
 
     // Send reaction
     await sock.sendMessage(chatId, {
-        react: { text: '📔', key: message.key }
+        react: { text: '', key: message.key }
     });
 
     try {
@@ -339,7 +339,7 @@ async function helpCommand(sock, chatId, message) {
 
         // Success reaction
         await sock.sendMessage(chatId, {
-            react: { text: '✅', key: message.key }
+            react: { text: '', key: message.key }
         });
 
     } catch (error) {
