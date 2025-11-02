@@ -74,7 +74,7 @@ const generateMenu = (pushname, currentMode, hostName, ping, uptimeFormatted, pr
     menu += `├◆ *Mode:* ${currentMode}\n`;
     menu += `├◆ *Host:* ${hostName}\n`;
     menu += `├◆ *Speed:* ${ping} ms\n`;
-    menu += `├◆ *Prefix:* [${prefix2}]\n`;
+    menu += `├◆ *Prefix:* ${prefix2}\n`;
     
     if (menuSettings.showUptime) {
         menu += `├◆ *Uptime:* ${uptimeFormatted}\n`;
