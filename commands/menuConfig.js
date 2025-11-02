@@ -17,10 +17,10 @@ async function menuConfigCommand(sock, chatId, message, args) {
         // Show current settings
         const settings = getMenuSettings();
         let configMessage = `*[PRETTY MENU CONFIG]*\n`;
-        configMessage += `➥ *Current Style:* ${settings.menuStyle} (${MENU_STYLES[settings.menuStyle]})\n`;
-        configMessage += `➥ *Show Memory:* ${settings.showMemory ? '✅' : '❌'}\n`;
-        configMessage += `➥ *Show Uptime:* ${settings.showUptime ? '✅' : '❌'}\n`;
-        configMessage += `➥ *Show Progress Bar:* ${settings.showProgressBar ? '✅' : '❌'}\n`;
+        configMessage += `├◆ *Current Style:* ${settings.menuStyle} (${MENU_STYLES[settings.menuStyle]})\n`;
+        configMessage += `├◆ *Show Memory:* ${settings.showMemory ? '✅' : '❌'}\n`;
+        configMessage += `├◆ *Show Uptime:* ${settings.showUptime ? '✅' : '❌'}\n`;
+        configMessage += `├◆ *Show Progress Bar:* ${settings.showProgressBar ? '✅' : '❌'}\n`;
         configMessage += `\n\n`;
         
         configMessage += `*Available Styles:*\n`;
