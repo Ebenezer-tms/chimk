@@ -99,8 +99,6 @@ async function setownernumberCommand(sock, chatId, senderId, message, userMessag
         console.error(err);
         await sock.sendMessage(chatId, { text: `❌ Error: ${err.message || err}`, ...channelInfo }, { quoted: message });
     }
-
-
 }
 
 async function setbotnameCommand(sock, chatId, senderId, message, userMessage) {
@@ -298,6 +296,7 @@ module.exports = {
     setbotnameCommand,
     setownernameCommand,
     setvarCommand,
+    setownernumberCommand,
     modeCommand,
     toggleSettingCommand
 };
