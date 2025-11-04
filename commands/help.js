@@ -303,7 +303,7 @@ async function helpCommand(sock, chatId, message) {
     
     const start = Date.now();
     await sock.sendMessage(chatId, { 
-        text: '*Wait loading menu...♻️*' 
+        text: '*loading menu...♻️*' 
     }, { quoted: fkontak });
     const end = Date.now();
     const ping = Math.round((end - start) / 2);
