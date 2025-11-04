@@ -78,6 +78,29 @@ async function setbotimageCommand(sock, chatId, senderId, message, userMessage) 
         console.error(err);
         await sock.sendMessage(chatId, { text: `❌ Error: ${err.message || err}`, ...channelInfo }, { quoted: message });
     }
+
+async function setownernumberCommand(sock, chatId, senderId, message, userMessage) {
+    try {
+        if (!message.key.fromMe && !await isSudo(senderId)) {
+            return sock.sendMessage(chatId, { text: '❗ Only the bot owner can use this command.', ...channelInfo }, { quoted: message });
+        }
+
+        const args = userMessage.split(/\s+/).slice(1);
+        const name = args.join(" ").trim();
+        
+        if (!name) {
+            return sock.sendMessage(chatId, { text: '❌ Provide an owner name.', ...channelInfo }, { quoted: message });
+        }
+
+        await setConfig("OWNERNUMBER", name);
+        await sock.sendMessage(chatId, { text: `✅ Owner number updated to: *${number}*`, ...channelInfo }, { quoted: message });
+
+    } catch (err) {
+        console.error(err);
+        await sock.sendMessage(chatId, { text: `❌ Error: ${err.message || err}`, ...channelInfo }, { quoted: message });
+    }
+
+
 }
 
 async function setbotnameCommand(sock, chatId, senderId, message, userMessage) {
