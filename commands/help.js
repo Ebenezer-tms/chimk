@@ -71,6 +71,7 @@ const generateMenu = (pushname, currentMode, hostName, ping, uptimeFormatted, pr
     const menuSettings = getMenuSettings();
     
     let menu = `┏❐  *❴《 😍PRETTY-MD😍 》❵* ❐\n`;
+    menu += `├◆ *Owner:* ${settings.botOwner}\n`;
     menu += `├◆ *Mode:* ${currentMode}\n`;
     menu += `├◆ *Host:* ${hostName}\n`;
     menu += `├◆ *Speed:* ${ping} ms\n`;
@@ -195,7 +196,7 @@ async function sendMenuWithStyle(sock, chatId, message, menulist, menustyle, thu
     const tylorkids = thumbnailBuffer; // Fixed: using thumbnails from assets
     const plink = "https://github.com/superstar-zimtk";
 
-    if (menustyle === '1') {
+    if (menustyle === '4') {
         await sock.sendMessage(chatId, {
             document: {
                 url: "https://i.ibb.co/2W0H9Jq/avatar-contact.png",
@@ -235,7 +236,7 @@ async function sendMenuWithStyle(sock, chatId, message, menulist, menustyle, thu
                 },
             },
         }, { quoted: fkontak });
-    } else if (menustyle === '4') {
+    } else if (menustyle === '1') {
         await sock.sendMessage(chatId, {
             image: tylorkids,
             caption: menulist,
