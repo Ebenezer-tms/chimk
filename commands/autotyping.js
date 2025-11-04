@@ -1,5 +1,5 @@
 /**
- * pretty md Bot - A WhatsApp Bot
+ * june md Bot - A WhatsApp Bot
  * Autotyping Command - Shows fake typing status
  */
 
@@ -38,7 +38,7 @@ async function autotypingCommand(sock, chatId, message) {
                         serverMessageId: -1
                     }
                 }
-            });
+            },{quoted: message});
             return;
         }
 
@@ -69,7 +69,7 @@ async function autotypingCommand(sock, chatId, message) {
                             serverMessageId: -1
                         }
                     }
-                });
+                },{quoted: message});
                 return;
             }
         } else {
@@ -92,7 +92,7 @@ async function autotypingCommand(sock, chatId, message) {
                     serverMessageId: -1
                 }
             }
-        });
+        },{quoted: message});
         
     } catch (error) {
         console.error('Error in autotyping command:', error);
@@ -107,7 +107,7 @@ async function autotypingCommand(sock, chatId, message) {
                     serverMessageId: -1
                 }
             }
-        });
+        },{quoted: message});
     }
 }
 
