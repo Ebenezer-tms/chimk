@@ -126,7 +126,7 @@ const generateMenu = (pushname, currentMode, hostName, ping, uptimeFormatted, pr
 
     // GitHub Menu
     menu += `┏❐ 《 *GITHUB CMD* 》 ❐\n`;
-    menu += `┃ .git\n┃ .github\n┃ .sc\n┃ .script\n┃ .repo\n`;
+    menu += `┃├◆ .git\n┃├◆ .github\n┃├◆ .sc\n┃├◆ .script\n┃├◆ .repo\n`;
     menu += `┗❐\n${readmore}\n`;
 
     // Maker Menu
