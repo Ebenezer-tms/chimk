@@ -70,7 +70,7 @@ const generateMenu = (pushname, currentMode, hostName, ping, uptimeFormatted, pr
     const prefix2 = getPrefix();
     const menuSettings = getMenuSettings();
     
-    let menu = `┏❐  *❴《 ${config.BOT_NAME} 》❵* ❐\n`;
+    let menu = `┏❐  *❴《 ${config.botName} 》❵* ❐\n`;
     menu += `├◆ *Owner:* ${settings.botOwner}\n`;
     menu += `├◆ *Mode:* ${currentMode}\n`;
     menu += `├◆ *Host:* ${hostName}\n`;
@@ -81,7 +81,7 @@ const generateMenu = (pushname, currentMode, hostName, ping, uptimeFormatted, pr
         menu += `├◆ *Uptime:* ${uptimeFormatted}\n`;
     }
     
-    menu += `├◆ *version:* v${settings.version}\n`;
+    menu += `├◆ *version:* ${settings.version}\n`;
     
     if (menuSettings.showMemory) {
         menu += `├◆ *Usage:* ${formatMemory(botUsedMemory)} of ${formatMemory(totalMemory)}\n`;
