@@ -70,7 +70,7 @@ const generateMenu = (pushname, currentMode, hostName, ping, uptimeFormatted, pr
     const prefix2 = getPrefix();
     const menuSettings = getMenuSettings();
     
-    let menu = `┏❐  *❴《 ${config.botName} 》❵* ❐\n`;
+    let menu = `┏❐  *❴《 ${configdb.botName} 》❵* ❐\n`;
     menu += `├◆ *Owner:* ${settings.botOwner}\n`;
     menu += `├◆ *Mode:* ${currentMode}\n`;
     menu += `├◆ *Host:* ${hostName}\n`;
