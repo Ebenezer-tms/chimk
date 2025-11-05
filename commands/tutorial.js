@@ -18,7 +18,7 @@ async function tutorialCommand(sock, chatId, message) {
         // ❤️ Reaction when command triggered
         await sock.sendMessage(chatId, {
             react: {
-                text: "❤️",
+                text: "📸",
                 key: message.key
             }
         });
@@ -30,11 +30,13 @@ async function tutorialCommand(sock, chatId, message) {
         const host = os.platform();
 
         const uptimeMessage =
-            `👋 \`Hello ${userName}, I'm alive now\` \n\n` +
-            `*This ${settings.botName || "> *Pretty md"} WhatsApp Bot is made for your easy use. This bot is currently active*\n\n` +
-            `> *Version:* ${settings.version}\n` +
-            `> *Memory:* ${usedMemory}MB / ${totalMemory}GB\n` +
-            `> *Runtime:* ${botUptime}\n` +
+            `👋 \`Hello ${userName}, here is the tutorial videos\` \n\n` +
+            `*This ${settings.botName || "> *Pretty md"} Whatsapp Bot tutorials. This bot is easy to deploy*\n\n` +
+            `*github workflows:* https://youtu.be/2HU2okH8HL4?si=l2JG1EbML0MhfLWg\n` +
+            `*katabump video:* coming soon\n` +
+            `*cypherXHost video:* https://youtu.be/ilaDlfd39n0?si=63XKx8q4RHULXQBF\n` +
+            `*bothosting video:* comming soon\n` +
+            `*heroku video* coming soon\n` +
             `*${settings.botName || "Pretty md"} Online*\n\n` +
             `*🧚Follow our channel:* https://whatsapp.com/channel/0029Vb9qprVJuyAJxcTO252t\n\n` +
             `> ρσωєяє∂ ву ${settings.ownerName || "Xhyper Tech"}`;
