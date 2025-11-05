@@ -436,9 +436,9 @@ function detectHost() {
         // Send the message
         await XeonBotInc.sendMessage(pNumber, {
             text: `
-┏━━━━━☆《 CONNECTED 》☆
-┃➸  Bot name: ᴘʀᴇᴛᴛʏ 𝐌ᴅ
-┃➸ Prefix: ${prefix}
+┏━━━━━☆《 *CONNECTED* 》☆
+┃➸  Bot: ᴘʀᴇᴛᴛʏ 𝐌ᴅ
+┃➸ Prefix: [${prefix}]
 ┃➸ Mode: ${currentMode}
 ┃➸ Time: ${new Date().toLocaleString()}
 ┃➸ Host: ${hostName}
