@@ -30,17 +30,10 @@ async function uptimeCommand(sock, chatId, message) {
         const host = os.platform();
 
         const uptimeMessage =
-            `👋 \`Hello ${userName}, I'm alive now\` \n\n` +
-            `*This ${settings.botName || "> *Pretty md"} WhatsApp Bot is made for your easy use. This bot is currently active*\n\n` +
-            `> *Version:* ${settings.version}\n` +
-            `> *Memory:* ${usedMemory}MB / ${totalMemory}GB\n` +
-            `> *Runtime:* ${botUptime}\n` +
-            `*${settings.botName || "Pretty md"} Online*\n\n` +
-            `*🧚Follow our channel:* https://whatsapp.com/channel/0029Vb9qprVJuyAJxcTO252t\n\n` +
-            `> ρσωєяє∂ ву ${settings.ownerName || "Xhyper Tech"}`;
+            `🔹️ ${botUptime}`;
 
         // Resolve the local image path
-        const imagePath = path.resolve(__dirname, "../assets/IMG-20250819-WA0001(1).jpg");
+        const imagePath = path.resolve(__dirname, "");
 
         // Send local image
         await sock.sendMessage(chatId, {
