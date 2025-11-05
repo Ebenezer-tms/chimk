@@ -420,7 +420,9 @@ function detectHost() {
 }
     
 
-    try {
+        try {
+
+        const { getPrefix, handleSetPrefixCommand } = require('./commands/setprefix');
         if (!XeonBotInc.user || global.isBotConnected) return;
 
         global.isBotConnected = true;
@@ -428,17 +430,19 @@ function detectHost() {
         let data = JSON.parse(fs.readFileSync('./data/messageCount.json'));
         const currentMode = data.isPublic ? 'public' : 'private';    
         const hostName = detectHost();
+        const prefix = getPrefix();
    
 
         // Send the message
         await XeonBotInc.sendMessage(pNumber, {
             text: `
 ┏━━━━━☆《 CONNECTED 》☆
-┃➥ Bot: ᴘʀᴇᴛᴛʏ 𝐌ᴅ
-┃➥ Mode: ${currentMode}
-┃➥ Time: ${new Date().toLocaleString()}
-┃➥ Host: ${hostName}
-┃➥ support: https://t.me/xhypher2025
+┃➸  Bot name: ᴘʀᴇᴛᴛʏ 𝐌ᴅ
+┃➸ Prefix: ${prefix}
+┃➸ Mode: ${currentMode}
+┃➸ Time: ${new Date().toLocaleString()}
+┃➸ Host: ${hostName}
+┃➸ support: https://t.me/xhypher2025
 ┗━━━━━━━━━━━━━━━━━━━`
         });
         log('🔹️🎊 Bot successfully connected to Whatsapp.', 'cyan');
