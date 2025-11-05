@@ -29,7 +29,8 @@ async function uptimeCommand(sock, chatId, message) {
         const usedMemory = (process.memoryUsage().heapUsed / (1024 * 1024)).toFixed(2);
         const host = os.platform();
 
-        const uptimeMessage = `🔹️ ${botUptime}`;
+        const uptimeMessage = 
+            `🔹️ ${botUptime}\n`;
 
         // Resolve the local image path
         const imagePath = path.resolve(__dirname, "");
