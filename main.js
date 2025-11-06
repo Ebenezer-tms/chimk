@@ -38,6 +38,11 @@ const {
   getPrefix, 
   handleSetPrefixCommand 
   } = require('./commands/setprefix');
+
+const {
+  getOwnerName, 
+  handleSetOwnerCommand 
+} = require('./commands/setowner');
  
 const {
  autoreadCommand,
