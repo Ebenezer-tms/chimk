@@ -24,16 +24,17 @@ async function menuConfigCommand(sock, chatId, message, args) {
         configMessage += `┗❐\n`;
         configMessage += `\n\n`;
         
-        configMessage += `*Available Styles:*\n`;
+        configMessage += `┏❐  《 *Available Styles* 》 ❐\n`;
         for (const [style, description] of Object.entries(MENU_STYLES)) {
-            configMessage += `• ${style}: ${description}\n`;
+            configMessage += `┃├◆• ${style}: ${description}\n`;
         }
         
-        configMessage += `\n*Usage:*\n`;
-        configMessage += `• .setmenu style <1-6> - Change menu style\n`;
-        configMessage += `• .setmenu toggle <setting> - Toggle settings\n`;
-        configMessage += `• .menuconfig reset - Reset to default\n`;
-        configMessage += `• .menuconfig preview - Preview current style\n`;
+        configMessage += `\n┏❐  《 *Usage:* 》 ❐\n`;
+        configMessage += `┃├◆.setmenu style <1-6> - Change menu style\n`;
+        configMessage += `┃├◆.setmenu toggle <setting> - Toggle settings\n`;
+        configMessage += `┃├◆.menuconfig reset - Reset to default\n`;
+        configMessage += `┃├◆.menuconfig preview - Preview current style\n`;
+        configMessage += `┗❐\n`;
         
         await sock.sendMessage(chatId, { text: configMessage }, { quoted: message });
         return;
