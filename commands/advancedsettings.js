@@ -102,28 +102,6 @@ async function setbotnameCommand(sock, chatId, senderId, message, userMessage) {
     }
 }
 
-async function setownernameCommand(sock, chatId, senderId, message, userMessage) {
-    try {
-        if (!message.key.fromMe && !await isSudo(senderId)) {
-            return sock.sendMessage(chatId, { text: '❗ Only the bot owner can use this command.', ...channelInfo }, { quoted: message });
-        }
-
-        const args = userMessage.split(/\s+/).slice(1);
-        const name = args.join(" ").trim();
-        
-        if (!name) {
-            return sock.sendMessage(chatId, { text: '❌ Provide an owner name.', ...channelInfo }, { quoted: message });
-        }
-
-        await setConfig("OWNERNAME", name);
-        await sock.sendMessage(chatId, { text: `✅ Owner name updated to: *${name}*`, ...channelInfo }, { quoted: message });
-
-    } catch (err) {
-        console.error(err);
-        await sock.sendMessage(chatId, { text: `❌ Error: ${err.message || err}`, ...channelInfo }, { quoted: message });
-    }
-}
-
 async function setvarCommand(sock, chatId, senderId, message, userMessage, prefix) {
     try {
         const getConfigValue = (key, defaultVal) => {
@@ -273,7 +251,6 @@ async function isSudo(senderId) {
 module.exports = {
     setbotimageCommand,
     setbotnameCommand,
-    setownernameCommand,
     setvarCommand,
     modeCommand,
     toggleSettingCommand
