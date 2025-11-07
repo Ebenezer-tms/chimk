@@ -71,6 +71,7 @@ const generateMenu = (pushname, currentMode, hostName, ping, uptimeFormatted, pr
     const totalMemory = os.totalmem();
     const systemUsedMemory = totalMemory - os.freemem();
     const prefix2 = getPrefix();
+    let newOwner = getOwnerName();
     const menuSettings = getMenuSettings();
     
     let menu = `┏❐  *❴《 😍PRETTY-MD😍 》❵* ❐\n`;
