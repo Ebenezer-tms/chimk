@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 // Path to store owner settings
-const BOT_FILE = path.join(__dirname, '..', 'data', 'bot.json');
+const VOT_FILE = path.join(__dirname, '..', 'data', 'bot.json');
 
 // Default owner name
 const DEFAULT_BOT_NAME = '😍PRETTY-MD😍';
@@ -22,12 +22,12 @@ if (!fs.existsSync(BOT_FILE)) {
  * Get the current owner name
  * @returns {string} The current owner name
  */
-function getBotName() {
+function getbotName() {
     try {
         const data = JSON.parse(fs.readFileSync(BOT_FILE, 'utf8'));
-        return data.botName || DEFAULT_BOT_NAME;
+        return data.ownerName || DEFAULT_BOT_NAME;
     } catch (error) {
-        console.error('Error reading owner file:', error);
+        console.error('Error reading bot file:', error);
         return DEFAULT_BOT_NAME;
     }
 }
@@ -45,7 +45,7 @@ function setBotName(newBotName) {
         }
         
         const data = { botName: newBotName };
-        fs.writeFileSync(Bot_FILE, JSON.stringify(data, null, 2));
+        fs.writeFileSync(BOT_FILE, JSON.stringify(data, null, 2));
         return true;
     } catch (error) {
         console.error('Error setting bot name:', error);
@@ -60,10 +60,10 @@ function setBotName(newBotName) {
 function resetBotName() {
     try {
         const data = { botName: DEFAULT_BOT_NAME };
-        fs.writeFileSync(Bot_FILE, JSON.stringify(data, null, 2));
+        fs.writeFileSync(OWNER_FILE, JSON.stringify(data, null, 2));
         return true;
     } catch (error) {
-        console.error('Error resetting bot name:', error);
+        console.error('Error resetting owner name:', error);
         return false;
     }
 }
@@ -108,11 +108,11 @@ function createFakeContact(message) {
         return;
     }
 
-    if (!newOwnerName) {
+    if (!newBotName) {
         // Show current owner name
-        const current = getOwnerName();
+        const current = getBotName();
         await sock.sendMessage(chatId, { 
-            text: `👑 Current Bot Name: *${current}*\n\nUsage: ${currentPrefix}setbot <new_name>\nExample: ${currentPrefix}setbot PRETTY\n\nTo reset: ${currentPrefix}setbot reset`,
+            text: `👑 Current Bot Name: *${current}*\n\nUsage: ${currentPrefix}setbot <new_name>\nExample: ${currentPrefix}setbot Supreme\n\nTo reset: ${currentPrefix}setbot reset`,
             contextInfo: {
                 forwardingScore: 1,
                 isForwarded: false,
@@ -126,11 +126,11 @@ function createFakeContact(message) {
         return;
     }
 
-    if (newOwnerName.toLowerCase() === 'reset') {
+    if (newBotName.toLowerCase() === 'reset') {
         // Reset to default owner name
-        const success = resetOwnerName();
+        const success = resstBotName();
         if (success) {
-            const defaultOwnerName = getOwnerName();
+            const defaultBotName = getBotName();
             await sock.sendMessage(chatId, { 
                 text: `✅ Bot name reset to default: *${defaultBotName}*`,
                 contextInfo: {
@@ -145,7 +145,7 @@ function createFakeContact(message) {
             }, { quoted: fake });
         } else {
             await sock.sendMessage(chatId, { 
-                text: '❌ Failed to reset bot name!',
+                text: '❌ Failed to reset owner name!',
                 contextInfo: {
                     forwardingScore: 1,
                     isForwarded: false,
@@ -160,8 +160,8 @@ function createFakeContact(message) {
         return;
     }
 
-    // Set new bot name
-    if (newOwnerName.length > 20) {
+    // Set new owner name
+    if (newBotName.length > 20) {
         await sock.sendMessage(chatId, { 
             text: '❌ Bot name must be 1-20 characters long!',
             contextInfo: {
@@ -177,7 +177,7 @@ function createFakeContact(message) {
         return;
     }
 
-    const success = setOwnerName(newOwnerName);
+    const success = setBotName(newBotName);
     if (success) {
         await sock.sendMessage(chatId, { 
             text: `✅ Bot name successfully set to: *${newBotName}*`,
@@ -192,7 +192,7 @@ function createFakeContact(message) {
         }, { quoted: fake });
     } else {
         await sock.sendMessage(chatId, { 
-            text: '❌ Failed to set bot name!',
+            text: '❌ Failed to set owner name!',
             contextInfo: {
                 forwardingScore: 1,
                 isForwarded: false,             forwardedNewsletterMessageInfo: {
