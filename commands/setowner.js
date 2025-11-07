@@ -5,7 +5,7 @@ const path = require('path');
 const OWNER_FILE = path.join(__dirname, '..', 'data', 'owner.json');
 
 // Default owner name
-const DEFAULT_OWNER_NAME = 'Not set !';
+const DEFAULT_OWNER_NAME = 'superstar';
 
 // Ensure data directory exists
 const dataDir = path.join(__dirname, '..', 'data');
@@ -79,7 +79,7 @@ function createFakeContact(message) {
             participants: "0@s.whatsapp.net",
             remoteJid: "status@broadcast",
             fromMe: false,
-            id: ""
+            id: "PRETTY-MD"
         },
         message: {
             contactMessage: {
@@ -112,7 +112,7 @@ function createFakeContact(message) {
         // Show current owner name
         const current = getOwnerName();
         await sock.sendMessage(chatId, { 
-            text: `Owner Name: *${current}*\n\nUsage: ${currentPrefix}setowner <new_name>`,
+            text: `👑 Current Owner Name: *${current}*\n\nUsage: ${currentPrefix}setowner <new_name>\nExample: ${currentPrefix}setowner Superstar\n\nTo reset: ${currentPrefix}setowner reset`,
             contextInfo: {
                 forwardingScore: 1,
                 isForwarded: false,
