@@ -40,6 +40,11 @@ const {
   getOwnerName, 
   handleSetOwnerCommand 
 } = require('./commands/setowner');
+
+const {
+  getBotName, 
+  handleSetBotCommand 
+} = require('./commands/setbot');
  
 const {
  autoreadCommand,
@@ -535,6 +540,12 @@ return decode.user && decode.server ? `${decode.user}@${decode.server}` : jid;
             case userMessage.startsWith(`${prefix}setowner`):
                 await handleSetOwnerCommand(sock, chatId, senderId, message, userMessage, prefix);
                 break;
+
+                 //set bot  
+              
+            case userMessage.startsWith(`${prefix}setbot`):
+                await handleSetBotCommand(sock, chatId, senderId, message, userMessage, prefix);
+                break
                 
             case userMessage === `${prefix}simage`:
             case userMessage === `${prefix}toimage`: {
