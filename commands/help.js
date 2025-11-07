@@ -10,6 +10,8 @@ const { getPrefix, handleSetPrefixCommand } = require('./setprefix');
 
 const { getOwnerName, handleSetOwnerCommand } = require('./setowner');
 
+const { getBotName, handleSetBotCommand } = require('./setbot')
+
 const more = String.fromCharCode(8206);
 const readmore = more.repeat(4001);
 
@@ -72,9 +74,10 @@ const generateMenu = (pushname, currentMode, hostName, ping, uptimeFormatted, pr
     const systemUsedMemory = totalMemory - os.freemem();
     const prefix2 = getPrefix();
     let newOwner = getOwnerName();
+    let newBot = getBotName();
     const menuSettings = getMenuSettings();
     
-    let menu = `┏❐  *❴《 😍PRETTY-MD😍 》❵* ❐\n`;
+    let menu = `┏❐  *❴《 ${newBot} 》❵* ❐\n`;
     menu += `├◆ *Owner:* ${newOwner}\n`;
     menu += `├◆ *Mode:* ${currentMode}\n`;
     menu += `├◆ *Host:* ${hostName}\n`;
