@@ -1,28 +1,25 @@
-
-
-
 /*━━━━━━━━━━━━━━━━━━━━*/
-require('./config.js');
-/*━━━━━━━━━━━━━━━━━━━━*/
-
-/*━━━━━━━━━━━━━━━━━━━━*/
-//-------moduleExports
+// -----Core imports first-----
 /*━━━━━━━━━━━━━━━━━━━━*/
 const settings = require('./settings');
+require('./config.js');
+const { isBanned } = require('./lib/isBanned');
 const yts = require('yt-search');
+const { fetchBuffer } = require('./lib/myfunc');
 const fs = require('fs');
 const fetch = require('node-fetch');
 const ytdl = require('ytdl-core');
 const path = require('path');
+const chalk = require('chalk');
 const axios = require('axios');
 const ffmpeg = require('fluent-ffmpeg');
-
-const isAdmin = require('./lib/isAdmin');
-const { isBanned } = require('./lib/isBanned');
+const { jidDecode } = require('@whiskeysockets/baileys');
 const { isSudo } = require('./lib/index');
-const { fetchBuffer } = require('./lib/myfunc');
+const isAdmin = require('./lib/isAdmin');
 const { Antilink } = require('./lib/antilink');
+const { tictactoeCommand, handleTicTacToeMove } = require('./commands/tictactoe');
 const { getConfig } = require('./lib/configdb');
+
 /*━━━━━━━━━━━━━━━━━━━━*/
 // -----Command imports -Handlers
 /*━━━━━━━━━━━━━━━━━━━━*/
@@ -530,6 +527,13 @@ return decode.user && decode.server ? `${decode.user}@${decode.server}` : jid;
        //prefix case 
         case userMessage.startsWith(`${prefix}setprefix`):
          await handleSetPrefixCommand(sock, chatId, senderId, message, userMessage, prefix);
+                break;
+
+
+                  //set owner  
+              
+            case userMessage.startsWith(`${prefix}setowner`):
+                await handleSetOwnerCommand(sock, chatId, senderId, message, userMessage, prefix);
                 break;
                 
             case userMessage === `${prefix}simage`:
