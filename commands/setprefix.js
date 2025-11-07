@@ -159,7 +159,7 @@ function createFakeContact(message) {
         const current = getRawPrefix();
         const displayPrefix = current === NO_PREFIX ? 'None (prefixless)' : current;
         await sock.sendMessage(chatId, { 
-            text: `👑 Current prefix: *${displayPrefix}*\n\nUsage: ${current === NO_PREFIX ? 'command' : current + 'setprefix'} <new_prefix|none>\nExamples:\n• ${current === NO_PREFIX ? 'setprefix' : current + 'setprefix'} !\n• ${current === NO_PREFIX ? 'setprefix' : current + 'setprefix'} none (for prefixless mode)\n• ${current === NO_PREFIX ? 'setprefix' : current + 'setprefix'} reset`,
+            text: `Use: ${current === NO_PREFIX ? 'command' : current + 'setprefix'} then put the prefix you want`,
             contextInfo: {
                 forwardingScore: 1,
                 isForwarded: false,
@@ -212,7 +212,7 @@ function createFakeContact(message) {
         const success = setPrefix('');
         if (success) {
             await sock.sendMessage(chatId, { 
-                text: '👑 Bot is now running in *PREFIXLESS MODE*! All commands can be used without any prefix.\n\n⚠️ *Note:* In prefixless MODE, NOW use commands directly without  PREFIX',
+                text: '✅️ You have successfully changed prefix to *none*',
                 contextInfo: {
                     forwardingScore: 1,
                     isForwarded: false,
