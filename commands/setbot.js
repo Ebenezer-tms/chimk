@@ -108,9 +108,9 @@ function createFakeContact(message) {
         return;
     }
 
-    if (!newOwnerName) {
+    if (!newBotName) {
         // Show current owner name
-        const current = getOwnerName();
+        const current = getBotName();
         await sock.sendMessage(chatId, { 
             text: `👑 Current Bot Name: *${current}*\n\nUsage: ${currentPrefix}setbot <new_name>\nExample: ${currentPrefix}setbot PRETTY\n\nTo reset: ${currentPrefix}setbot reset`,
             contextInfo: {
@@ -126,11 +126,11 @@ function createFakeContact(message) {
         return;
     }
 
-    if (newOwnerName.toLowerCase() === 'reset') {
+    if (newBotName.toLowerCase() === 'reset') {
         // Reset to default owner name
-        const success = resetOwnerName();
+        const success = resetBotName();
         if (success) {
-            const defaultOwnerName = getOwnerName();
+            const defaultBotName = getBotName();
             await sock.sendMessage(chatId, { 
                 text: `✅ Bot name reset to default: *${defaultBotName}*`,
                 contextInfo: {
@@ -161,7 +161,7 @@ function createFakeContact(message) {
     }
 
     // Set new bot name
-    if (newOwnerName.length > 20) {
+    if (newBotName.length > 20) {
         await sock.sendMessage(chatId, { 
             text: '❌ Bot name must be 1-20 characters long!',
             contextInfo: {
@@ -177,7 +177,7 @@ function createFakeContact(message) {
         return;
     }
 
-    const success = setOwnerName(newOwnerName);
+    const success = setBotName(newBotName);
     if (success) {
         await sock.sendMessage(chatId, { 
             text: `✅ Bot name successfully set to: *${newBotName}*`,
