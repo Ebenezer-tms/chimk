@@ -260,8 +260,6 @@ const menuConfigCommand = require('./commands/menuConfig');
 /*━━━━━━━━━━━━━━━━━━━━*/
 const {
   setbotimageCommand,
-  setbotnameCommand,
-  setownernameCommand,
   setvarCommand,
   modeCommand,
   toggleSettingCommand
