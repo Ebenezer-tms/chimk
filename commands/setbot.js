@@ -113,7 +113,7 @@ function createFakeContact(message) {
         // Show current owner name
         const current = getBotName();
         await sock.sendMessage(chatId, { 
-            text: `👑 Current Bot Name: *${current}*\n\nUsage: ${currentPrefix}setbot <new_name>\nExample: ${currentPrefix}setbot PRETTY\n\nTo reset: ${currentPrefix}setbot reset`,
+            text: `Use: ${currentPrefix}setbotname ..... \nExample: ${currentPrefix}setbot pretty md`,
             contextInfo: {
                 forwardingScore: 1,
                 isForwarded: false,
