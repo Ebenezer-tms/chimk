@@ -1,6 +1,8 @@
 /*by supreme*/
 const os = require('os');
 const settings = require('../settings.js');
+const { getBotName, handleSetBotCommand } = require('./setbot');
+let newBot = getBotName();
 
 async function pingCommand( sock, chatId ) {
   try {
@@ -10,7 +12,7 @@ async function pingCommand( sock, chatId ) {
     });
 
     const ping = Date.now() - start;
-    const response = `*🔸pretty-md speed🔹:* ${ping} ms`;
+    const response = `*${newBot} speed:* ${ping} ms`;
 
     await sock.sendMessage(chatId, {
       text: response,
