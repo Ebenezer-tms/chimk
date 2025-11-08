@@ -155,8 +155,12 @@ const generateMenu = (pushname, currentMode, hostName, ping, uptimeFormatted, pr
     // Image Edit Menu
     menu += `┏❐ 《 *IMG EDIT* 》 ❐\n`;
     menu += `┃├◆ .heart\n┃├◆ .horny\n┃├◆ .circle\n┃├◆ .lgbt\n┃├◆ .lolice\n┃├◆ .stupid\n┃├◆ .namecard\n┃├◆ .tweet\n┃├◆ .ytcomment\n┃├◆ .comrade\n┃├◆ .gay\n┃├◆ .glass\n┃├◆ .jail\n┃├◆ .passed\n┃├◆ .triggered\n`;
-    menu += `┗❐\n`;
+    menu += `┗❐\n\n`;
 
+    //deploy Menu
+    menu += `┏❐ 《 *GUIDE MENU* 》 ❐\n`;
+    menu += `┃├◆ .tutorial\n`
+    menu += `┗❐`
     return menu;
 };
 
