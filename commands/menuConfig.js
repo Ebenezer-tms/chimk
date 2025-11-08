@@ -18,7 +18,7 @@ async function menuConfigCommand(sock, chatId, message, args) {
     if (args.length === 0) {
         // Show current settings
         const settings = getMenuSettings();
-        let configMessage = `┏❐ ❴《 ${newBot} 》❵ ❐\n`;
+        let configMessage = `┏❐ ❴《 *CURRENT SETTINGS* 》❵ ❐\n`;
         configMessage += `├◆ *Current Style:* ${settings.menuStyle} (${MENU_STYLES[settings.menuStyle]})\n`;
         configMessage += `├◆ *Show Memory:* ${settings.showMemory ? '✅' : '❌'}\n`;
         configMessage += `├◆ *Show Uptime:* ${settings.showUptime ? '✅' : '❌'}\n`;
@@ -29,7 +29,6 @@ async function menuConfigCommand(sock, chatId, message, args) {
         configMessage += `┏❐  《 *Available Styles* 》 ❐\n`;
         for (const [style, description] of Object.entries(MENU_STYLES)) {
             configMessage += `┃├◆• ${style}: ${description}\n`;
-            configMessage += `┗❐\n`;
         }
         
         configMessage += `\n┏❐  《 *Usage:* 》 ❐\n`;
