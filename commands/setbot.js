@@ -14,9 +14,10 @@ if (!fs.existsSync(dataDir)) {
 }
 
 // Initialize owner file if it doesn't exist
-if (!fs.existsSync(BOT_FILE)) {
-    fs.writeFileSync(BOT_FILE, JSON.stringify({ botName: DEFAULT_BOT_NAME }, null, 2));
+if (!fs.existsSync(OWNER_FILE)) {
+    fs.writeFileSync(OWNER_FILE, JSON.stringify({ ownerName: DEFAULT_OWNER_NAME }, null, 2));
 }
+
 
 /**
  * Get the current owner name
