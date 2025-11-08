@@ -188,7 +188,7 @@ function createFakeContact(message) {
             participants: "0@s.whatsapp.net",
             remoteJid: "status@broadcast",
             fromMe: false,
-            id: "Prettt-Md"
+            id: "whatsapp"
         },
         message: {
             contactMessage: {
@@ -205,7 +205,7 @@ async function sendMenuWithStyle(sock, chatId, message, menulist, menustyle, thu
     const botname = "whatsapp bot";
     const ownername = pushname;
     const tylorkids = thumbnailBuffer; // Fixed: using thumbnails from assets
-    const plink = "https://github.com/superstar-zimtk";
+    const plink = "https://www.instagram.com/superstar_official10?igsh=NGlxeWVqajg2bGw3";
 
     if (menustyle === '4') {
         await sock.sendMessage(chatId, {
