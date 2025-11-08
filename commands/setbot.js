@@ -46,7 +46,7 @@ function setBotName(newBotName) {
         }
         
         const data = { botName: newBotName };
-        fs.writeFileSync(Bot_FILE, JSON.stringify(data, null, 2));
+        fs.writeFileSync(OWNER_FILE, JSON.stringify(data, null, 2));
         return true;
     } catch (error) {
         console.error('Error setting bot name:', error);
@@ -61,7 +61,7 @@ function setBotName(newBotName) {
 function resetBotName() {
     try {
         const data = { botName: DEFAULT_BOT_NAME };
-        fs.writeFileSync(Bot_FILE, JSON.stringify(data, null, 2));
+        fs.writeFileSync(OWNER_FILE, JSON.stringify(data, null, 2));
         return true;
     } catch (error) {
         console.error('Error resetting bot name:', error);
