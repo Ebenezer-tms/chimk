@@ -124,7 +124,7 @@ const generateMenu = (pushname, currentMode, hostName, ping, uptimeFormatted, pr
 
     // Stick Menu
     menu += `┏❐ 《 *STICKER MENU* 》 ❐\n`;
-    menu += `┃├◆ .blur\n┃├◆ .simage\n┃├◆ .sticker\n┃├◆ .tgsticker\n┃ .meme\n┃ .take\n┃ .emojimix\n`;
+    menu += `┃├◆ .blur\n┃├◆ .simage\n┃├◆ .sticker\n┃├◆ .tgsticker\n┃├◆ .meme\n┃├◆ .take\n┃├◆ .emojimix\n`;
     menu += `┗❐\n\n`;
 
     // Game Menu
