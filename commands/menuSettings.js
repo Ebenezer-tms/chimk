@@ -10,10 +10,10 @@ const DEFAULT_MENU_STYLE = '1';
 
 // Menu style descriptions
 const MENU_STYLES = {
-    '1': 'Document with thumbnail',
+    '1': 'Image with caption',
     '2': 'Simple text reply',
     '3': 'Text with external ad reply',
-    '4': 'Image with caption',
+    '4': 'Document with thumbnail',
     '5': 'Interactive message',
     '6': 'Payment request format'
 };
