@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 // Path to store owner settings
-const BOT_FILE = path.join(__dirname, '..', 'data', 'bot.json');
+const OWNER_FILE = path.join(__dirname, '..', 'data', 'bot.json');
 
 // Default owner name
 const DEFAULT_BOT_NAME = '😍PRETTY-MD😍';
@@ -25,7 +25,7 @@ if (!fs.existsSync(OWNER_FILE)) {
  */
 function getBotName() {
     try {
-        const data = JSON.parse(fs.readFileSync(BOT_FILE, 'utf8'));
+        const data = JSON.parse(fs.readFileSync(OWNER_FILE, 'utf8'));
         return data.botName || DEFAULT_BOT_NAME;
     } catch (error) {
         console.error('Error reading owner file:', error);
