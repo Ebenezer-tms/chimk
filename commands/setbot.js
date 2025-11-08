@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 // Path to store owner settings
-const OWNER_FILE = path.join(__dirname, '..', 'data', 'owner.json');
+const BOT_FILE = path.join(__dirname, '..', 'data', 'bot.json');
 
 // Default owner name
 const DEFAULT_BOT_NAME = '😍PRETTY-MD😍';
@@ -14,8 +14,8 @@ if (!fs.existsSync(dataDir)) {
 }
 
 // Initialize owner file if it doesn't exist
-if (!fs.existsSync(OWNER_FILE)) {
-    fs.writeFileSync(OWNER_FILE, JSON.stringify({ ownerName: DEFAULT_OWNER_NAME }, null, 2));
+if (!fs.existsSync(BOT_FILE)) {
+    fs.writeFileSync(BOT_FILE, JSON.stringify({ botName: DEFAULT_BOT_NAME }, null, 2));
 }
 
 
@@ -25,7 +25,7 @@ if (!fs.existsSync(OWNER_FILE)) {
  */
 function getBotName() {
     try {
-        const data = JSON.parse(fs.readFileSync(OWNER_FILE, 'utf8'));
+        const data = JSON.parse(fs.readFileSync(BOT_FILE, 'utf8'));
         return data.botName || DEFAULT_BOT_NAME;
     } catch (error) {
         console.error('Error reading owner file:', error);
@@ -46,7 +46,7 @@ function setBotName(newBotName) {
         }
         
         const data = { botName: newBotName };
-        fs.writeFileSync(OWNER_FILE, JSON.stringify(data, null, 2));
+        fs.writeFileSync(BOT_FILE, JSON.stringify(data, null, 2));
         return true;
     } catch (error) {
         console.error('Error setting bot name:', error);
@@ -61,7 +61,7 @@ function setBotName(newBotName) {
 function resetBotName() {
     try {
         const data = { botName: DEFAULT_BOT_NAME };
-        fs.writeFileSync(OWNER_FILE, JSON.stringify(data, null, 2));
+        fs.writeFileSync(BOT_FILE, JSON.stringify(data, null, 2));
         return true;
     } catch (error) {
         console.error('Error resetting bot name:', error);
