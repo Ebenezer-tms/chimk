@@ -41,7 +41,7 @@ function getBotName() {
 function setBotName(newBotName) {
     try {
         // Validate owner name
-        if (!newBotName || newBotName.length > 20) {
+        if (!newBotName || newBotName.length > 500) {
             return false;
         }
         
