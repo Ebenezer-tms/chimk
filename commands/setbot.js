@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 // Path to store owner settings
-const OWNER_FILE = path.join(__dirname, '..', 'data', 'bot.json');
+const OWNER_FILE = path.join(__dirname, '..', 'data', 'owner.json');
 
 // Default owner name
 const DEFAULT_BOT_NAME = '😍PRETTY-MD😍';
