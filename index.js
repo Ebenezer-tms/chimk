@@ -439,6 +439,7 @@ function detectHost() {
 ┏━━━━━☆《 *CONNECTED* 》☆
 ┃➸  Bot: ᴘʀᴇᴛᴛʏ 𝐌ᴅ
 ┃➸ Prefix: [${prefix}]
+┃➸ Version: ${settings.version}
 ┃➸ Mode: ${currentMode}
 ┃➸ Time: ${new Date().toLocaleString()}
 ┃➸ Host: ${hostName}
