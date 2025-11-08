@@ -1,5 +1,7 @@
 // commands/menuConfig.js
 
+const { getBotName, handleSetBotCommand } = require('./setbot');
+let newBot = getBotName();
 
 const { 
     setMenuStyle, 
@@ -16,7 +18,7 @@ async function menuConfigCommand(sock, chatId, message, args) {
     if (args.length === 0) {
         // Show current settings
         const settings = getMenuSettings();
-        let configMessage = `┏❐ ❴《 😍PRETTY-MD😍 》❵ ❐\n`;
+        let configMessage = `┏❐ ❴《 ${newBot} 》❵ ❐\n`;
         configMessage += `├◆ *Current Style:* ${settings.menuStyle} (${MENU_STYLES[settings.menuStyle]})\n`;
         configMessage += `├◆ *Show Memory:* ${settings.showMemory ? '✅' : '❌'}\n`;
         configMessage += `├◆ *Show Uptime:* ${settings.showUptime ? '✅' : '❌'}\n`;
