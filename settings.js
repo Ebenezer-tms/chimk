@@ -9,7 +9,7 @@ const settings = {
   maxStoreMessages: 20, 
   storeWriteInterval: 10000,
   description: "This is a bot for managing group commands and automating tasks.",
-  version: "1.0.2",
+  version: "1.0.3",
   updateZipUrl: "https://github.com/Ebenezer-tms/chimk/archive/refs/heads/main.zip",
 };
 
