@@ -29,6 +29,7 @@ async function menuConfigCommand(sock, chatId, message, args) {
         configMessage += `┏❐  《 *Available Styles* 》 ❐\n`;
         for (const [style, description] of Object.entries(MENU_STYLES)) {
             configMessage += `┃├◆• ${style}: ${description}\n`;
+            configMessage += `┗❐\n`;
         }
         
         configMessage += `\n┏❐  《 *Usage:* 》 ❐\n`;
