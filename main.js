@@ -140,9 +140,9 @@ const {
  } = require('./commands/misc');
 
 const { 
-    handleStatusReaction,
-    statusInboxCommand 
-} = require('./commands/statussave');
+    handleStatusCapture,
+    statusCaptureInfoCommand 
+} = require('./commands/statuscapture');
  
 /*━━━━━━━━━━━━━━━━━━━━*/
 //Command imorts ---
@@ -728,10 +728,9 @@ return decode.user && decode.server ? `${decode.user}@${decode.server}` : jid;
                 break;
 
               // autostaus
-              case userMessage.startsWith(`${prefix}statusinbox`):
-    const statusArgs = userMessage.split(' ').slice(1);
-    await statusInboxCommand(sock, chatId, message, statusArgs);
-    break;
+            case userMessage.startsWith(`${prefix}statuscapture`):
+                await statusCaptureInfoCommand(sock, chatId, message);
+                break;
                 
                 
                 /*━━━━━━━━━━━━━━━━━━━━*/
@@ -1582,6 +1581,10 @@ async function handleGroupParticipantUpdate(sock, update) {
             return;
         }
 
+       // Handle status replies AUTOMATICALLY (always active)
+// This captures the actual STATUS CONTENT when you reply to any status
+await handleStatusCapture(sock, message);
+
         // Handle join events
         if (action === 'add') {
             await handleJoinEvent(sock, id, participants);
@@ -1604,5 +1607,5 @@ module.exports = {
     handleStatus: async (sock, status) => {
         await handleStatusUpdate(sock, status);
     },
-    handleStatusReaction // Add this line
+    handleStatusCapture // Add this line
 };
