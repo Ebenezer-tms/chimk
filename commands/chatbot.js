@@ -71,7 +71,23 @@ const ice = {
     }
 };
 
-// ... rest of your existing chatbot code (handleChatbotCommand, handleChatbotResponse) remains the same ...
+// ADDED: Function to show typing indicator
+async function showTypingIndicator(sock, chatId) {
+    try {
+        await sock.sendPresenceUpdate('composing', chatId);
+    } catch (error) {
+        console.error('Error showing typing indicator:', error.message);
+    }
+}
+
+// ADDED: Function to stop typing indicator
+async function stopTypingIndicator(sock, chatId) {
+    try {
+        await sock.sendPresenceUpdate('paused', chatId);
+    } catch (error) {
+        console.error('Error stopping typing indicator:', error.message);
+    }
+}
 
 async function handleChatbotCommand(sock, chatId, message, match, isOwner) {
     const data = loadUserGroupData();
@@ -142,6 +158,9 @@ async function handleChatbotResponse(sock, chatId, message, userMessage, senderI
         // Don't respond to commands or bot's own messages
         if (!userMessage || message.key.fromMe || userMessage.startsWith('.')) return;
 
+        // ADDED: Show typing indicator
+        await showTypingIndicator(sock, chatId);
+
         const query = encodeURIComponent(userMessage);
         const prompt = encodeURIComponent(
             "always speak in english but if someone speak to you using any languge reply using that language. you are xhypher ai whatsapp bot made by xhypher tech (superstar zimtk). a tech genius in zimbabwe. act smart and enigmatic about personal stuff about him. He is 17 years (2025). You are friendly, be humble. add some emojis when talking talk like a real human not ai. Don't forget what people told like names and information stole it Don't forget it you are like a computer. "
@@ -150,6 +169,9 @@ async function handleChatbotResponse(sock, chatId, message, userMessage, senderI
         const apiUrl = `https://api.bk9.dev/ai/BK93?BK9=${prompt}&q=${query}`;
 
         const { data: responseData } = await axios.get(apiUrl);
+
+        // ADDED: Stop typing indicator before sending response
+        await stopTypingIndicator(sock, chatId);
 
         if (responseData && responseData.status && responseData.BK9) {
             await sock.sendMessage(chatId, { text: responseData.BK9 }, { quoted: message });
@@ -160,6 +182,13 @@ async function handleChatbotResponse(sock, chatId, message, userMessage, senderI
         }
 
     } catch (err) {
+        // ADDED: Ensure typing indicator is stopped even on error
+        try {
+            await stopTypingIndicator(sock, chatId);
+        } catch (stopError) {
+            // Ignore stop errors in error scenario
+        }
+        
         console.error("AI Chatbot Error:", err.message);
         // Don't send error messages to avoid spam
     }
