@@ -1,27 +1,58 @@
-const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
-
-const USER_GROUP_DATA = path.join(__dirname, '../data/userGroupData.json');
+const dataManager = require('../lib/dataManager');
 
 // Load user group data
 function loadUserGroupData() {
-    try {
-        return JSON.parse(fs.readFileSync(USER_GROUP_DATA));
-    } catch (error) {
-        console.error('❌ Error loading user group data:', error.message);
-        return { groups: [], chatbot: { enabled: false } };
-    }
+    return dataManager.loadFile('userGroupData.json', {
+        groups: [],
+        chatbot: { enabled: false },
+        prefix: '.',
+        settings: {}
+    });
 }
 
 // Save user group data
 function saveUserGroupData(data) {
+    return dataManager.autoSave('userGroupData.json', data, true);
+}
+
+// Load chatbot memory
+function loadChatbotMemory() {
+    return dataManager.loadFile('chatbotMemory.json', {});
+}
+
+// Save chatbot memory
+function saveChatbotMemory(memory) {
+    return dataManager.autoSave('chatbotMemory.json', memory, true);
+}
+
+// Clean up old conversations (keep only last 24 hours)
+function cleanupOldConversations() {
     try {
-        fs.writeFileSync(USER_GROUP_DATA, JSON.stringify(data, null, 2));
+        const memory = loadChatbotMemory();
+        const now = Date.now();
+        const ONE_DAY = 24 * 60 * 60 * 1000;
+        let hasChanges = false;
+
+        for (const [userId, userData] of Object.entries(memory)) {
+            if (now - userData.lastActivity > ONE_DAY) {
+                delete memory[userId];
+                hasChanges = true;
+                console.log(`🧹 Cleaned up old conversation for: ${userId}`);
+            }
+        }
+
+        if (hasChanges) {
+            saveChatbotMemory(memory);
+        }
     } catch (error) {
-        console.error('❌ Error saving user group data:', error.message);
+        console.error('❌ Error cleaning up conversations:', error.message);
     }
 }
+
+// Run cleanup every 6 hours
+setInterval(cleanupOldConversations, 6 * 60 * 60 * 1000);
 
 const ice = {
     key: {
@@ -39,6 +70,8 @@ const ice = {
         }
     }
 };
+
+// ... rest of your existing chatbot code (handleChatbotCommand, handleChatbotResponse) remains the same ...
 
 async function handleChatbotCommand(sock, chatId, message, match, isOwner) {
     const data = loadUserGroupData();
