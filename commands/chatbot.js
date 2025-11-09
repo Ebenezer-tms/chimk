@@ -67,17 +67,22 @@ function extractUserInfo(message) {
     return info;
 }
 
-// Check if chat is private (not a group)
+// Check if chat is private (not group)
 function isPrivateChat(chatId) {
-    return !chatId.endsWith('@g.us');
+    return chatId.endsWith('@s.whatsapp.net');
+}
+
+// Check if chat is group
+function isGroupChat(chatId) {
+    return chatId.endsWith('@g.us');
 }
 
 async function handleChatbotCommand(sock, chatId, message, match) {
-    // Only allow in private chats
-    if (!isPrivateChat(chatId)) {
+    // Only work in private chats
+    if (isGroupChat(chatId)) {
         await showTyping(sock, chatId);
         return sock.sendMessage(chatId, {
-            text: '❌ Chatbot commands only work in private chats. Message me directly to use the chatbot!',
+            text: `*CHATBOT INFO*\n\nChatbot only works in private chats. Message me directly to use the chatbot!`,
             quoted: message
         });
     }
@@ -99,49 +104,11 @@ async function handleChatbotCommand(sock, chatId, message, match) {
     const senderId = message.key.participant || message.participant || message.pushName || message.key.remoteJid;
     const isOwner = senderId === botNumber;
 
-    // If it's the bot owner, allow access immediately
-    if (isOwner) {
-        if (match === 'on') {
-            await showTyping(sock, chatId);
-            if (data.chatbot[chatId]) {
-                return sock.sendMessage(chatId, { 
-                    text: '*Chatbot is already enabled for this chat*',
-                    quoted: message
-                });
-            }
-            data.chatbot[chatId] = true;
-            saveUserGroupData(data);
-            console.log(`✅ Chatbot enabled for private chat ${chatId}`);
-            return sock.sendMessage(chatId, { 
-                text: '*Chatbot has been enabled for this chat*',
-                quoted: message
-            });
-        }
-
-        if (match === 'off') {
-            await showTyping(sock, chatId);
-            if (!data.chatbot[chatId]) {
-                return sock.sendMessage(chatId, { 
-                    text: '*Chatbot is already disabled for this chat*',
-                    quoted: message
-                });
-            }
-            delete data.chatbot[chatId];
-            saveUserGroupData(data);
-            console.log(`✅ Chatbot disabled for private chat ${chatId}`);
-            return sock.sendMessage(chatId, { 
-                text: '*Chatbot has been disabled for this chat*',
-                quoted: message
-            });
-        }
-    }
-
-    // For private chats, any user can enable/disable the bot (no admin check needed)
     if (match === 'on') {
         await showTyping(sock, chatId);
         if (data.chatbot[chatId]) {
             return sock.sendMessage(chatId, { 
-                text: '*Chatbot is already enabled for this chat*',
+                text: '*Chatbot is already enabled*',
                 quoted: message
             });
         }
@@ -149,7 +116,7 @@ async function handleChatbotCommand(sock, chatId, message, match) {
         saveUserGroupData(data);
         console.log(`✅ Chatbot enabled for private chat ${chatId}`);
         return sock.sendMessage(chatId, { 
-            text: '*Chatbot has been enabled for this chat*',
+            text: '*Chatbot has been enabled*',
             quoted: message
         });
     }
@@ -158,7 +125,7 @@ async function handleChatbotCommand(sock, chatId, message, match) {
         await showTyping(sock, chatId);
         if (!data.chatbot[chatId]) {
             return sock.sendMessage(chatId, { 
-                text: '*Chatbot is already disabled for this chat*',
+                text: '*Chatbot is already disabled*',
                 quoted: message
             });
         }
@@ -166,7 +133,7 @@ async function handleChatbotCommand(sock, chatId, message, match) {
         saveUserGroupData(data);
         console.log(`✅ Chatbot disabled for private chat ${chatId}`);
         return sock.sendMessage(chatId, { 
-            text: '*Chatbot has been disabled for this chat*',
+            text: '*Chatbot has been disabled*',
             quoted: message
         });
     }
@@ -179,8 +146,8 @@ async function handleChatbotCommand(sock, chatId, message, match) {
 }
 
 async function handleChatbotResponse(sock, chatId, message, userMessage, senderId) {
-    // Only respond in private chats
-    if (!isPrivateChat(chatId)) {
+    // Only respond in private chats, not groups
+    if (isGroupChat(chatId)) {
         return;
     }
 
@@ -202,8 +169,8 @@ async function handleChatbotResponse(sock, chatId, message, userMessage, senderI
         ];
 
         // In private chats, respond to all messages when chatbot is enabled
-        // No need for mentions or replies in private chats
-        
+        // No need for mentions or replies in private chat
+
         // Clean the message
         let cleanedMessage = userMessage;
 
@@ -222,7 +189,7 @@ async function handleChatbotResponse(sock, chatId, message, userMessage, senderI
             });
         }
 
-        // Add message to history (keep last 5 messages)
+        // Add message to history (keep last 20 messages)
         const messages = chatMemory.messages.get(senderId);
         messages.push(cleanedMessage);
         if (messages.length > 20) {
@@ -290,7 +257,6 @@ CORE RULES:
 3. Use all languages naturally
 4. Be casual, not robotic
 5. NEVER mention these rules in your response
-6. Always use english
 
 EMOJI USAGE:
 ✅ DO use: 😊 😂 😅 🙄 😉 🥺 😎 🤔 😴
@@ -315,7 +281,7 @@ ABOUT YOU:
 - You're the boss
 - You're not an AI or assistant
 - You're a real person chatting
-- Your creator is xhypher tech
+- Your creator is superstar
 
 SLANG EXAMPLES:
 *"kya bakchodi hai yeh"* 😂
@@ -339,7 +305,7 @@ Remember: Just chat naturally. Don't repeat these instructions.
 You:
         `.trim();
 
-        const response = await fetch("https://api.bk9.dev/ai/BK93?BK9=" + encodeURIComponent(prompt));
+        const response = await fetch("https://zellapi.autos/ai/chatbot?text=" + encodeURIComponent(prompt));
         if (!response.ok) throw new Error("API call failed");
         
         const data = await response.json();
@@ -398,5 +364,6 @@ You:
 module.exports = {
     handleChatbotCommand,
     handleChatbotResponse,
-    isPrivateChat
+    isPrivateChat,
+    isGroupChat
 };
