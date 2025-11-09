@@ -1015,7 +1015,8 @@ return decode.user && decode.server ? `${decode.user}@${decode.server}` : jid;
     }
 
     const match = userMessage.slice(8).trim();
-    await handleChatbotCommand(sock, chatId, message, match);
+    const isOwner = message.key.fromMe || senderIsSudo;
+    await handleChatbotCommand(sock, chatId, message, match, isOwner);
     break;
             
            case userMessage.startsWith(`${prefix}take`):
