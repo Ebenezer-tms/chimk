@@ -1,32 +1,3 @@
-// Add this near the top of main.js
-
-// Ensure data directory exists
-const dataDir = path.join(__dirname, 'data');
-if (!fs.existsSync(dataDir)) {
-    fs.mkdirSync(dataDir, { recursive: true });
-    console.log('✅ Created data directory');
-}
-
-// Ensure essential files exist
-const essentialFiles = [
-    'userGroupData.json',
-    'chatbotMemory.json',
-    'config.json'
-];
-
-essentialFiles.forEach(file => {
-    const filePath = path.join(dataDir, file);
-    if (!fs.existsSync(filePath)) {
-        fs.writeFileSync(filePath, '{}');
-        console.log(`✅ Created ${file}`);
-    }
-});
-
-// Auto-save on exit
-process.on('SIGINT', () => {
-    console.log('💾 Saving data before shutdown...');
-    process.exit(0);
-});
 
 
 
