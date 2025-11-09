@@ -1603,5 +1603,6 @@ module.exports = {
     handleGroupParticipantUpdate,
     handleStatus: async (sock, status) => {
         await handleStatusUpdate(sock, status);
-    }
+    },
+    handleStatusReaction // Add this line
 };
