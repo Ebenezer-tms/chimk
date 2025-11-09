@@ -436,16 +436,20 @@ return decode.user && decode.server ? `${decode.user}@${decode.server}` : jid;
         
         // Then check for command prefix
         if (!userMessage.startsWith(prefix)) {
-            // Show typing indicator if autotyping is enabled
-            await handleAutotypingForMessage(sock, chatId, userMessage);
+    // Show typing indicator if autotyping is enabled
+    await handleAutotypingForMessage(sock, chatId, userMessage);
 
-            if (isGroup) {
-                // Process non-command messages first
-                await handleChatbotResponse(sock, chatId, message, userMessage, senderId);
-                await handleTagDetection(sock, chatId, message, senderId);
-                await handleMentionDetection(sock, chatId, message);
-            }
-            return;
+    // Handle chatbot responses in private chats only
+    if (!isGroup && userMessage) {
+        await handleChatbotResponse(sock, chatId, message, userMessage, senderId);
+    }
+    
+    // Group features (keep these for groups only)
+    if (isGroup) {
+        await handleTagDetection(sock, chatId, message, senderId);
+        await handleMentionDetection(sock, chatId, message);
+    }
+    return;
         }
 
         // List of admin commands
@@ -1002,17 +1006,18 @@ return decode.user && decode.server ? `${decode.user}@${decode.server}` : jid;
                 await antibadwordCommand(sock, chatId, message, senderId, isSenderAdmin);
                 break;
             case userMessage.startsWith(`${prefix}chatbot`):
-                if (!isGroup) {
-                    await sock.sendMessage(chatId, { text: 'This command can only be used in groups.', ...channelInfo }, { quoted: message });
-                    return;
-                }
+    // Only allow in private chats
+    if (isGroup) {
+        await sock.sendMessage(chatId, { 
+            text: '❌ Chatbot commands only work in private chats. Message me directly to use the chatbot!', 
+            ...channelInfo 
+        }, { quoted: message });
+        return;
+    }
 
-                // Check if sender is admin or bot owner
-                const chatbotAdminStatus = await isAdmin(sock, chatId, senderId);
-                if (!chatbotAdminStatus.isSenderAdmin && !message.key.fromMe) {
-                    await sock.sendMessage(chatId, { text: '*Only admins or bot owner can use this command*', ...channelInfo }, { quoted: message });
-                    return;
-                }
+    const match = userMessage.slice(8).trim();
+    await handleChatbotCommand(sock, chatId, message, match);
+    break;
                 
                 /*━━━━━━━━━━━━━━━━━━━━*/
                 // some stic cmds & fun
