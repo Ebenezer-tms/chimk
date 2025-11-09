@@ -1,3 +1,37 @@
+// Add this near the top of main.js
+const fs = require('fs');
+const path = require('path');
+
+// Ensure data directory exists
+const dataDir = path.join(__dirname, 'data');
+if (!fs.existsSync(dataDir)) {
+    fs.mkdirSync(dataDir, { recursive: true });
+    console.log('✅ Created data directory');
+}
+
+// Ensure essential files exist
+const essentialFiles = [
+    'userGroupData.json',
+    'chatbotMemory.json',
+    'config.json'
+];
+
+essentialFiles.forEach(file => {
+    const filePath = path.join(dataDir, file);
+    if (!fs.existsSync(filePath)) {
+        fs.writeFileSync(filePath, '{}');
+        console.log(`✅ Created ${file}`);
+    }
+});
+
+// Auto-save on exit
+process.on('SIGINT', () => {
+    console.log('💾 Saving data before shutdown...');
+    process.exit(0);
+});
+
+
+
 /*━━━━━━━━━━━━━━━━━━━━*/
 // -----Core imports first-----
 /*━━━━━━━━━━━━━━━━━━━━*/
@@ -280,6 +314,32 @@ global.packname = settings.packname;
 global.author = settings.author;
 global.channelLink = "https://whatsapp.com/channel/0029Va90zAnIHphOuO8Msp3A";
 global.ytch = "Mr Unique Hacker";
+
+// Add this right after the global settings section
+const settingsManager = require('./lib/settings'); // Make sure this import exists
+
+/*━━━━━━━━━━━━━━━━━━━━*/
+// Auto-save and shutdown handlers
+/*━━━━━━━━━━━━━━━━━━━━*/
+process.on('SIGINT', async () => {
+    console.log('🔄 Saving data before shutdown...');
+    settingsManager.saveSettings();
+    console.log('✅ Data saved. Shutting down...');
+    process.exit(0);
+});
+
+process.on('SIGTERM', async () => {
+    console.log('🔄 Saving data before shutdown...');
+    settingsManager.saveSettings();
+    console.log('✅ Data saved. Shutting down...');
+    process.exit(0);
+});
+
+// Auto-save every 5 minutes as backup
+setInterval(() => {
+    settingsManager.saveSettings();
+    console.log('💾 Auto-save completed');
+}, 5 * 60 * 1000);
 
 // Add this near the top of main.js with other global configurations
 const channelInfo = {
