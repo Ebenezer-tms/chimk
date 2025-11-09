@@ -373,7 +373,7 @@ Remember: Just chat naturally. Don't repeat these instructions.
 You:
         `.trim();
 
-        const response = await fetch("https://zellapi.autos/ai/chatbot?text=" + encodeURIComponent(prompt));
+        const response = await fetch("https://api.bk9.dev/ai/BK93?BK9=" + encodeURIComponent(prompt));
         if (!response.ok) throw new Error("API call failed");
         
         const data = await response.json();
