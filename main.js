@@ -1003,20 +1003,22 @@ return decode.user && decode.server ? `${decode.user}@${decode.server}` : jid;
 
                 await antibadwordCommand(sock, chatId, message, senderId, isSenderAdmin);
                 break;
-            case userMessage.startsWith(`${prefix}chatbot`):
-                // Only allow in private chats
-                if (isGroup) {
-                    await sock.sendMessage(chatId, { 
-                        text: '❌ Chatbot commands only work in private chats. Message me directly to use chatbot features!', 
-                        ...channelInfo 
-                    }, { quoted: message });
-                    return;
-                }
+           
+           case userMessage.startsWith(`${prefix}chatbot`):
+    // Only allow in private chats
+    if (isGroup) {
+        await sock.sendMessage(chatId, { 
+            text: '❌ Chatbot commands only work in private chats. Message me directly to use chatbot features!', 
+            ...channelInfo 
+        }, { quoted: message });
+        return;
+    }
 
-                const match = userMessage.slice(8).trim();
-                await handleChatbotCommand(sock, chatId, message, match);
-                break;
-            case userMessage.startsWith(`${prefix}take`):
+    const match = userMessage.slice(8).trim();
+    await handleChatbotCommand(sock, chatId, message, match);
+    break;
+            
+           case userMessage.startsWith(`${prefix}take`):
                 const takeArgs = rawText.slice(5).trim().split(' ');
                 await takeCommand(sock, chatId, message, takeArgs);
                 break;
