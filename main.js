@@ -915,9 +915,10 @@ return decode.user && decode.server ? `${decode.user}@${decode.server}` : jid;
                 await pingCommand(sock, chatId, message);
                 break;
            
-           case userMessage === `${prefix}bible`:
-                await bibleCommand(sock, chatid, message);
-                break;
+           case userMessage.startsWith(`${prefix}bible`):
+    const query = rawText.slice(7).trim(); // Remove ".bible " from the message
+    await bibleCommand(sock, chatId, message, query);
+    break;
                 
             case userMessage === `${prefix}quran`:
                 await quranCommand(sock, chatid, message);
