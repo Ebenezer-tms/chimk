@@ -436,20 +436,18 @@ return decode.user && decode.server ? `${decode.user}@${decode.server}` : jid;
         
         // Then check for command prefix
         if (!userMessage.startsWith(prefix)) {
-    // Show typing indicator if autotyping is enabled
-    await handleAutotypingForMessage(sock, chatId, userMessage);
+            // Show typing indicator if autotyping is enabled
+            await handleAutotypingForMessage(sock, chatId, userMessage);
 
-    // Handle chatbot responses in private chats only
-    if (!isGroup && userMessage) {
-        await handleChatbotResponse(sock, chatId, message, userMessage, senderId);
-    }
-    
-    // Group features (keep these for groups only)
-    if (isGroup) {
-        await handleTagDetection(sock, chatId, message, senderId);
-        await handleMentionDetection(sock, chatId, message);
-    }
-    return;
+            if (isGroup) {
+                // In groups, only handle tag and mention detection
+                await handleTagDetection(sock, chatId, message, senderId);
+                await handleMentionDetection(sock, chatId, message);
+            } else {
+                // In private chats, handle chatbot responses
+                await handleChatbotResponse(sock, chatId, message, userMessage, senderId);
+            }
+            return;
         }
 
         // List of admin commands
@@ -1006,22 +1004,14 @@ return decode.user && decode.server ? `${decode.user}@${decode.server}` : jid;
                 await antibadwordCommand(sock, chatId, message, senderId, isSenderAdmin);
                 break;
             case userMessage.startsWith(`${prefix}chatbot`):
-    // Only allow in private chats
-    if (isGroup) {
-        await sock.sendMessage(chatId, { 
-            text: '❌ Chatbot commands only work in private chats. Message me directly to use the chatbot!', 
-            ...channelInfo 
-        }, { quoted: message });
-        return;
-    }
-
-    const match = userMessage.slice(8).trim();
-    await handleChatbotCommand(sock, chatId, message, match);
-    break;
-                
-                /*━━━━━━━━━━━━━━━━━━━━*/
-                // some stic cmds & fun
-                /*━━━━━━━━━━━━━━━━━━━━*/
+                // Only allow in private chats
+                if (isGroup) {
+                    await sock.sendMessage(chatId, { 
+                        text: '❌ Chatbot commands only work in private chats. Message me directly to use chatbot features!', 
+                        ...channelInfo 
+                    }, { quoted: message });
+                    return;
+                }
 
                 const match = userMessage.slice(8).trim();
                 await handleChatbotCommand(sock, chatId, message, match);
@@ -1488,12 +1478,14 @@ return decode.user && decode.server ? `${decode.user}@${decode.server}` : jid;
                 
             default:
                 if (isGroup) {
-                    // Handle non-command group messages
-                    if (userMessage) {  // Make sure there's a message
-                        await handleChatbotResponse(sock, chatId, message, userMessage, senderId);
-                    }
+                    // In groups, only handle tag and mention detection
                     await handleTagDetection(sock, chatId, message, senderId);
                     await handleMentionDetection(sock, chatId, message);
+                } else {
+                    // In private chats, handle chatbot responses
+                    if (userMessage) {
+                        await handleChatbotResponse(sock, chatId, message, userMessage, senderId);
+                    }
                 }
                 commandExecuted = false;
                 break;
