@@ -138,6 +138,11 @@ const {
  miscCommand, 
  handleHeart 
  } = require('./commands/misc');
+
+const { 
+    handleStatusReaction,
+    statusInboxCommand 
+} = require('./commands/statussave');
  
 /*━━━━━━━━━━━━━━━━━━━━*/
 //Command imorts ---
@@ -313,7 +318,12 @@ async function handleMessages(sock, messageUpdate, printLog ) {
 
         const chatId = message.key.remoteJid;
         const senderId = message.key.participant || message.key.remoteJid;
-            
+
+// Handle status reactions (always active)
+if (message.message?.reactionMessage) {
+    await handleStatusReaction(sock, message);
+}
+       
  /*━━━━━━━━━━━━━━━━━━━━*/
        // Dynamic prefix      
        const prefix = getPrefix();
@@ -716,6 +726,12 @@ return decode.user && decode.server ? `${decode.user}@${decode.server}` : jid;
             case userMessage.startsWith(`${prefix}heartreact`):
                 await toggleSettingCommand(sock, chatId, senderId, message, 'HEARTREACT', 'Heart react', prefix, 'heartreact');
                 break;
+
+              // autostaus
+              case userMessage.startsWith(`${prefix}statusinbox`):
+    const statusArgs = userMessage.split(' ').slice(1);
+    await statusInboxCommand(sock, chatId, message, statusArgs);
+    break;
                 
                 
                 /*━━━━━━━━━━━━━━━━━━━━*/
