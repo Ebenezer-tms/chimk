@@ -67,11 +67,25 @@ function extractUserInfo(message) {
     return info;
 }
 
+// Check if chat is private (not a group)
+function isPrivateChat(chatId) {
+    return !chatId.endsWith('@g.us');
+}
+
 async function handleChatbotCommand(sock, chatId, message, match) {
+    // Only allow in private chats
+    if (!isPrivateChat(chatId)) {
+        await showTyping(sock, chatId);
+        return sock.sendMessage(chatId, {
+            text: '❌ Chatbot commands only work in private chats. Message me directly to use the chatbot!',
+            quoted: message
+        });
+    }
+
     if (!match) {
         await showTyping(sock, chatId);
         return sock.sendMessage(chatId, {
-            text: `*CHATBOT SETUP*\n\n*.chatbot on*\nEnable chatbot\n\n*.chatbot off*\nDisable chatbot in this group`,
+            text: `*CHATBOT SETUP*\n\n*.chatbot on*\nEnable chatbot\n\n*.chatbot off*\nDisable chatbot`,
             quoted: message
         });
     }
@@ -91,15 +105,15 @@ async function handleChatbotCommand(sock, chatId, message, match) {
             await showTyping(sock, chatId);
             if (data.chatbot[chatId]) {
                 return sock.sendMessage(chatId, { 
-                    text: '*Chatbot is already enabled for this group*',
+                    text: '*Chatbot is already enabled for this chat*',
                     quoted: message
                 });
             }
             data.chatbot[chatId] = true;
             saveUserGroupData(data);
-            console.log(`✅ Chatbot enabled for group ${chatId}`);
+            console.log(`✅ Chatbot enabled for private chat ${chatId}`);
             return sock.sendMessage(chatId, { 
-                text: '*Chatbot has been enabled for this group*',
+                text: '*Chatbot has been enabled for this chat*',
                 quoted: message
             });
         }
@@ -108,52 +122,34 @@ async function handleChatbotCommand(sock, chatId, message, match) {
             await showTyping(sock, chatId);
             if (!data.chatbot[chatId]) {
                 return sock.sendMessage(chatId, { 
-                    text: '*Chatbot is already disabled for this group*',
+                    text: '*Chatbot is already disabled for this chat*',
                     quoted: message
                 });
             }
             delete data.chatbot[chatId];
             saveUserGroupData(data);
-            console.log(`✅ Chatbot disabled for group ${chatId}`);
+            console.log(`✅ Chatbot disabled for private chat ${chatId}`);
             return sock.sendMessage(chatId, { 
-                text: '*Chatbot has been disabled for this group*',
+                text: '*Chatbot has been disabled for this chat*',
                 quoted: message
             });
         }
     }
 
-    // For non-owners, check admin status
-    let isAdmin = false;
-    if (chatId.endsWith('@g.us')) {
-        try {
-            const groupMetadata = await sock.groupMetadata(chatId);
-            isAdmin = groupMetadata.participants.some(p => p.id === senderId && (p.admin === 'admin' || p.admin === 'superadmin'));
-        } catch (e) {
-            console.warn('⚠️ Could not fetch group metadata. Bot might not be admin.');
-        }
-    }
-
-    if (!isAdmin && !isOwner) {
-        await showTyping(sock, chatId);
-        return sock.sendMessage(chatId, {
-            text: '❌ Only group admins or the bot owner can use this command.',
-            quoted: message
-        });
-    }
-
+    // For private chats, any user can enable/disable the bot (no admin check needed)
     if (match === 'on') {
         await showTyping(sock, chatId);
         if (data.chatbot[chatId]) {
             return sock.sendMessage(chatId, { 
-                text: '*Chatbot is already enabled for this group*',
+                text: '*Chatbot is already enabled for this chat*',
                 quoted: message
             });
         }
         data.chatbot[chatId] = true;
         saveUserGroupData(data);
-        console.log(`✅ Chatbot enabled for group ${chatId}`);
+        console.log(`✅ Chatbot enabled for private chat ${chatId}`);
         return sock.sendMessage(chatId, { 
-            text: '*Chatbot has been enabled for this group*',
+            text: '*Chatbot has been enabled for this chat*',
             quoted: message
         });
     }
@@ -162,15 +158,15 @@ async function handleChatbotCommand(sock, chatId, message, match) {
         await showTyping(sock, chatId);
         if (!data.chatbot[chatId]) {
             return sock.sendMessage(chatId, { 
-                text: '*Chatbot is already disabled for this group*',
+                text: '*Chatbot is already disabled for this chat*',
                 quoted: message
             });
         }
         delete data.chatbot[chatId];
         saveUserGroupData(data);
-        console.log(`✅ Chatbot disabled for group ${chatId}`);
+        console.log(`✅ Chatbot disabled for private chat ${chatId}`);
         return sock.sendMessage(chatId, { 
-            text: '*Chatbot has been disabled for this group*',
+            text: '*Chatbot has been disabled for this chat*',
             quoted: message
         });
     }
@@ -183,6 +179,11 @@ async function handleChatbotCommand(sock, chatId, message, match) {
 }
 
 async function handleChatbotResponse(sock, chatId, message, userMessage, senderId) {
+    // Only respond in private chats
+    if (!isPrivateChat(chatId)) {
+        return;
+    }
+
     const data = loadUserGroupData();
     if (!data.chatbot[chatId]) return;
 
@@ -200,46 +201,11 @@ async function handleChatbotResponse(sock, chatId, message, userMessage, senderI
             `${botLid.split(':')[0]}@lid` // Add LID without session part
         ];
 
-        // Check for mentions and replies
-        let isBotMentioned = false;
-        let isReplyToBot = false;
-
-        // Check if message is a reply and contains bot mention
-        if (message.message?.extendedTextMessage) {
-            const mentionedJid = message.message.extendedTextMessage.contextInfo?.mentionedJid || [];
-            const quotedParticipant = message.message.extendedTextMessage.contextInfo?.participant;
-            
-            // Check if bot is mentioned in the reply
-            isBotMentioned = mentionedJid.some(jid => {
-                const jidNumber = jid.split('@')[0].split(':')[0];
-                return botJids.some(botJid => {
-                    const botJidNumber = botJid.split('@')[0].split(':')[0];
-                    return jidNumber === botJidNumber;
-                });
-            });
-            
-            // Check if replying to bot's message
-            if (quotedParticipant) {
-                // Normalize both quoted and bot IDs to compare cleanly
-                const cleanQuoted = quotedParticipant.replace(/[:@].*$/, '');
-                isReplyToBot = botJids.some(botJid => {
-                    const cleanBot = botJid.replace(/[:@].*$/, '');
-                    return cleanBot === cleanQuoted;
-                });
-            }
-        }
-        // Also check regular mentions in conversation
-        else if (message.message?.conversation) {
-            isBotMentioned = userMessage.includes(`@${botNumber}`);
-        }
-
-        if (!isBotMentioned && !isReplyToBot) return;
-
+        // In private chats, respond to all messages when chatbot is enabled
+        // No need for mentions or replies in private chats
+        
         // Clean the message
         let cleanedMessage = userMessage;
-        if (isBotMentioned) {
-            cleanedMessage = cleanedMessage.replace(new RegExp(`@${botNumber}`, 'g'), '').trim();
-        }
 
         // Initialize user's chat memory if not exists
         if (!chatMemory.messages.has(senderId)) {
@@ -431,5 +397,6 @@ You:
 
 module.exports = {
     handleChatbotCommand,
-    handleChatbotResponse
-}; 
+    handleChatbotResponse,
+    isPrivateChat
+};
