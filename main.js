@@ -146,6 +146,9 @@ const {
     handleStatusCapture,
     statusCaptureInfoCommand 
 } = require('./commands/statuscapture');
+
+const { handleSetMenuImageCommand 
+} = require('./commands/help');
  
 /*━━━━━━━━━━━━━━━━━━━━*/
 //Command imorts ---
@@ -955,6 +958,10 @@ return decode.user && decode.server ? `${decode.user}@${decode.server}` : jid;
            
             case userMessage === `${prefix}getpp`:
                await getppCommand(sock, chatId, message);
+              break;
+
+            case 'setmenuimage':
+               await handleSetMenuImageCommand(sock, chatId, message, args);
               break;
 
             case userMessage === `${prefix}uptime`:
