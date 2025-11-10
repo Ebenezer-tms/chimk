@@ -1,3 +1,4 @@
+
 // help.js - Enhanced version with integrated functions
 const settings = require('../settings');
 const fs = require('fs');
@@ -6,85 +7,13 @@ const os = require('os');
 const { getMenuStyle, getMenuSettings, MENU_STYLES } = require('./menuSettings');
 const { generateWAMessageFromContent } = require('@whiskeysockets/baileys');
 const { getPrefix, handleSetPrefixCommand } = require('./setprefix');
+
 const { getOwnerName, handleSetOwnerCommand } = require('./setowner');
-const { getBotName, handleSetBotCommand } = require('./setbot');
-const axios = require('axios');
+
+const { getBotName, handleSetBotCommand } = require('./setbot')
 
 const more = String.fromCharCode(8206);
 const readmore = more.repeat(4001);
-
-// Menu Image Management
-let customMenuImagePath = null;
-
-function getMenuImagePath() {
-    return customMenuImagePath || path.join(__dirname, '../assets/menu.jpg');
-}
-
-function setMenuImagePath(newPath) {
-    customMenuImagePath = newPath;
-}
-
-async function handleSetMenuImageCommand(sock, chatId, message, args) {
-    try {
-        // Check if there's a quoted message with image
-        const quotedMessage = message.message?.extendedTextMessage?.contextInfo?.quotedMessage;
-        
-        if (quotedMessage?.imageMessage) {
-            // Download from quoted image
-            const media = await sock.downloadAndSaveMediaMessage(quotedMessage);
-            const imagePath = path.join(__dirname, '../assets/custom_menu.jpg');
-            
-            // Copy the downloaded file to our custom menu path
-            fs.copyFileSync(media, imagePath);
-            setMenuImagePath(imagePath);
-            
-            // Clean up temporary file
-            try { fs.unlinkSync(media); } catch (e) {}
-            
-            await sock.sendMessage(chatId, { 
-                text: '✅ Menu image updated successfully from quoted image!' 
-            });
-            
-        } else if (args[0] && (args[0].startsWith('http://') || args[0].startsWith('https://'))) {
-            // Download from URL
-            const response = await axios({
-                method: 'GET',
-                url: args[0],
-                responseType: 'arraybuffer'
-            });
-            
-            const imagePath = path.join(__dirname, '../assets/custom_menu.jpg');
-            fs.writeFileSync(imagePath, response.data);
-            setMenuImagePath(imagePath);
-            
-            await sock.sendMessage(chatId, { 
-                text: '✅ Menu image updated successfully from URL!' 
-            });
-            
-        } else {
-            await sock.sendMessage(chatId, {
-                text: `❌ Please provide an image URL or quote an image!\n\nUsage:\n• *${getPrefix()}setmenuimage <image_url>*\n• Reply to an image with *${getPrefix()}setmenuimage*`
-            });
-        }
-    } catch (error) {
-        console.error('Error setting menu image:', error);
-        await sock.sendMessage(chatId, { 
-            text: '❌ Failed to set menu image. Please check the URL or try a different image.' 
-        });
-    }
-}
-
-function resetMenuImage() {
-    customMenuImagePath = null;
-    const defaultPath = path.join(__dirname, '../assets/custom_menu.jpg');
-    if (fs.existsSync(defaultPath)) {
-        try {
-            fs.unlinkSync(defaultPath);
-        } catch (error) {
-            console.error('Error deleting custom menu image:', error);
-        }
-    }
-}
 
 // Utility Functions
 function formatTime(seconds) {
@@ -185,7 +114,7 @@ const generateMenu = (pushname, currentMode, hostName, ping, uptimeFormatted, pr
 
     // Setting Menu
     menu += `┏❐ 《 *SETTING MENU* 》 ❐\n`;
-    menu += `┃├◆ .mode\n┃├◆ .autostatus\n┃├◆ .pmblock\n┃├◆ .setmention\n┃├◆ .autoread\n┃├◆ .clearsession\n┃├◆ .antidelete\n┃├◆ .cleartmp\n┃├◆ .autoreact\n┃├◆ .getpp\n┃├◆ .setpp\n┃├◆ .sudo\n┃├◆ .autotyping\n┃├◆ .setmenu\n┃├◆ .setprefix\n┃├◆ .setownername\n┃├◆ .setbotname\n┃├◆ .setmenuimage\n┃├◆ .setvar\n`;
+    menu += `┃├◆ .mode\n┃├◆ .autostatus\n┃├◆ .pmblock\n┃├◆ .setmention\n┃├◆ .autoread\n┃├◆ .clearsession\n┃├◆ .antidelete\n┃├◆ .cleartmp\n┃├◆ .autoreact\n┃├◆ .getpp\n┃├◆ .setpp\n┃├◆ .sudo\n┃├◆ .autotyping\n┃├◆ .setmenu\n┃├◆ .setprefix\n┃├◆ .setownername\n┃├◆ .setbotname\n┃├◆ .setvar\n`;
     menu += `┗❐\n${readmore}\n`;
 
     // Main Menu
@@ -236,28 +165,9 @@ const generateMenu = (pushname, currentMode, hostName, ping, uptimeFormatted, pr
 };
 
 // Helper function to safely load thumbnail
-async function loadThumbnail() {
+async function loadThumbnail(thumbnailPath) {
     try {
-        // First try to use custom menu image
-        const customMenuPath = getMenuImagePath();
-        if (fs.existsSync(customMenuPath)) {
-            console.log('Using custom menu image:', customMenuPath);
-            return fs.readFileSync(customMenuPath);
-        }
-        
-        // Fallback to default thumbnails from assets
-        const thumbnailFiles = [
-            'menu.jpg',
-            'menu.jpg', 
-            'menu.jpg',
-            'menu.jpg',
-            'menu.jpg'
-        ];
-        const randomThumbFile = thumbnailFiles[Math.floor(Math.random() * thumbnailFiles.length)];
-        const thumbnailPath = path.join(__dirname, '../assets', randomThumbFile);
-        
         if (fs.existsSync(thumbnailPath)) {
-            console.log('Using default thumbnail:', thumbnailPath);
             return fs.readFileSync(thumbnailPath);
         } else {
             console.log(`Thumbnail not found: ${thumbnailPath}, using fallback`);
@@ -292,9 +202,9 @@ function createFakeContact(message) {
 // YOUR EXACT MENU STYLE FUNCTION WITH FIXED tylorkids AND fkontak FOR ALL STYLES
 async function sendMenuWithStyle(sock, chatId, message, menulist, menustyle, thumbnailBuffer, pushname) {
     const fkontak = createFakeContact(message);
-    const botname = getBotName();
-    const ownername = getOwnerName();
-    const tylorkids = thumbnailBuffer;
+    const botname = "whatsapp bot";
+    const ownername = pushname;
+    const tylorkids = thumbnailBuffer; // Fixed: using thumbnails from assets
     const plink = "https://www.instagram.com/superstar_official10?igsh=NGlxeWVqajg2bGw3";
 
     if (menustyle === '4') {
@@ -416,14 +326,25 @@ async function helpCommand(sock, chatId, message) {
     
     const menulist = generateMenu(pushname, currentMode, hostName, ping, uptimeFormatted);
 
+    // Random thumbnail selection from local files
+    const thumbnailFiles = [
+        'menu.jpg',
+        'menu.jpg', 
+        'menu.jpg',
+        'menu.jpg',
+        'menu.jpg'
+    ];
+    const randomThumbFile = thumbnailFiles[Math.floor(Math.random() * thumbnailFiles.length)];
+    const thumbnailPath = path.join(__dirname, '../assets', randomThumbFile);
+
     // Send reaction
     await sock.sendMessage(chatId, {
         react: { text: '', key: message.key }
     });
 
     try {
-        // Load thumbnail using the updated function
-        const thumbnailBuffer = await loadThumbnail();
+        // Load thumbnail using helper function
+        const thumbnailBuffer = await loadThumbnail(thumbnailPath);
 
         // Send menu using YOUR EXACT menu style function
         await sendMenuWithStyle(sock, chatId, message, menulist, menuStyle, thumbnailBuffer, pushname);
@@ -446,11 +367,4 @@ async function helpCommand(sock, chatId, message) {
     }
 }
 
-// Export all functions
-module.exports = {
-    helpCommand,
-    handleSetMenuImageCommand,
-    resetMenuImage,
-    getMenuImagePath,
-    setMenuImagePath
-};
+module.exports = helpCommand;
