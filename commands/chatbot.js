@@ -45,7 +45,7 @@ async function handleChatbotCommand(sock, chatId, message, match, isOwner) {
     
     if (!match) {
         return sock.sendMessage(chatId, {
-            text: `*CHATBOT SETUP - OWNER ONLY*\n\n*.chatbot on*\nEnable chatbot for all private chats\n\n*.chatbot off*\nDisable chatbot for all private chats\n\n*Current Status:* ${data.chatbot.enabled ? '🟢 ON' : '🔴 OFF'}`,
+            text: `*CHATBOT SETUP - OWNER ONLY*\n\n*${currentPrefix}chatbot on*\nEnable chatbot for all private chats\n\n*${currentPrefix}chatbot off*\nDisable chatbot for all private chats\n\n*Current Status:* ${data.chatbot.enabled ? '🟢 ON' : '🔴 OFF'}`,
             quoted: message
         });
     }
@@ -107,7 +107,7 @@ async function handleChatbotResponse(sock, chatId, message, userMessage, senderI
         if (!data.chatbot.enabled) return;
 
         // Don't respond to commands or bot's own messages
-        if (!userMessage || message.key.fromMe || userMessage.startsWith('.')) return;
+        if (!userMessage || message.key.fromMe || userMessage.startsWith(`${prefix}`)) return;
 
         const query = encodeURIComponent(userMessage);
         const prompt = encodeURIComponent(
