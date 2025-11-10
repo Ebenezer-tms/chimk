@@ -146,9 +146,6 @@ const {
     handleStatusCapture,
     statusCaptureInfoCommand 
 } = require('./commands/statuscapture');
-
-const { handleSetMenuImageCommand 
-} = require('./commands/help');
  
 /*━━━━━━━━━━━━━━━━━━━━*/
 //Command imorts ---
