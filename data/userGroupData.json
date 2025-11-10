@@ -1,16 +1,12 @@
 {
+  "users": [],
   "groups": [],
-  "chatbot": {
-    "enabled": false
-  },
-  "prefix": ".",
-  "settings": {
-    "autotyping": false,
-    "autoread": false,
-    "antilink": false,
-    "antitag": false,
-    "antibadword": false,
-    "welcome": false,
-    "goodbye": false
-  }
+  "antilink": {},
+  "antibadword": {},
+  "warnings": {},
+  "sudo": [],
+  "welcome": {},
+  "goodbye": {},
+  "chatbot": {},
+  "autoReaction": false
 }
