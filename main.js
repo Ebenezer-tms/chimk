@@ -142,10 +142,10 @@ const {
  handleHeart 
  } = require('./commands/misc');
 
-const { 
-    handleStatusCapture,
-    statusCaptureInfoCommand 
-} = require('./commands/statuscapture');
+
+
+const { handleSetMenuImageCommand 
+} = require('./commands/help');
  
 /*━━━━━━━━━━━━━━━━━━━━*/
 //Command imorts ---
@@ -284,32 +284,6 @@ global.author = settings.author;
 global.channelLink = "https://whatsapp.com/channel/0029Va90zAnIHphOuO8Msp3A";
 global.ytch = "Mr Unique Hacker";
 
-// Add this right after the global settings section
-const settingsManager = require('./lib/settings'); // Make sure this import exists
-
-/*━━━━━━━━━━━━━━━━━━━━*/
-// Auto-save and shutdown handlers
-/*━━━━━━━━━━━━━━━━━━━━*/
-process.on('SIGINT', async () => {
-    console.log('🔄 Saving data before shutdown...');
-    settingsManager.saveSettings();
-    console.log('✅ Data saved. Shutting down...');
-    process.exit(0);
-});
-
-process.on('SIGTERM', async () => {
-    console.log('🔄 Saving data before shutdown...');
-    settingsManager.saveSettings();
-    console.log('✅ Data saved. Shutting down...');
-    process.exit(0);
-});
-
-// Auto-save every 5 minutes as backup
-setInterval(() => {
-    settingsManager.saveSettings();
-    console.log('💾 Auto-save completed');
-}, 5 * 60 * 1000);
-
 // Add this near the top of main.js with other global configurations
 const channelInfo = {
     contextInfo: {
@@ -347,12 +321,7 @@ async function handleMessages(sock, messageUpdate, printLog ) {
 
         const chatId = message.key.remoteJid;
         const senderId = message.key.participant || message.key.remoteJid;
-
-// Handle status reactions (always active)
-if (message.message?.reactionMessage) {
-    await handleStatusReaction(sock, message);
-}
-       
+            
  /*━━━━━━━━━━━━━━━━━━━━*/
        // Dynamic prefix      
        const prefix = getPrefix();
@@ -1617,7 +1586,7 @@ async function handleGroupParticipantUpdate(sock, update) {
 
        // Handle status replies AUTOMATICALLY (always active)
 // This captures the actual STATUS CONTENT when you reply to any status
-await handleStatusCapture(sock, message);
+
 
         // Handle join events
         if (action === 'add') {
@@ -1640,6 +1609,5 @@ module.exports = {
     handleGroupParticipantUpdate,
     handleStatus: async (sock, status) => {
         await handleStatusUpdate(sock, status);
-    },
-    handleStatusCapture // Add this line
+    }
 };
