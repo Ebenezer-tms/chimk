@@ -553,7 +553,7 @@ return decode.user && decode.server ? `${decode.user}@${decode.server}` : jid;
 
                   //set owner  
               
-            case userMessage.startsWith(`${prefix}setowner`):
+            case userMessage.startsWith(`${prefix}setownername`):
                 await handleSetOwnerCommand(sock, chatId, senderId, message, userMessage, prefix);
                 break;
 
