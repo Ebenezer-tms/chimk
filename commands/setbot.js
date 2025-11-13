@@ -18,7 +18,6 @@ if (!fs.existsSync(BOT_FILE)) {
     fs.writeFileSync(BOT_FILE, JSON.stringify({ botName: DEFAULT_BOT_NAME }, null, 2));
 }
 
-
 /**
  * Get the current owner name
  * @returns {string} The current owner name
@@ -35,7 +34,7 @@ function getBotName() {
 
 /**
  * Set new owner name
- * @param {string} newOwnerName - The new owner name to set
+ * @param {string} newBotName - The new owner name to set
  * @returns {boolean} Success status
  */
 function setBotName(newBotName) {
@@ -69,11 +68,7 @@ function resetBotName() {
     }
 }
 
-async function handleSetBotCommand(sock, chatId, senderId, message, userMessage, currentPrefix) {
-    const args = userMessage.split(' ').slice(1);
-   const newBotName = args.join(' ');
-    
-    // Create fake contact for enhanced replies
+// Create fake contact for enhanced replies
 function createFakeContact(message) {
     return {
         key: {
@@ -90,8 +85,13 @@ function createFakeContact(message) {
         participant: "0@s.whatsapp.net"
     };
 }
+
+async function handleSetBotCommand(sock, chatId, senderId, message, userMessage, currentPrefix) {
+    const args = userMessage.split(' ').slice(1);
+    const newBotName = args.join(' ');
     
-  const fake = createFakeContact(message);
+    const fake = createFakeContact(message);
+    
     // Only bot owner can change owner name
     if (!message.key.fromMe) {
         await sock.sendMessage(chatId, { 
@@ -156,12 +156,12 @@ function createFakeContact(message) {
                         serverMessageId: -1
                     }
                 }
-            },{ quoted: fake});
+            }, { quoted: fake });
         }
         return;
     }
 
-    // Set new bot name
+    // Set new bot name - REMOVED THE .toLowerCase() that was causing the issue
     if (newBotName.length > 20) {
         await sock.sendMessage(chatId, { 
             text: '❌ Bot name must be 1-20 characters long!',
@@ -184,7 +184,8 @@ function createFakeContact(message) {
             text: `✅ Bot name successfully set to: *${newBotName}*`,
             contextInfo: {
                 forwardingScore: 1,
-                isForwarded: false,               forwardedNewsletterMessageInfo: {
+                isForwarded: false,
+                forwardedNewsletterMessageInfo: {
                     newsletterJid: '@',
                     newsletterName: '',
                     serverMessageId: -1
@@ -196,7 +197,8 @@ function createFakeContact(message) {
             text: '❌ Failed to set bot name!',
             contextInfo: {
                 forwardingScore: 1,
-                isForwarded: false,             forwardedNewsletterMessageInfo: {
+                isForwarded: false,
+                forwardedNewsletterMessageInfo: {
                     newsletterJid: '@',
                     newsletterName: '',
                     serverMessageId: -1
