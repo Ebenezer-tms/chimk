@@ -7,23 +7,8 @@ async function ownerCommand(sock, chatId, message) {
         // Get dynamic owner name and number
         const ownerName = getOwnerName();
         const ownerNumber = getOwnerNumber();
-        const cleanNumber = ownerNumber.split('@')[0];
-
-        // Create clean vCard with only essential information
-        const vcard = `
-BEGIN:VCARD
-VERSION:3.0
-FN:${ownerName}
-N:${ownerName};;;
-ORG:PRETTY-MD Bot Owner;
-TITLE:Bot Owner
-TEL;TYPE=CELL,VOICE;waid=${cleanNumber}:${cleanNumber}
-NOTE:PRETTY-MD WhatsApp Bot Owner
-X-ABLABEL:Bot Owner
-END:VCARD
-`.trim();
-
-        // Create fake contact for enhanced replies
+        
+        // Create fake contact for enhanced replies (similar to your other commands)
         function createFakeContact(message) {
             return {
                 key: {
@@ -43,4 +28,95 @@ END:VCARD
 
         const fake = message ? createFakeContact(message) : null;
 
-        //
+        // Create contact card
+        const vcard = `
+BEGIN:VCARD
+VERSION:3.0
+FN:${ownerName}
+ORG:THE Bot Owner;
+TEL;type=CELL;type=VOICE;waid=${ownerNumber.split('@')[0]}:${ownerNumber.split('@')[0]}
+X-ABLabel:Owner the bot
+END:VCARD
+`.trim();
+
+        // Send contact card
+        await sock.sendMessage(chatId, {
+            contacts: { 
+                displayName: ownerName, 
+                contacts: [{ vcard }] 
+            },
+            contextInfo: {
+                forwardingScore: 1,
+                isForwarded: false,
+                forwardedNewsletterMessageInfo: {
+                    newsletterJid: '',
+                    newsletterName: '',
+                    serverMessageId: -1
+                }
+            }
+        }, fake ? { quoted: fake } : {});
+
+        try {
+
+        const { getPrefix, handleSetPrefixCommand } = require('./commands/setprefix');
+        if (!XeonBotInc.user || global.isBotConnected) return;
+
+        global.isBotConnected = true;
+        const pNumber = XeonBotInc.user.id.split(':')[0] + '@s.whatsapp.net';
+        let data = JSON.parse(fs.readFileSync('./data/messageCount.json'));
+        const currentMode = data.isPublic ? 'public' : 'private';    
+        const hostName = detectHost();
+        const prefix = getPrefix();
+
+        // Additional info message
+        const ownerInfo = `
+👑 *THE BOT OWNER*
+
+🤵 *Name:* ${ownerName}
+📱 *Number:* ${ownerNumber.split('@')[0]}
+⚡ *Bot Version:* ${settings.version || "2.0"}
+🔧 *Mode:* ${settings.commandMode || "Public"}
+
+*Use ${prefix}menu to see all commands!*
+        `.trim();
+
+        // Send info message after a short delay
+        setTimeout(async () => {
+            await sock.sendMessage(chatId, { 
+                text: ownerInfo,
+                contextInfo: {
+                    forwardingScore: 1,
+                    isForwarded: false,
+                    forwardedNewsletterMessageInfo: {
+                        newsletterJid: '',
+                        newsletterName: '',
+                        serverMessageId: -1
+                    }
+                }
+            });
+        }, 1000);
+
+    } catch (error) {
+        console.error('Error in owner command:', error);
+        
+        // Fallback to simple text if contact card fails
+        const ownerName = getOwnerName();
+        const ownerNumber = getOwnerNumber();
+        const maskedNumber = ownerNumber.split('@')[0].replace(/(\d{3})\d+(\d{3})/, '$1****$2');
+        
+        await sock.sendMessage(chatId, { 
+            text: `👑 *BOT OWNER*\n\n🤵 Name: ${ownerName}\n📱 Number: ${maskedNumber}\n\n💬 Channel: ${global.channelLink || "Not set"}\n📺 YouTube: ${global.ytch || "Not set"}`,
+            contextInfo: {
+                forwardingScore: 1,
+                isForwarded: false,
+                forwardedNewsletterMessageInfo: {
+                    newsletterJid: '',
+                    newsletterName: '',
+                    serverMessageId: -1
+                }
+            }
+        });
+    }
+}
+
+module.exports = ownerCommand;
