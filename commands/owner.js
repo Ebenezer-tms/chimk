@@ -33,9 +33,9 @@ async function ownerCommand(sock, chatId, message) {
 BEGIN:VCARD
 VERSION:3.0
 FN:${ownerName}
-ORG:THE Bot Owner;
+ORG:The Bot Owner;
 TEL;type=CELL;type=VOICE;waid=${ownerNumber.split('@')[0]}:${ownerNumber.split('@')[0]}
-X-ABLabel:Owner the bot
+X-ABLabel:Owner of the bot
 END:VCARD
 `.trim();
 
@@ -56,28 +56,16 @@ END:VCARD
             }
         }, fake ? { quoted: fake } : {});
 
-        try {
-
-        const { getPrefix, handleSetPrefixCommand } = require('./commands/setprefix');
-        if (!XeonBotInc.user || global.isBotConnected) return;
-
-        global.isBotConnected = true;
-        const pNumber = XeonBotInc.user.id.split(':')[0] + '@s.whatsapp.net';
-        let data = JSON.parse(fs.readFileSync('./data/messageCount.json'));
-        const currentMode = data.isPublic ? 'public' : 'private';    
-        const hostName = detectHost();
-        const prefix = getPrefix();
-
         // Additional info message
         const ownerInfo = `
-👑 *THE BOT OWNER*
+👑 *THE CURRENT BOT OWNER*
 
 🤵 *Name:* ${ownerName}
 📱 *Number:* ${ownerNumber.split('@')[0]}
 ⚡ *Bot Version:* ${settings.version || "2.0"}
 🔧 *Mode:* ${settings.commandMode || "Public"}
 
-*Use ${prefix}menu to see all commands!*
+*Use menu to see all commands!*
         `.trim();
 
         // Send info message after a short delay
