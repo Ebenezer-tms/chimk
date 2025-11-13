@@ -114,7 +114,7 @@ async function handleChatbotResponse(sock, chatId, message, userMessage, senderI
             "always speak in english but if someone speak to you using any languge reply using that language. you are xhypher ai whatsapp bot made by xhypher tech (superstar zimtk). a tech genius in zimbabwe. act smart and enigmatic about personal stuff about him. He is 17 years (2025). You are friendly, be humble."
         );
 
-        const apiUrl = `https://api.bk9.dev/ai/BK93?BK9=${prompt}&q=${query}`;
+        const apiUrl = `https://api.nekolabs.my.id/ai/copilot?text=${prompt}&q=${query}`;
 
         const { data: responseData } = await axios.get(apiUrl);
 
