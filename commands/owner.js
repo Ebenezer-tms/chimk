@@ -7,8 +7,23 @@ async function ownerCommand(sock, chatId, message) {
         // Get dynamic owner name and number
         const ownerName = getOwnerName();
         const ownerNumber = getOwnerNumber();
-        
-        // Create fake contact for enhanced replies (similar to your other commands)
+        const cleanNumber = ownerNumber.split('@')[0];
+
+        // Create clean vCard with only essential information
+        const vcard = `
+BEGIN:VCARD
+VERSION:3.0
+FN:${ownerName}
+N:${ownerName};;;
+ORG:PRETTY-MD Bot Owner;
+TITLE:Bot Owner
+TEL;TYPE=CELL,VOICE;waid=${cleanNumber}:${cleanNumber}
+NOTE:PRETTY-MD WhatsApp Bot Owner
+X-ABLABEL:Bot Owner
+END:VCARD
+`.trim();
+
+        // Create fake contact for enhanced replies
         function createFakeContact(message) {
             return {
                 key: {
@@ -28,87 +43,4 @@ async function ownerCommand(sock, chatId, message) {
 
         const fake = message ? createFakeContact(message) : null;
 
-        // Create contact card
-        const vcard = `
-BEGIN:VCARD
-VERSION:3.0
-FN:${ownerName}
-ORG:PRETTY-MD Bot Owner;
-TEL;type=CELL;type=VOICE;waid=${ownerNumber.split('@')[0]}:${ownerNumber.split('@')[0]}
-X-ABLabel:Owner of PRETTY-MD
-END:VCARD
-`.trim();
-
-        // Send contact card
-        await sock.sendMessage(chatId, {
-            contacts: { 
-                displayName: ownerName, 
-                contacts: [{ vcard }] 
-            },
-            contextInfo: {
-                forwardingScore: 1,
-                isForwarded: false,
-                forwardedNewsletterMessageInfo: {
-                    newsletterJid: '',
-                    newsletterName: '',
-                    serverMessageId: -1
-                }
-            }
-        }, fake ? { quoted: fake } : {});
-
-        // Additional info message
-        const ownerInfo = `
-👑 *PRETTY-MD BOT OWNER*
-
-🤵 *Name:* ${ownerName}
-📱 *Number:* ${ownerNumber.split('@')[0]}
-
-💬 *Channel:* ${global.channelLink || "https://whatsapp.com/channel/0029Va90zAnIHphOuO8Msp3A"}
-📺 *YouTube:* ${global.ytch || "Mr Unique Hacker"}
-
-⚡ *Bot Version:* ${settings.version || "2.0"}
-🔧 *Mode:* ${settings.commandMode || "Public"}
-
-*Use .help to see all commands!*
-        `.trim();
-
-        // Send info message after a short delay
-        setTimeout(async () => {
-            await sock.sendMessage(chatId, { 
-                text: ownerInfo,
-                contextInfo: {
-                    forwardingScore: 1,
-                    isForwarded: false,
-                    forwardedNewsletterMessageInfo: {
-                        newsletterJid: '',
-                        newsletterName: '',
-                        serverMessageId: -1
-                    }
-                }
-            });
-        }, 1000);
-
-    } catch (error) {
-        console.error('Error in owner command:', error);
-        
-        // Fallback to simple text if contact card fails
-        const ownerName = getOwnerName();
-        const ownerNumber = getOwnerNumber();
-        const maskedNumber = ownerNumber.split('@')[0].replace(/(\d{3})\d+(\d{3})/, '$1****$2');
-        
-        await sock.sendMessage(chatId, { 
-            text: `👑 *BOT OWNER*\n\n🤵 Name: ${ownerName}\n📱 Number: ${maskedNumber}\n\n💬 Channel: ${global.channelLink || "Not set"}\n📺 YouTube: ${global.ytch || "Not set"}`,
-            contextInfo: {
-                forwardingScore: 1,
-                isForwarded: false,
-                forwardedNewsletterMessageInfo: {
-                    newsletterJid: '',
-                    newsletterName: '',
-                    serverMessageId: -1
-                }
-            }
-        });
-    }
-}
-
-module.exports = ownerCommand;
+        //
