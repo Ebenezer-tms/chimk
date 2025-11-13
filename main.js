@@ -48,6 +48,12 @@ const {
   getBotName, 
   handleSetBotCommand 
 } = require('./commands/setbot');
+
+// Add this with your other owner-related imports
+const {
+  getOwnerNumber,
+  handleSetOwnerNumberCommand
+} = require('./commands/setownernumber');
  
 const {
  autoreadCommand,
@@ -872,6 +878,10 @@ return decode.user && decode.server ? `${decode.user}@${decode.server}` : jid;
                 const songTitle = userMessage.split(' ').slice(1).join(' ');
                 await lyricsCommand(sock, chatId, songTitle, message);
                 break;
+              // Add this case in your command switch statement
+case userMessage.startsWith(`${prefix}setownernumber`):
+    await handleSetOwnerNumberCommand(sock, chatId, senderId, message, userMessage, prefix);
+    break;
                 
                 /*━━━━━━━━━━━━━━━━━━━━*/
                 // Game commands
