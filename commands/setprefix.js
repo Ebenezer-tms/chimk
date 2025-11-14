@@ -101,43 +101,7 @@ async function handleSetPrefixCommand(sock, chatId, senderId, message, userMessa
     const args = userMessage.split(' ').slice(1);
     const newPrefix = args[0];
     
-       // Create fake contact for enhanced replies
-function createFakeContact(message) {
-    return {
-        key: {
-            participants: "0@s.whatsapp.net",
-            remoteJid: "status@broadcast",
-            fromMe: false,
-            id: "JUNE-MD-MENU"
-        },
-        message: {
-            contactMessage: {
-                vcard: `BEGIN:VCARD\nVERSION:3.0\nN:Sy;Bot;;;\nFN:JUNE MD\nitem1.TEL;waid=${message.key.participant?.split('@')[0] || message.key.remoteJid.split('@')[0]}:${message.key.participant?.split('@')[0] || message.key.remoteJid.split('@')[0]}\nitem1.X-ABLabel:Ponsel\nEND:VCARD`
-            }
-        },
-        participant: "0@s.whatsapp.net"
-    };
-}
-    
-  const fake = createFakeContact(message);
-    // Only bot owner can change owner name
-    if (!message.key.fromMe) {
-        await sock.sendMessage(chatId, { 
-            text: '❌ Only bot owner can change the owner name!',
-            contextInfo: {
-                forwardingScore: 1,
-                isForwarded: false,
-                forwardedNewsletterMessageInfo: {
-                    newsletterJid: '',
-                    newsletterName: '',
-                    serverMessageId: -1
-                }
-            }
-        }, { quoted: fake });
-        return;
-    }
-    
-          // Only bot owner can change prefix
+    // Only bot owner can change prefix
     if (!message.key.fromMe) {
         await sock.sendMessage(chatId, { 
             text: '❌ Only bot owner can change the prefix!',
