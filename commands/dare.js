@@ -12,8 +12,12 @@ async function dareCommand(sock, chatId, message) {
         const json = await res.json();
         const dareMessage = json.result;
 
-        // Send the dare message
-        await sock.sendMessage(chatId, { text: dareMessage }, { quoted: message });
+        // Send the dare message with image
+        await sock.sendMessage(chatId, { 
+            image: { url: 'https://res.cloudinary.com/dptzpfgtm/image/upload/v1763139076/whatsapp_uploads/kt4iq3jveziondd0wuoe.jpg' },
+            caption: dareMessage
+        }, { quoted: message });
+        
     } catch (error) {
         console.error('Error in dare command:', error);
         await sock.sendMessage(chatId, { text: '❌ Failed to get dare. Please try again later!' }, { quoted: message });
