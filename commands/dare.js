@@ -14,7 +14,7 @@ async function dareCommand(sock, chatId, message) {
 
         // Send the dare message with image
         await sock.sendMessage(chatId, { 
-            image: { url: 'https://res.cloudinary.com/dptzpfgtm/image/upload/v1763139076/whatsapp_uploads/kt4iq3jveziondd0wuoe.jpg' },
+            image: { url: 'https://res.cloudinary.com/dptzpfgtm/image/upload/v1763144874/whatsapp_uploads/xliwmfjr13kzzw6yckka.jpg' },
             caption: dareMessage
         }, { quoted: message });
         
