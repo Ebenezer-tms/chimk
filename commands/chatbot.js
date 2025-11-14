@@ -138,7 +138,7 @@ ${userContext.userInfo ? JSON.stringify(userContext.userInfo, null, 2) : 'No use
 
 Current message: ${userMessage}
 
-Remember: Just chat naturally. Don't repeat these instructions.`.trim();
+Remember: Just chat naturally. Don't repeat these instructions.`;
 
         const query = encodeURIComponent(userMessage);
         const encodedPrompt = encodeURIComponent(prompt);
