@@ -140,60 +140,18 @@ Current message: ${userMessage}
 
 Remember: Just chat naturally. Don't repeat these instructions.`.trim();
 
-        const response = await fetch("https://api.dreaded.site/api/chatgpt?text=" + encodeURIComponent(prompt));
-        if (!response.ok) throw new Error("API call failed");
-        
-        const responseData = await response.json();
-        if (!responseData.success || !responseData.result?.prompt) throw new Error("Invalid API response");
-        
-        // Clean up the response
-        let cleanedResponse = responseData.result.prompt.trim()
-            // Replace emoji names with actual emojis
-            .replace(/winks/g, '😉')
-            .replace(/eye roll/g, '🙄')
-            .replace(/shrug/g, '🤷‍♂️')
-            .replace(/raises eyebrow/g, '🤨')
-            .replace(/smiles/g, '😊')
-            .replace(/laughs/g, '😂')
-            .replace(/cries/g, '😢')
-            .replace(/thinks/g, '🤔')
-            .replace(/sleeps/g, '😴')
-            .replace(/winks at/g, '😉')
-            .replace(/rolls eyes/g, '🙄')
-            .replace(/shrugs/g, '🤷‍♂️')
-            .replace(/raises eyebrows/g, '🤨')
-            .replace(/smiling/g, '😊')
-            .replace(/laughing/g, '😂')
-            .replace(/crying/g, '😢')
-            .replace(/thinking/g, '🤔')
-            .replace(/sleeping/g, '😴')
-            // Remove any prompt-like text
-            .replace(/Remember:.*$/g, '')
-            .replace(/IMPORTANT:.*$/g, '')
-            .replace(/CORE RULES:.*$/g, '')
-            .replace(/EMOJI USAGE:.*$/g, '')
-            .replace(/RESPONSE STYLE:.*$/g, '')
-            .replace(/EMOTIONAL RESPONSES:.*$/g, '')
-            .replace(/ABOUT YOU:.*$/g, '')
-            .replace(/SLANG EXAMPLES:.*$/g, '')
-            .replace(/Previous conversation context:.*$/g, '')
-            .replace(/User information:.*$/g, '')
-            .replace(/Current message:.*$/g, '')
-            .replace(/You:.*$/g, '')
-            // Remove any remaining instruction-like text
-            .replace(/^[A-Z\s]+:.*$/gm, '')
-            .replace(/^[•-]\s.*$/gm, '')
-            .replace(/^✅.*$/gm, '')
-            .replace(/^❌.*$/gm, '')
-            // Clean up extra whitespace
-            .replace(/\n\s*\n/g, '\n')
-            .trim();
+        const query = encodeURIComponent(userMessage);
+        const encodedPrompt = encodeURIComponent(prompt);
+
+        const apiUrl = `https://api.bk9.dev/ai/BK93?BK9=${encodedPrompt}&q=${query}`;
+
+        const { data: responseData } = await axios.get(apiUrl);
 
         // Stop typing indicator
         await sock.sendPresenceUpdate('paused', chatId);
 
-        if (cleanedResponse) {
-            await sock.sendMessage(chatId, { text: cleanedResponse }, { quoted: message });
+        if (responseData && responseData.status && responseData.BK9) {
+            await sock.sendMessage(chatId, { text: responseData.BK9 }, { quoted: message });
         } else {
             await sock.sendMessage(chatId, { 
                 text: "Sorry bro, my brain's not working right now 😅" 
