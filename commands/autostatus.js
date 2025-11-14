@@ -43,7 +43,7 @@ function canReactToStatus(userId) {
     try {
         const config = JSON.parse(fs.readFileSync(configPath));
         const lastReactionTime = config.lastReactionTime || {};
-        const interval = config.reactionInterval || 60; // in minutes
+        const interval = config.reactionInterval || 1; // in minutes
         
         const lastTime = lastReactionTime[userId];
         if (!lastTime) return true;
@@ -62,7 +62,7 @@ function canReactToStatus(userId) {
 function shouldReactRandomly() {
     try {
         const config = JSON.parse(fs.readFileSync(configPath));
-        const chance = config.randomChance || 80; // Default 80% chance
+        const chance = config.randomChance || 100; // Default 80% chance
         const random = Math.random() * 100;
         return random <= chance;
     } catch (error) {
@@ -107,8 +107,8 @@ async function autoStatusCommand(sock, chatId, msg, args) {
         if (!args || args.length === 0) {
             const status = config.enabled ? 'enabled' : 'disabled';
             const reactStatus = config.reactOn ? 'enabled' : 'disabled';
-            const interval = config.reactionInterval || 60;
-            const chance = config.randomChance || 80;
+            const interval = config.reactionInterval || 1;
+            const chance = config.randomChance || 100;
             const emojis = config.customEmojis || defaultEmojis;
             
             await sock.sendMessage(chatId, { 
