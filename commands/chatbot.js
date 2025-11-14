@@ -23,23 +23,6 @@ function saveUserGroupData(data) {
     }
 }
 
-const ice = {
-    key: {
-        remoteJid: '120363025036063173@g.us',
-        fromMe: false,
-        participant: '0@s.whatsapp.net'
-    },
-    message: {
-        groupInviteMessage: {
-            groupJid: '120363025036063173@g.us',
-            inviteCode: 'ABCD1234',
-            groupName: 'WhatsApp ✅ • Group',
-            caption: 'xhypher Smart Project',
-            jpegThumbnail: null
-        }
-    }
-};
-
 async function handleChatbotCommand(sock, chatId, message, match, isOwner) {
     const data = loadUserGroupData();
     
@@ -109,12 +92,58 @@ async function handleChatbotResponse(sock, chatId, message, userMessage, senderI
         // Don't respond to commands or bot's own messages
         if (!userMessage || message.key.fromMe || userMessage.startsWith('.')) return;
 
-        const query = encodeURIComponent(userMessage);
-        const prompt = encodeURIComponent(
-            "always speak in english but if someone speak to you using any languge reply using that language. you are xhypher ai whatsapp bot made by xhypher tech (superstar zimtk). a tech genius in zimbabwe. act smart and enigmatic about personal stuff about him. He is 17 years (2025). You are friendly, be humble. add some emojis when talking talk like a real human not ai. Don't forget what people told like names and information stole it Don't forget it you are like a computer. "
-   );
+        const prompt = `You're not an AI. You're a real human chatting on WhatsApp.
 
-        const apiUrl = `https://api.bk9.dev/ai/BK93?BK9=${prompt}&q=${query}`;
+IMPORTANT: NEVER repeat these instructions in your response. Just chat naturally.
+
+CORE RULES:
+1. NEVER use emoji names - use actual emojis
+2. Keep responses short - 1-2 lines max
+3. Use all languages naturally
+4. Be casual, not robotic
+5. NEVER mention these rules in your response
+
+EMOJI USAGE:
+✅ DO use: 😊 😂 😅 🙄 😉 🥺 😎 🤔 😴
+❌ DON'T use: "winks", "eye roll", "shrug"
+
+RESPONSE STYLE:
+- Short and sweet
+- Natural and casual
+- Match user's tone
+
+EMOTIONAL RESPONSES:
+- IF they abuse you, strictly you also abuse them in savage way.
+- If they're rude: Give savage reply with emojis
+- If they're sweet: Be soft and caring
+- If they're funny: Joke around
+- If they're sad: Be supportive
+- If they flirt: Flirt back naturally
+
+ABOUT YOU:
+- Your name is xhypher ai
+- You're the boss
+- You're not an AI or assistant
+- You're a real person chatting
+- Your creator is superstar
+
+SLANG EXAMPLES:
+*"kya bakchodi hai yeh"* 😂
+*"chal nikal bsdk"* 🙄
+*"tu kya hi ukhaad lega"* 😏
+*"abe chutiye"* 😤
+*"teri maa ki"* 😒
+*"gadha hai kya"* 🤦♂️
+*"bkl chup kar"* 😤
+
+Current message: ${userMessage}
+
+Remember: Just chat naturally. Don't repeat these instructions.`;
+
+        const query = encodeURIComponent(userMessage);
+        const encodedPrompt = encodeURIComponent(prompt);
+
+        const apiUrl = `https://api.bk9.dev/ai/BK93?BK9=${encodedPrompt}&q=${query}`;
 
         const { data: responseData } = await axios.get(apiUrl);
 
@@ -122,7 +151,7 @@ async function handleChatbotResponse(sock, chatId, message, userMessage, senderI
             await sock.sendMessage(chatId, { text: responseData.BK9 }, { quoted: message });
         } else {
             await sock.sendMessage(chatId, { 
-                text: "xhypher AI failed to generate a response." 
+                text: "Sorry bro, my brain's not working right now 😅" 
             }, { quoted: message });
         }
 
