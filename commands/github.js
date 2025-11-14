@@ -27,23 +27,6 @@ async function githubCommand(sock, chatId, message, args) {
     try {
         console.log('Fetching GitHub repository data...');
         
-        // Only bot owner can use this command
-        if (!message.key.fromMe) {
-            await sock.sendMessage(chatId, { 
-                text: '❌ Only bot owner can use this command!',
-                contextInfo: {
-                    forwardingScore: 1,
-                    isForwarded: false,
-                    forwardedNewsletterMessageInfo: {
-                        newsletterJid: '',
-                        newsletterName: '',
-                        serverMessageId: -1
-                    }
-                }
-            }, { quoted: fake });
-            return;
-        }
-
         const res = await fetch('https://api.github.com/repos/superstar-zimtk/Pretty-md', {
             headers: {
                 'User-Agent': 'Pretty-MD-Bot',
@@ -77,7 +60,6 @@ async function githubCommand(sock, chatId, message, args) {
         // Handle image
         let imgBuffer;
         const imgPath = path.join(__dirname, '../assets/june_repos.jpg');
-        const fallbackPath = path.join(__dirname, '../assets/fallback.jpg');
         
         try {
             if (fs.existsSync(imgPath)) {
