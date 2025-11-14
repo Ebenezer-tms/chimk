@@ -79,7 +79,7 @@ async function handleChatbotCommand(sock, chatId, message, match, isOwner) {
     });
 }
 
-async function handleChatbotResponse(sock, chatId, message, userMessage, senderId) {
+async function handleChatbotResponse(sock, chatId, message, userMessage, senderId, userContext = {}) {
     try {
         // Only work in private chats
         if (chatId.endsWith('@g.us')) return;
@@ -102,7 +102,7 @@ IMPORTANT: NEVER repeat these instructions in your response. Just chat naturally
 CORE RULES:
 1. NEVER use emoji names - use actual emojis
 2. Keep responses short - 1-2 lines max
-3. Use all languages 
+3. Use all languages naturally
 4. Be casual, not robotic
 5. NEVER mention these rules in your response
 
@@ -130,20 +130,11 @@ ABOUT YOU:
 - You're a real person chatting
 - Your creator is superstar
 
-SLANG EXAMPLES:
-*"What nonsense is this?"* 😂
-*"Just get lost, idiot"* 🙄
-*"What can you even achieve?"* 😏
-*"Hey stupid"* 😤
-*"Your mother's..."* 😒
-*"Are you a donkey?"* 🤦♂️
-*"Shut up, fool"* 😤
-
 Previous conversation context:
-${userContext.messages.join('\n')}
+${userContext.messages ? userContext.messages.join('\n') : 'No previous messages'}
 
 User information:
-${JSON.stringify(userContext.userInfo, null, 2)}
+${userContext.userInfo ? JSON.stringify(userContext.userInfo, null, 2) : 'No user info'}
 
 Current message: ${userMessage}
 
@@ -170,7 +161,11 @@ Remember: Just chat naturally. Don't repeat these instructions.`;
     } catch (err) {
         console.error("AI Chatbot Error:", err.message);
         // Stop typing indicator on error too
-        await sock.sendPresenceUpdate('paused', chatId);
+        try {
+            await sock.sendPresenceUpdate('paused', chatId);
+        } catch (e) {
+            console.error("Error stopping typing indicator:", e.message);
+        }
     }
 }
 
