@@ -43,19 +43,19 @@ async function githubCommand(sock, chatId, message, args) {
         console.log('Repository data fetched successfully');
 
         // Create formatted text
-        let txt = `🌟 *PRETTY MD REPOSITORY INFO* 🌟\n\n`;
-        txt += `📛 *Name*: ${json.name || 'Pretty-md'}\n`;
-        txt += `📖 *Description*: ${json.description || 'No description'}\n`;
-        txt += `⭐ *Stars*: ${json.stargazers_count || 0}\n`;
-        txt += `🍴 *Forks*: ${json.forks_count || 0}\n`;
-        txt += `👁️ *Watchers*: ${json.watchers_count || 0}\n`;
-        txt += `📦 *Size*: ${json.size ? (json.size / 1024).toFixed(2) + ' MB' : 'Unknown'}\n`;
-        txt += `📝 *Open Issues*: ${json.open_issues_count || 0}\n`;
-        txt += `🔄 *Last Updated*: ${moment(json.updated_at).format('DD/MM/YY - HH:mm:ss')}\n`;
-        txt += `📅 *Created*: ${moment(json.created_at).format('DD/MM/YY')}\n\n`;
-        txt += `🔗 *Repository URL*:\n${json.html_url}\n\n`;
-        txt += `🎉 *Thank you for choosing Pretty MD!*\n`;
-        txt += `⭐ Star | 🍴 Fork | 👁️ Watch`;
+        let txt = `😍 *PRETTY MD REPOSITORY INFO* 😍\n\n`;
+        txt += `🔹️ *Name*: ${json.name || 'Pretty-md'}\n`;
+        txt += `🔹️ *Description*: ${json.description || 'No description'}\n`;
+        txt += `🔹️ *Stars*: ${json.stargazers_count || 0}\n`;
+        txt += `🔹️ *Forks*: ${json.forks_count || 0}\n`;
+        txt += `🔹️ *Watchers*: ${json.watchers_count || 0}\n`;
+        txt += `🔹️ *Size*: ${json.size ? (json.size / 1024).toFixed(2) + ' MB' : 'Unknown'}\n`;
+        txt += `🔸️ *Open Issues*: ${json.open_issues_count || 0}\n`;
+        txt += `🔸️ *Last Updated*: ${moment(json.updated_at).format('DD/MM/YY - HH:mm:ss')}\n`;
+        txt += `🔸️ *Created*: ${moment(json.created_at).format('DD/MM/YY')}\n\n`;
+        txt += `🔸️ *Repository URL*:\n${json.html_url}\n\n`;
+        txt += `🔸️ *Thank you for choosing Pretty MD!*\n`;
+        txt += `🔸️ Star | 🍴 Fork | 👁️ Watch`;
 
         // Handle image
         let imgBuffer;
