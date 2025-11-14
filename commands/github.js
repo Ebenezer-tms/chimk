@@ -59,7 +59,7 @@ async function githubCommand(sock, chatId, message, args) {
 
         // Handle image
         let imgBuffer;
-        const imgPath = path.join(__dirname, '../assets/june_repos.jpg');
+        const imgPath = path.join(__dirname, '../assets/IMG-20251114-WA0002.jpg');
         
         try {
             if (fs.existsSync(imgPath)) {
