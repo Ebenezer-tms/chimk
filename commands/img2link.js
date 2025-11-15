@@ -69,7 +69,7 @@ async function getQuotedMediaBufferAndExt(message) {
     return getMediaBufferAndExt({ message: quoted });
 }
 
-async function urlCommand(sock, chatId, message) {
+async function img2link(sock, chatId, message) {
     try {
         // Prefer current message media, else quoted media
         let media = await getMediaBufferAndExt(message);
@@ -109,9 +109,9 @@ async function urlCommand(sock, chatId, message) {
 
         await sock.sendMessage(chatId, { text: `Your URL: ${url}\n\n> Uploaded via *Catbox*` }, { quoted: message });
     } catch (error) {
-        console.error('[URL] error:', error?.message || error);
+        console.error('[IMG2LINK] error:', error?.message || error);
         await sock.sendMessage(chatId, { text: 'Failed to convert media to URL.' }, { quoted: message });
     }
 }
 
-module.exports = img2linkCommand;
+module.exports = img2link;
