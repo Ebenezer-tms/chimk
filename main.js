@@ -206,6 +206,7 @@ const blurCommand = require('./commands/img-blur');
 const githubCommand = require('./commands/github');
 const uptimeCommand = require('./commands/uptime');
 const tutorialCommand = require('./commands/tutorial');
+const setMenuImageCommand = require('./commands/setmenuimage');
 /*━━━━━━━━━━━━━━━━━━━━*/
 
 /*━━━━━━━━━━━━━━━━━━━━*/
@@ -936,8 +937,8 @@ case userMessage.startsWith(`${prefix}setownernumber`):
                await getppCommand(sock, chatId, message);
               break;
 
-            case 'setmenuimage':
-               await handleSetMenuImageCommand(sock, chatId, message, args);
+            case userMessage.startsWith(`${prefix}setmenuimage`):
+               await setMenuImageCommand(sock, chatId, senderId, message, userMessage);
               break;
 
             case userMessage === `${prefix}uptime`:
