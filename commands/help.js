@@ -114,7 +114,7 @@ const generateMenu = (pushname, currentMode, hostName, ping, uptimeFormatted, pr
 
     // Setting Menu
     menu += `┏❐ 《 *SETTING MENU* 》 ❐\n`;
-    menu += `┃├◆ .mode\n┃├◆ .autostatus\n┃├◆ .pmblock\n┃├◆ .setmention\n┃├◆ .autoread\n┃├◆ .clearsession\n┃├◆ .antidelete\n┃├◆ .cleartmp\n┃├◆ .autoreact\n┃├◆ .getpp\n┃├◆ .setpp\n┃├◆ .sudo\n┃├◆ .autotyping\n┃├◆ .setmenu\n┃├◆ .setprefix\n┃├◆ .setownername\n┃├◆ .setbotname\n┃├◆ .setvar\n`;
+    menu += `┃├◆ .mode\n┃├◆ .autostatus\n┃├◆ .pmblock\n┃├◆ .setmention\n┃├◆ .autoread\n┃├◆ .clearsession\n┃├◆ .antidelete\n┃├◆ .cleartmp\n┃├◆ .autoreact\n┃├◆ .getpp\n┃├◆ .setpp\n┃├◆ .sudo\n┃├◆ .autotyping\n┃├◆ .setmenu\n┃├◆ .setprefix\n┃├◆ .setownername\n┃├◆ .setbotname\n┃├◆ .setvar\n┃├◆ .setmenuimage\n┃├◆ .setownernumber`;
     menu += `┗❐\n${readmore}\n`;
 
     // Main Menu
