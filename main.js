@@ -160,6 +160,7 @@ const { demoteCommand } = require('./commands/demote');
 const muteCommand = require('./commands/mute');
 const unmuteCommand = require('./commands/unmute');
 const stickerCommand = require('./commands/sticker');
+const img2linkCommand = require('./commands/img2link');
 
 /*━━━━━━━━━━━━━━━━━━━━*/
 const warnCommand = require('./commands/warn');
@@ -639,6 +640,11 @@ return decode.user && decode.server ? `${decode.user}@${decode.server}` : jid;
             case userMessage.startsWith('.apk'):
                 await apkCommand(sock, chatId, message);
                 break;
+              case userMessage.startsWith(`${prefix}img2link`) || 
+     userMessage.startsWith(`${prefix}imagelink`) || 
+     userMessage.startsWith(`${prefix}imgtourl`):
+    await img2linkCommand(sock, chatId, senderId, message, userMessage);
+    break;
                 
                 /*━━━━━━━━━━━━━━━━━━━━*/
                 // settings-------
