@@ -1,7 +1,6 @@
 const fetch = require('node-fetch');
 const FormData = require('form-data');
 const { fileTypeFromBuffer } = require('file-type');
-const { writeFile, unlink } = require('fs/promises');
 
 const MAX_FILE_SIZE_MB = 200;
 
@@ -62,6 +61,51 @@ function getMediaType(mtype) {
     }
 }
 
+// Download media function compatible with your Baileys version
+async function downloadMedia(sock, message) {
+    try {
+        // Try different download methods based on Baileys version
+        let mediaBuffer;
+        
+        // Method 1: Newer Baileys versions
+        if (sock.downloadAndSaveMediaMessage) {
+            mediaBuffer = await sock.downloadAndSaveMediaMessage(message);
+        } 
+        // Method 2: Alternative method
+        else if (sock.downloadMedia) {
+            mediaBuffer = await sock.downloadMedia(message);
+        }
+        // Method 3: Direct buffer download
+        else {
+            // Get the media message
+            const quotedMessage = message.message?.extendedTextMessage?.contextInfo?.quotedMessage;
+            const mediaMessage = message.message?.imageMessage || 
+                               message.message?.videoMessage || 
+                               message.message?.audioMessage ||
+                               quotedMessage?.imageMessage || 
+                               quotedMessage?.videoMessage || 
+                               quotedMessage?.audioMessage;
+            
+            if (!mediaMessage) {
+                throw new Error('No media found in message');
+            }
+            
+            // Use the universal download method
+            mediaBuffer = await sock.downloadAndSaveMediaMessage?.(message) || 
+                         await sock.downloadMedia?.(message);
+        }
+        
+        if (!mediaBuffer) {
+            throw new Error('Could not download media - no download method available');
+        }
+        
+        return mediaBuffer;
+    } catch (error) {
+        console.error('Download error:', error);
+        throw new Error(`Download failed: ${error.message}`);
+    }
+}
+
 async function img2linkCommand(sock, chatId, senderId, message, userMessage) {
     try {
         const fake = createFakeContact(message);
@@ -117,7 +161,7 @@ async function img2linkCommand(sock, chatId, senderId, message, userMessage) {
                     text: loadingMessages[loadingMessageIndex]
                 }, {
                     quoted: fake,
-                    messageId: loadingMsg.key.id
+                    edit: loadingMsg.key
                 });
             } catch (e) {
                 // Ignore update errors
@@ -125,8 +169,8 @@ async function img2linkCommand(sock, chatId, senderId, message, userMessage) {
         }, 500);
 
         try {
-            // Download the media
-            const mediaBuffer = await sock.downloadMediaMessage(message);
+            // Download the media using compatible method
+            const mediaBuffer = await downloadMedia(sock, message);
             
             if (!mediaBuffer) {
                 throw new Error('Failed to download media from WhatsApp');
@@ -153,7 +197,7 @@ async function img2linkCommand(sock, chatId, senderId, message, userMessage) {
                 text: '✅ Upload complete!'
             }, {
                 quoted: fake,
-                messageId: loadingMsg.key.id
+                edit: loadingMsg.key
             });
 
             // Determine media type for response
@@ -238,6 +282,8 @@ async function img2linkCommand(sock, chatId, senderId, message, userMessage) {
             errorMessage += '\n\n💡 Could not download the media. Please try again.';
         } else if (error.message.includes('Upload service')) {
             errorMessage += '\n\n💡 The upload service might be temporarily unavailable. Please try again later.';
+        } else if (error.message.includes('no download method')) {
+            errorMessage += '\n\n💡 Media download not supported in this version. Please update your bot.';
         }
         
         await sock.sendMessage(chatId, {
