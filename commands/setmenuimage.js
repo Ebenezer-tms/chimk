@@ -292,7 +292,7 @@ function isImageUrl(url) {
     const imageExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
     const urlLower = url.toLowerCase();
     return imageExtensions.some(ext => urlLower.includes(ext)) || 
-           urlLower.includes('image/') ||
+           urlLower.includes('https:/') ||
            urlLower.includes('cloudinary') || // For your Cloudinary URL
            urlLower.includes('res.cloudinary.com'); // Specific to your URL
 }
