@@ -147,11 +147,6 @@ const {
  miscCommand, 
  handleHeart 
  } = require('./commands/misc');
-
-
-
-const { handleSetMenuImageCommand 
-} = require('./commands/help');
  
 /*━━━━━━━━━━━━━━━━━━━━*/
 //Command imorts ---
@@ -595,7 +590,7 @@ return decode.user && decode.server ? `${decode.user}@${decode.server}` : jid;
                       // Add menu configuration command
             case userMessage.startsWith(`${prefix}menuconfig`) || 
                  userMessage.startsWith(`${prefix}menuset`) || 
-                 userMessage.startsWith(`${prefix}setmenu`):
+                 userMessage.startsWith(`${prefix}setmenustyle`):
                 const menuArgs = userMessage.split(' ').slice(1);
                 await menuConfigCommand(sock, chatId, message, menuArgs);
                 commandExecuted = true;
