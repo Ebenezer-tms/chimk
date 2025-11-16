@@ -92,11 +92,7 @@ const {
  handleAntiBadwordCommand,
  handleBadwordDetection
   } = require('./lib/antibadword');
-const { 
- handleChatbotCommand,
- handleChatbotResponse
-  } = require('./commands/chatbot');
-  
+
 const { 
   welcomeCommand,
   handleJoinEvent
@@ -454,9 +450,7 @@ return decode.user && decode.server ? `${decode.user}@${decode.server}` : jid;
                 await handleTagDetection(sock, chatId, message, senderId);
                 await handleMentionDetection(sock, chatId, message);
             } else {
-                // In private chats, handle chatbot responses
-                await handleChatbotResponse(sock, chatId, message, userMessage, senderId);
-            }
+              }
             return;
         }
 
@@ -1032,21 +1026,7 @@ case userMessage.startsWith(`${prefix}setownernumber`):
 
                 await antibadwordCommand(sock, chatId, message, senderId, isSenderAdmin);
                 break;
-           
-           case userMessage.startsWith(`${prefix}chatbot`):
-    // Only allow in private chats
-    if (isGroup) {
-        await sock.sendMessage(chatId, { 
-            text: '❌ Chatbot commands only work in private chats. Message me directly to use chatbot features!', 
-            ...channelInfo 
-        }, { quoted: message });
-        return;
-    }
-
-    const match = userMessage.slice(8).trim();
-    const isOwner = message.key.fromMe || senderIsSudo;
-    await handleChatbotCommand(sock, chatId, message, match, isOwner);
-    break;
+;
             
            case userMessage.startsWith(`${prefix}take`):
                 const takeArgs = rawText.slice(5).trim().split(' ');
