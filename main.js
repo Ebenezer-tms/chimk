@@ -92,10 +92,7 @@ const {
  handleAntiBadwordCommand,
  handleBadwordDetection
   } = require('./lib/antibadword');
-const { 
- handleChatbotCommand,
- handleChatbotResponse
-  } = require('./commands/chatbot');
+
   
 const { 
   welcomeCommand,
