@@ -453,10 +453,10 @@ return decode.user && decode.server ? `${decode.user}@${decode.server}` : jid;
                 await handleMentionDetection(sock, chatId, message);
             } else {
                 // In private chats, handle chatbot responses
-                await handleChatbotResponse(sock, chatId, message, userMessage, senderId);
-            }
-            return;
-        }
+          //      await handleChatbotResponse(sock, chatId, message, userMessage, senderId);
+         //   }
+       //     return;
+      //  }
 
         // List of admin commands
         const adminCommands = [
@@ -1032,19 +1032,7 @@ case userMessage.startsWith(`${prefix}setownernumber`):
                 break;
            
            case userMessage.startsWith(`${prefix}chatbot`):
-    // Only allow in private chats
-    if (isGroup) {
-        await sock.sendMessage(chatId, { 
-            text: '❌ Chatbot commands only work in private chats. Message me directly to use chatbot features!', 
-            ...channelInfo 
-        }, { quoted: message });
-        return;
-    }
-
-    const match = userMessage.slice(8).trim();
-    const isOwner = message.key.fromMe || senderIsSudo;
-    await handleChatbotCommand(sock, chatId, message, match, isOwner);
-    break;
+    
             
            case userMessage.startsWith(`${prefix}take`):
                 const takeArgs = rawText.slice(5).trim().split(' ');
