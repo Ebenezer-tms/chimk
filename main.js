@@ -452,11 +452,7 @@ return decode.user && decode.server ? `${decode.user}@${decode.server}` : jid;
                 await handleTagDetection(sock, chatId, message, senderId);
                 await handleMentionDetection(sock, chatId, message);
             } else {
-                // In private chats, handle chatbot responses
-          //      await handleChatbotResponse(sock, chatId, message, userMessage, senderId);
-         //   }
-       //     return;
-      //  }
+                
 
         // List of admin commands
         const adminCommands = [
