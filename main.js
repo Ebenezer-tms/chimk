@@ -239,6 +239,7 @@ const aiCommand = require('./commands/ai');
 const urlCommand = require('./commands/url');
 const { handleTranslateCommand } = require('./commands/translate');
 const { handleSsCommand } = require('./commands/ss');
+const img2linkCommand = require('./commands/img2link');
 /*━━━━━━━━━━━━━━━━━━━━*/
 
 /*━━━━━━━━━━━━━━━━━━━━*/
