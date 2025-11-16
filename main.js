@@ -1494,10 +1494,7 @@ case userMessage.startsWith(`${prefix}setownernumber`):
                     await handleTagDetection(sock, chatId, message, senderId);
                     await handleMentionDetection(sock, chatId, message);
                 } else {
-                    // In private chats, handle chatbot responses
-                    if (userMessage) {
-                        await handleChatbotResponse(sock, chatId, message, userMessage, senderId);
-                    }
+                    
                 }
                 commandExecuted = false;
                 break;
