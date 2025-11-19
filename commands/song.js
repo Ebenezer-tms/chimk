@@ -27,7 +27,7 @@ async function tryRequest(getter, attempts = 3) {
 }
 
 async function getIzumiDownloadByUrl(youtubeUrl) {
-	const apiUrl = `https://izumiiiiiiii.dpdns.org/downloader/youtube?url=${encodeURIComponent(youtubeUrl)}&format=mp3`;
+	const apiUrl = `https://api.goodnesstechhost.xyz/download/youtube/audio?url=${urlYt}&format=mp3`;
 	const res = await tryRequest(() => axios.get(apiUrl, AXIOS_DEFAULTS));
 	if (res?.data?.result?.download) return res.data.result;
 	throw new Error('Izumi youtube?url returned no download');
