@@ -1,5 +1,3 @@
-
-
 //new song API 
 
 const yts = require('yt-search');
@@ -32,6 +30,9 @@ async function songCommand(sock, chatId, message) {
         // Get the first video result
         const video = videos[0];
         const urlYt = video.url;
+        const thumbnail = video.thumbnail;
+        const title = video.title;
+        const duration = video.timestamp || video.duration?.toString();
 
         // Fetch audio data from API
         const response = await axios.get(`https://api.goodnesstechhost.xyz/download/youtube/audio?url=${urlYt}`);
@@ -44,13 +45,26 @@ async function songCommand(sock, chatId, message) {
         }
 
         const audioUrl = data.result.download_url;
-        const title = data.result.title;
 
-        // Send the audio
+        // Send the audio with thumbnail and metadata
         await sock.sendMessage(chatId, {
-            audio: { url: audioUrl },
+            audio: { 
+                url: audioUrl 
+            },
             mimetype: "audio/mpeg",
-            fileName: `${title}.mp3`
+            fileName: `${title}.mp3`,
+            ptt: false,
+            contextInfo: {
+                externalAdReply: {
+                    title: title,
+                    body: `Duration: ${duration}`,
+                    thumbnail: thumbnail,
+                    mediaType: 1,
+                    mediaUrl: '',
+                    sourceUrl: urlYt,
+                    showAdAttribution: true
+                }
+            }
         }, { quoted: message });
         
         //successful react ✔️
