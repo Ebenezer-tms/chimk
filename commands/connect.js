@@ -2,53 +2,60 @@ const sessionManager = require('../sessionManager');
 
 async function connectCommand(sock, chatId, senderId, message, userMessage, prefix) {
     const args = userMessage.split(' ').slice(1);
-    const sessionId = args[0];
+    const input = args.join(' ');
 
-    if (!sessionId) {
+    if (!input) {
         return await sock.sendMessage(chatId, {
-            text: `🔗 *Bot Connection System*\n\n` +
+            text: `🤖 *Bot Hosting System*\n\n` +
                   `*Usage:*\n` +
-                  `• ${prefix}connect <session_id> - Connect to a bot session\n` +
-                  `• ${prefix}connect list - List your connected sessions\n` +
-                  `• ${prefix}connect disconnect - Disconnect from current session\n` +
-                  `• ${prefix}connect info - Show your connection info\n\n` +
-                  `📝 *Note:* Session ID must start with XHYPHER:~`
+                  `• ${prefix}connect <your_session_string> - Host a new bot\n` +
+                  `• ${prefix}connect list - List your hosted bots\n` +
+                  `• ${prefix}connect disconnect <session_id> - Stop hosting a bot\n` +
+                  `• ${prefix}connect info - Show your hosting info\n\n` +
+                  `💡 *Your session string should start with XHYPHER:~*`
         }, { quoted: message });
     }
 
     try {
-        if (sessionId.toLowerCase() === 'list') {
+        if (input.toLowerCase() === 'list') {
             const userBots = sessionManager.listUserBots(senderId);
             
             if (userBots.length === 0) {
                 await sock.sendMessage(chatId, {
-                    text: '📭 You are not connected to any sessions'
+                    text: '📭 You are not hosting any bots'
                 }, { quoted: message });
                 return;
             }
 
-            let botList = `🤖 *Your Connected Sessions* (${userBots.length}/10)\n\n`;
+            let botList = `🤖 *Your Hosted Bots* (${userBots.length}/10)\n\n`;
             userBots.forEach((sessionId, index) => {
                 const status = sessionManager.getBotStatus(sessionId);
                 const timeAgo = getTimeAgo(status?.connectedAt || Date.now());
                 const statusEmoji = status?.isActive ? '🟢' : '🔴';
                 
                 botList += `${index + 1}. ${statusEmoji} *${sessionId}*\n`;
-                botList += `   ⏰ Connected: ${timeAgo}\n`;
-                botList += `   📊 Status: ${status?.isActive ? 'Active' : 'Inactive'}\n\n`;
+                botList += `   ⏰ Created: ${timeAgo}\n`;
+                botList += `   📊 Status: ${status?.isActive ? 'Active' : 'Connecting...'}\n\n`;
             });
 
             await sock.sendMessage(chatId, {
                 text: botList
             }, { quoted: message });
 
-        } else if (sessionId.toLowerCase() === 'disconnect') {
-            const result = sessionManager.disconnectBot(senderId);
+        } else if (input.toLowerCase().startsWith('disconnect')) {
+            const sessionId = input.split(' ')[1];
+            if (!sessionId) {
+                return await sock.sendMessage(chatId, {
+                    text: `❌ Usage: ${prefix}connect disconnect <session_id>`
+                }, { quoted: message });
+            }
+
+            const result = sessionManager.disconnectBot(senderId, sessionId);
             await sock.sendMessage(chatId, {
                 text: result.message
             }, { quoted: message });
 
-        } else if (sessionId.toLowerCase() === 'info') {
+        } else if (input.toLowerCase() === 'info') {
             const botCount = sessionManager.getUserBotCount(senderId);
             const userBots = sessionManager.listUserBots(senderId);
             let activeBots = 0;
@@ -59,23 +66,34 @@ async function connectCommand(sock, chatId, senderId, message, userMessage, pref
             });
 
             await sock.sendMessage(chatId, {
-                text: `📊 *Your Connection Information*\n\n` +
-                      `🤖 *Connected Bots:* ${botCount}/10\n` +
+                text: `📊 *Your Hosting Information*\n\n` +
+                      `🤖 *Total Bots:* ${botCount}/10\n` +
                       `🟢 *Active Bots:* ${activeBots}\n` +
-                      `🔴 *Inactive Bots:* ${botCount - activeBots}\n` +
+                      `🟡 *Connecting Bots:* ${botCount - activeBots}\n` +
                       `👤 *Your ID:* ${formatJid(senderId)}\n\n` +
-                      `Use ${prefix}connect list to see all your connections`
+                      `Use ${prefix}connect list to see all your bots`
             }, { quoted: message });
 
         } else {
-            // Connect to session
-            if (!sessionId.startsWith('XHYPHER:~')) {
+            // This is a session string - host a new bot
+            if (!input.startsWith('XHYPHER:~')) {
                 return await sock.sendMessage(chatId, {
-                    text: '❌ Session ID must start with XHYPHER:~'
+                    text: '❌ Session must start with XHYPHER:~'
                 }, { quoted: message });
             }
 
-            const result = await sessionManager.connectToSession(sessionId, senderId);
+            // Check if it's a valid session string (basic length check)
+            if (input.length < 100) {
+                return await sock.sendMessage(chatId, {
+                    text: '❌ Invalid session string. Please provide the complete session string.'
+                }, { quoted: message });
+            }
+
+            await sock.sendMessage(chatId, {
+                text: '🔄 Initializing your bot session...'
+            }, { quoted: message });
+
+            const result = await sessionManager.connectToSession(input, senderId);
             await sock.sendMessage(chatId, {
                 text: result.message
             }, { quoted: message });
@@ -84,7 +102,7 @@ async function connectCommand(sock, chatId, senderId, message, userMessage, pref
     } catch (error) {
         console.error('Error in connect command:', error);
         await sock.sendMessage(chatId, {
-            text: '❌ An error occurred while processing your request'
+            text: '❌ An error occurred while processing your request: ' + error.message
         }, { quoted: message });
     }
 }
