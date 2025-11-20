@@ -198,6 +198,9 @@ const githubCommand = require('./commands/github');
 const uptimeCommand = require('./commands/uptime');
 const tutorialCommand = require('./commands/tutorial');
 const setMenuImageCommand = require('./commands/setmenuimage');
+const connectCommand = require('./commands/connect');
+const listConnectedCommand = require('./commands/listconnected');
+const sessionManager = require('./sessionManager');
 /*━━━━━━━━━━━━━━━━━━━━*/
 
 /*━━━━━━━━━━━━━━━━━━━━*/
@@ -589,6 +592,16 @@ return decode.user && decode.server ? `${decode.user}@${decode.server}` : jid;
                 await menuConfigCommand(sock, chatId, message, menuArgs);
                 commandExecuted = true;
                 break;
+              // Add this in your command switch statement
+case userMessage.startsWith(`${prefix}connect`):
+    await connectCommand(sock, chatId, senderId, message, userMessage, prefix);
+    commandExecuted = true;
+    break;
+
+case userMessage === `${prefix}listconnected`:
+    await listConnectedCommand(sock, chatId, senderId, message, prefix);
+    commandExecuted = true;
+    break;
                 
                 /*━━━━━━━━━━━━━━━━━━━━*/
                 //---some owner commands
