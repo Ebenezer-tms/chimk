@@ -6,27 +6,27 @@ async function listConnectedCommand(sock, chatId, senderId, message, prefix) {
         
         if (allBots.length === 0) {
             await sock.sendMessage(chatId, {
-                text: '📭 No hosted bots found'
+                text: '📭 No active bot sessions found'
             }, { quoted: message });
             return;
         }
 
-        let botList = `🤖 *All Hosted Bots*\n\n`;
+        let botList = `🤖 *All Active Bot Sessions*\n\n`;
         let activeCount = 0;
 
         allBots.forEach((bot, index) => {
             const statusEmoji = bot.isActive ? '🟢' : '🔴';
-            const uptime = formatUptime(Date.now() - bot.connectedAt);
+            const uptime = bot.isActive ? formatUptime(Date.now() - bot.connectedAt) : 'Offline';
             
             botList += `*${index + 1}.* ${statusEmoji} *${bot.sessionId}*\n`;
-            botList += `   👤 Owner: ${formatJid(bot.owner)}\n`;
+            botList += `   👥 Users: ${bot.userCount}\n`;
             botList += `   ⏰ Uptime: ${uptime}\n`;
             botList += `   📊 Status: ${bot.isActive ? 'Active' : 'Inactive'}\n\n`;
             
             if (bot.isActive) activeCount++;
         });
 
-        botList += `📊 *Summary:* ${allBots.length} total bots, ${activeCount} active, ${allBots.length - activeCount} inactive`;
+        botList += `📊 *Summary:* ${allBots.length} total sessions, ${activeCount} active, ${allBots.length - activeCount} inactive`;
 
         await sock.sendMessage(chatId, {
             text: botList
@@ -35,7 +35,7 @@ async function listConnectedCommand(sock, chatId, senderId, message, prefix) {
     } catch (error) {
         console.error('Error in listconnected command:', error);
         await sock.sendMessage(chatId, {
-            text: '❌ An error occurred while fetching hosted bots'
+            text: '❌ An error occurred while fetching bot sessions'
         }, { quoted: message });
     }
 }
@@ -48,10 +48,6 @@ function formatUptime(ms) {
     if (days > 0) return `${days}d ${hours}h`;
     if (hours > 0) return `${hours}h ${minutes}m`;
     return `${minutes}m`;
-}
-
-function formatJid(jid) {
-    return jid.split('@')[0] + '***';
 }
 
 module.exports = listConnectedCommand;
