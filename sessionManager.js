@@ -2,6 +2,18 @@ const fs = require('fs');
 const path = require('path');
 const { makeWASocket, useMultiFileAuthState, fetchLatestBaileysVersion } = require("@whiskeysockets/baileys");
 
+// Create a proper logger object
+const logger = {
+    level: 'silent',
+    trace: () => {},
+    debug: () => {},
+    info: () => {},
+    warn: () => {},
+    error: () => {},
+    fatal: () => {},
+    child: () => logger
+};
+
 class SessionManager {
     constructor() {
         this.hostedBots = new Map();
@@ -109,7 +121,7 @@ class SessionManager {
 
             const bot = makeWASocket({
                 version,
-                logger: { level: 'silent' },
+                logger: logger, // Use the proper logger object
                 printQRInTerminal: false,
                 auth: {
                     creds: state.creds,
@@ -120,36 +132,51 @@ class SessionManager {
 
             bot.ev.on('connection.update', (update) => {
                 const { connection } = update;
+                console.log(`🔗 Bot ${sessionId} connection update:`, connection);
+                
                 if (connection === 'close') {
                     console.log(`❌ Bot ${sessionId} disconnected`);
                     const botInfo = this.hostedBots.get(sessionId);
                     if (botInfo) botInfo.isActive = false;
                     
+                    // Attempt reconnect after 10 seconds
                     setTimeout(() => {
                         if (this.hasConnectedUsers(sessionId)) {
+                            console.log(`🔄 Attempting to reconnect ${sessionId}`);
                             this.reconnectBot(sessionId);
                         }
-                    }, 5000);
+                    }, 10000);
                 } else if (connection === 'open') {
-                    console.log(`✅ Bot ${sessionId} connected`);
+                    console.log(`✅ Bot ${sessionId} connected successfully`);
                     const botInfo = this.hostedBots.get(sessionId);
                     if (botInfo) {
                         botInfo.isActive = true;
                         botInfo.lastConnected = Date.now();
                     }
+                } else if (connection === 'connecting') {
+                    console.log(`🔄 Bot ${sessionId} connecting...`);
                 }
             });
 
             bot.ev.on('creds.update', saveCreds);
 
+            // Handle messages for the hosted bot
+            bot.ev.on('messages.upsert', async (m) => {
+                console.log(`📨 Message received by hosted bot ${sessionId}`);
+                // You can add message handling for hosted bots here if needed
+            });
+
             this.hostedBots.set(sessionId, {
                 socket: bot,
                 connectedAt: Date.now(),
-                isActive: false
+                isActive: false,
+                lastConnected: null
             });
 
+            console.log(`✅ Bot ${sessionId} initialized successfully`);
+
         } catch (error) {
-            console.error(`Error initializing bot ${sessionId}:`, error);
+            console.error(`❌ Error initializing bot ${sessionId}:`, error);
             throw error;
         }
     }
@@ -183,7 +210,12 @@ class SessionManager {
     stopBot(sessionId) {
         const botInfo = this.hostedBots.get(sessionId);
         if (botInfo && botInfo.socket) {
-            botInfo.socket.ws.close();
+            try {
+                botInfo.socket.ws.close();
+                console.log(`✅ Stopped bot ${sessionId}`);
+            } catch (error) {
+                console.error(`❌ Error stopping bot ${sessionId}:`, error);
+            }
         }
         this.hostedBots.delete(sessionId);
     }
@@ -197,9 +229,10 @@ class SessionManager {
 
     async reconnectBot(sessionId) {
         try {
+            console.log(`🔄 Reconnecting bot ${sessionId}`);
             await this.initializeBot(sessionId);
         } catch (error) {
-            console.error(`Failed to reconnect ${sessionId}:`, error);
+            console.error(`❌ Failed to reconnect ${sessionId}:`, error);
         }
     }
 
