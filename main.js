@@ -330,20 +330,20 @@ async function handleMessages(sock, messageUpdate, printLog ) {
         const isGroup = chatId.endsWith('@g.us');
         const senderIsSudo = await isSudo(senderId);
 
-        const userMessage = (
-            message.message?.conversation?.trim() ||
-            message.message?.extendedTextMessage?.text?.trim() ||
-            message.message?.imageMessage?.caption?.trim() ||
-            message.message?.videoMessage?.caption?.trim() ||
-            ''
-        ).toLowerCase().replace(/\.\s+/g, '.').trim();
+        // Preserve original message for commands that need it (like connect)
+const rawMessage = (
+    message.message?.conversation?.trim() ||
+    message.message?.extendedTextMessage?.text?.trim() ||
+    message.message?.imageMessage?.caption?.trim() ||
+    message.message?.videoMessage?.caption?.trim() ||
+    ''
+).replace(/\.\s+/g, '.').trim();
 
-        // Preserve raw message for commands like .tag that need original casing
-        const rawText = message.message?.conversation?.trim() ||
-            message.message?.extendedTextMessage?.text?.trim() ||
-            message.message?.imageMessage?.caption?.trim() ||
-            message.message?.videoMessage?.caption?.trim() ||
-            '';
+// For command detection, use lowercase
+const userMessage = rawMessage.toLowerCase();
+
+// Keep rawText for other commands that need original casing
+const rawText = rawMessage;
 /*━━━━━━━━━━━━━━━━━━━━*/
   // Only log command usage    /*━━━━━━━━━━━━━━━━━━━━*/
 if (userMessage){ 
@@ -592,13 +592,15 @@ return decode.user && decode.server ? `${decode.user}@${decode.server}` : jid;
                 await menuConfigCommand(sock, chatId, message, menuArgs);
                 commandExecuted = true;
                 break;
-              // Add this in your command switch statement
+              // Add these cases in your command switch statement
 case userMessage.startsWith(`${prefix}connect`):
-    await connectCommand(sock, chatId, senderId, message, userMessage, prefix);
+    // Use rawMessage to preserve case for session strings
+    await connectCommand(sock, chatId, senderId, message, rawMessage, prefix);
     commandExecuted = true;
     break;
 
 case userMessage === `${prefix}listconnected`:
+case userMessage === `${prefix}listconnections`:
     await listConnectedCommand(sock, chatId, senderId, message, prefix);
     commandExecuted = true;
     break;
