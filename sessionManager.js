@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 const { makeWASocket, useMultiFileAuthState, fetchLatestBaileysVersion } = require("@whiskeysockets/baileys");
 
 class SessionManager {
@@ -7,6 +8,7 @@ class SessionManager {
         this.hostedBots = new Map(); // sessionId -> bot instance
         this.userSessions = new Map(); // userJid -> array of sessionIds they're connected to
         this.sessionDataFile = path.join(__dirname, 'data', 'hosted_sessions.json');
+        this.sessionStrings = new Map(); // sessionId -> actual session string
         this.loadSessions();
     }
 
@@ -15,6 +17,7 @@ class SessionManager {
             if (fs.existsSync(this.sessionDataFile)) {
                 const data = JSON.parse(fs.readFileSync(this.sessionDataFile, 'utf8'));
                 this.userSessions = new Map(Object.entries(data.userSessions || {}));
+                this.sessionStrings = new Map(Object.entries(data.sessionStrings || {}));
                 console.log('✅ Hosted sessions loaded successfully');
             }
         } catch (error) {
@@ -26,6 +29,7 @@ class SessionManager {
         try {
             const data = {
                 userSessions: Object.fromEntries(this.userSessions),
+                sessionStrings: Object.fromEntries(this.sessionStrings),
                 timestamp: Date.now()
             };
             
@@ -40,35 +44,52 @@ class SessionManager {
         }
     }
 
-    async connectToSession(sessionId, userJid) {
+    generateSessionId() {
+        return 'XHYPHER:~' + Math.random().toString(36).substring(2, 8).toUpperCase();
+    }
+
+    async connectToSession(sessionString, userJid) {
         // Check if user already has 10 connections
         const userBots = this.userSessions.get(userJid) || [];
         if (userBots.length >= 10) {
             return { success: false, message: '❌ You can only connect to up to 10 sessions' };
         }
 
-        // Check if already connected to this session
-        if (userBots.includes(sessionId)) {
-            return { success: false, message: '❌ You are already connected to this session' };
+        // Validate session string format
+        if (!sessionString.startsWith('XHYPHER:~')) {
+            return { success: false, message: '❌ Session must start with XHYPHER:~' };
         }
 
         try {
-            // Check if session directory exists
+            // Generate a short session ID for reference
+            const sessionId = this.generateSessionId();
+            
+            // Store the actual session string
+            this.sessionStrings.set(sessionId, sessionString);
+
+            // Create session directory
             const sessionDir = path.join(__dirname, 'sessions', sessionId);
             if (!fs.existsSync(sessionDir)) {
-                return { success: false, message: '❌ Session not found. Make sure the session ID is correct.' };
+                fs.mkdirSync(sessionDir, { recursive: true });
             }
 
-            // Check if creds file exists
+            // Extract base64 part and save to creds.json
+            const base64Data = sessionString.split('XHYPHER:~')[1];
+            if (!base64Data) {
+                return { success: false, message: '❌ Invalid session format' };
+            }
+
             const credsPath = path.join(sessionDir, 'creds.json');
-            if (!fs.existsSync(credsPath)) {
-                return { success: false, message: '❌ Session credentials not found' };
+            try {
+                const sessionData = Buffer.from(base64Data, 'base64');
+                fs.writeFileSync(credsPath, sessionData);
+                console.log(`✅ Session credentials saved for ${sessionId}`);
+            } catch (error) {
+                return { success: false, message: '❌ Failed to decode session data' };
             }
 
-            // Initialize the bot if not already running
-            if (!this.hostedBots.has(sessionId)) {
-                await this.initializeBot(sessionId);
-            }
+            // Initialize the bot
+            await this.initializeBot(sessionId);
 
             // Add user to session
             userBots.push(sessionId);
@@ -77,12 +98,13 @@ class SessionManager {
 
             return { 
                 success: true, 
-                message: `✅ Successfully connected to session!\n\n🔑 Session ID: ${sessionId}\n🤖 Bot is now active and running`
+                message: `✅ Bot hosted successfully!\n\n🔑 Session ID: ${sessionId}\n🤖 Your bot is now connecting...\n\nUse "${sessionId}" to manage this bot.`,
+                sessionId: sessionId
             };
 
         } catch (error) {
             console.error('Error connecting to session:', error);
-            return { success: false, message: '❌ Failed to connect to session' };
+            return { success: false, message: '❌ Failed to initialize bot session: ' + error.message };
         }
     }
 
@@ -108,21 +130,28 @@ class SessionManager {
                 const { connection, lastDisconnect } = update;
                 if (connection === 'close') {
                     console.log(`❌ Hosted bot ${sessionId} disconnected`);
+                    const botInfo = this.hostedBots.get(sessionId);
+                    if (botInfo) {
+                        botInfo.isActive = false;
+                    }
                     // Attempt reconnect after 5 seconds
                     setTimeout(() => {
-                        if (this.hostedBots.has(sessionId)) {
+                        if (this.hasConnectedUsers(sessionId)) {
                             this.reconnectBot(sessionId);
                         }
                     }, 5000);
                 } else if (connection === 'open') {
                     console.log(`✅ Hosted bot ${sessionId} connected successfully`);
-                    
-                    // Update bot status
                     const botInfo = this.hostedBots.get(sessionId);
                     if (botInfo) {
                         botInfo.isActive = true;
                         botInfo.lastConnected = Date.now();
                     }
+                    
+                    // Notify all users connected to this session
+                    this.notifyUsers(sessionId, `✅ Bot "${sessionId}" is now online and connected!`);
+                } else if (connection === 'connecting') {
+                    console.log(`🔄 Hosted bot ${sessionId} connecting...`);
                 }
             });
 
@@ -132,13 +161,28 @@ class SessionManager {
             this.hostedBots.set(sessionId, {
                 socket: bot,
                 connectedAt: Date.now(),
-                isActive: false, // Will be set to true when connection opens
+                isActive: false,
                 lastConnected: null
             });
 
         } catch (error) {
             console.error(`Error initializing bot ${sessionId}:`, error);
             throw error;
+        }
+    }
+
+    notifyUsers(sessionId, message) {
+        for (let [userJid, sessions] of this.userSessions) {
+            if (sessions.includes(sessionId)) {
+                const botInfo = this.hostedBots.get(sessionId);
+                if (botInfo && botInfo.socket) {
+                    try {
+                        botInfo.socket.sendMessage(userJid, { text: message });
+                    } catch (error) {
+                        console.error(`Failed to notify user ${userJid}:`, error);
+                    }
+                }
+            }
         }
     }
 
@@ -176,9 +220,14 @@ class SessionManager {
     stopBot(sessionId) {
         const botInfo = this.hostedBots.get(sessionId);
         if (botInfo && botInfo.socket) {
-            botInfo.socket.ws.close();
+            try {
+                botInfo.socket.ws.close();
+            } catch (error) {
+                console.error(`Error stopping bot ${sessionId}:`, error);
+            }
         }
         this.hostedBots.delete(sessionId);
+        this.sessionStrings.delete(sessionId);
     }
 
     hasConnectedUsers(sessionId) {
@@ -239,6 +288,10 @@ class SessionManager {
     getUserBotCount(userJid) {
         const userBots = this.userSessions.get(userJid) || [];
         return userBots.length;
+    }
+
+    getSessionString(sessionId) {
+        return this.sessionStrings.get(sessionId);
     }
 }
 
