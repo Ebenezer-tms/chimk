@@ -2,40 +2,40 @@ const sessionManager = require('../sessionManager');
 
 async function listConnectedCommand(sock, chatId, senderId, message, prefix) {
     try {
-        const allBots = sessionManager.listAllBots();
+        const allDeployments = sessionManager.listAllDeployments();
         
-        if (allBots.length === 0) {
+        if (allDeployments.length === 0) {
             await sock.sendMessage(chatId, {
-                text: '📭 No active bot sessions found'
+                text: '📭 No active bot deployments found'
             }, { quoted: message });
             return;
         }
 
-        let botList = `🤖 *All Active Bot Sessions*\n\n`;
+        let deploymentList = `🚀 *All Bot Deployments* (${allDeployments.length})\n\n`;
         let activeCount = 0;
 
-        allBots.forEach((bot, index) => {
-            const statusEmoji = bot.isActive ? '🟢' : '🔴';
-            const uptime = bot.isActive ? formatUptime(Date.now() - bot.connectedAt) : 'Offline';
+        allDeployments.forEach((deployment, index) => {
+            const statusEmoji = deployment.isActive ? '🟢' : '🔴';
+            const uptime = deployment.isActive ? formatUptime(Date.now() - deployment.deployedAt) : 'Offline';
             
-            botList += `*${index + 1}.* ${statusEmoji} *${bot.sessionId}*\n`;
-            botList += `   👥 Users: ${bot.userCount}\n`;
-            botList += `   ⏰ Uptime: ${uptime}\n`;
-            botList += `   📊 Status: ${bot.isActive ? 'Active' : 'Inactive'}\n\n`;
+            deploymentList += `*${index + 1}.* ${statusEmoji} ${formatJid(deployment.userJid)}\n`;
+            deploymentList += `   🔑 Deployment: ${deployment.deploymentId}\n`;
+            deploymentList += `   👤 Name: ${deployment.userInfo.pushName || 'Unknown'}\n`;
+            deploymentList += `   ⏰ Uptime: ${uptime}\n\n`;
             
-            if (bot.isActive) activeCount++;
+            if (deployment.isActive) activeCount++;
         });
 
-        botList += `📊 *Summary:* ${allBots.length} total sessions, ${activeCount} active, ${allBots.length - activeCount} inactive`;
+        deploymentList += `📊 *Summary:* ${allDeployments.length} total deployments, ${activeCount} active`;
 
         await sock.sendMessage(chatId, {
-            text: botList
+            text: deploymentList
         }, { quoted: message });
 
     } catch (error) {
         console.error('Error in listconnected command:', error);
         await sock.sendMessage(chatId, {
-            text: '❌ An error occurred while fetching bot sessions'
+            text: '❌ An error occurred while fetching deployments'
         }, { quoted: message });
     }
 }
@@ -48,6 +48,10 @@ function formatUptime(ms) {
     if (days > 0) return `${days}d ${hours}h`;
     if (hours > 0) return `${hours}h ${minutes}m`;
     return `${minutes}m`;
+}
+
+function formatJid(jid) {
+    return jid.split('@')[0] + '***';
 }
 
 module.exports = listConnectedCommand;
