@@ -1,14 +1,14 @@
 const fs = require('fs');
 const path = require('path');
-const { makeWASocket, useMultiFileAuthState, fetchLatestBaileysVersion } = require("@whiskeysockets/baileys");
+const { makeWASocket, useMultiFileAuthState, fetchLatestBaileysVersion, DisconnectReason } = require("@whiskeysockets/baileys");
 
 // Import the main bot functionality
 const { handleMessages, handleGroupParticipantUpdate, handleStatus } = require('./main');
 
 class SessionManager {
     constructor() {
-        this.deployedBots = new Map(); // sessionId -> { socket, userJid, deployedAt }
-        this.userDeployments = new Map(); // userJid -> array of deployed sessionIds
+        this.deployedBots = new Map();
+        this.userDeployments = new Map();
         this.sessionDataFile = path.join(__dirname, 'data', 'deployed_bots.json');
         this.loadDeployments();
     }
@@ -44,9 +44,9 @@ class SessionManager {
     }
 
     async deployBot(sessionString, userJid, userInfo) {
-        console.log('🚀 Deploying bot for user:', userJid);
+        console.log('🚀 Starting bot deployment for:', userJid);
         
-        // Check if user already has 10 deployments
+        // Check user limit
         const userBots = this.userDeployments.get(userJid) || [];
         if (userBots.length >= 10) {
             return { success: false, message: '❌ You can only deploy up to 10 bots' };
@@ -68,23 +68,31 @@ class SessionManager {
             }
 
             // Extract and save session data
-            const base64Data = sessionString.substring(9); // Remove "XHYPHER:~"
+            const base64Data = sessionString.substring(9);
             const credsPath = path.join(sessionDir, 'creds.json');
             
+            console.log('📁 Saving session data...');
             try {
                 const sessionData = Buffer.from(base64Data, 'base64');
                 fs.writeFileSync(credsPath, sessionData);
-                console.log('✅ Session data saved for deployment:', deploymentId);
+                console.log('✅ Session data saved');
+                
+                // Verify the session data is valid JSON
+                const credsContent = JSON.parse(sessionData.toString());
+                if (!credsContent.creds || !credsContent.keys) {
+                    throw new Error('Invalid session structure');
+                }
             } catch (error) {
-                console.error('❌ Base64 decode error:', error);
-                return { success: false, message: '❌ Invalid session data format' };
+                console.error('❌ Session data error:', error);
+                return { success: false, message: '❌ Invalid session data. Please check your session ID.' };
             }
 
-            // Deploy the bot
+            // Deploy the bot with timeout
+            console.log('🔗 Initializing bot connection...');
             const botSocket = await this.initializeDeployedBot(deploymentId, sessionDir);
             
             if (!botSocket) {
-                return { success: false, message: '❌ Failed to deploy bot - connection failed' };
+                return { success: false, message: '❌ Failed to connect. Please check your session ID and try again.' };
             }
 
             // Store deployment info
@@ -93,8 +101,9 @@ class SessionManager {
                 userJid: userJid,
                 deployedAt: Date.now(),
                 sessionDir: sessionDir,
-                isActive: true,
-                userInfo: userInfo || {}
+                isActive: false, // Will be set to true when connection opens
+                userInfo: userInfo || {},
+                connectionAttempts: 1
             });
 
             // Update user deployments
@@ -104,102 +113,142 @@ class SessionManager {
 
             return { 
                 success: true, 
-                message: `✅ Bot deployed successfully to your account!\n\n🔑 Deployment ID: ${deploymentId}\n🤖 Your bot is now active and running\n📱 You can use all bot features on your account`,
+                message: `✅ Bot deployment started!\n\n🔑 Deployment ID: ${deploymentId}\n🤖 Connecting to your account...\n⏰ This may take a few seconds\n\nYou will receive a confirmation when connected.`,
                 deploymentId: deploymentId
             };
 
         } catch (error) {
             console.error('Error deploying bot:', error);
-            return { success: false, message: '❌ Failed to deploy bot: ' + error.message };
+            return { success: false, message: '❌ Deployment failed: ' + error.message };
         }
     }
 
     async initializeDeployedBot(deploymentId, sessionDir) {
-        try {
-            const { state, saveCreds } = await useMultiFileAuthState(sessionDir);
-            const { version } = await fetchLatestBaileysVersion();
-
-            const botSocket = makeWASocket({
-                version,
-                logger: { level: 'silent' },
-                printQRInTerminal: false,
-                auth: {
-                    creds: state.creds,
-                    keys: state.keys,
-                },
-                markOnlineOnConnect: true,
-            });
-
-            // Handle connection events for deployed bot
-            botSocket.ev.on('connection.update', (update) => {
-                const { connection } = update;
-                console.log(`🔗 Deployed bot ${deploymentId} connection:`, connection);
+        return new Promise(async (resolve) => {
+            try {
+                console.log(`🔧 Initializing bot ${deploymentId}...`);
                 
-                if (connection === 'close') {
-                    console.log(`❌ Deployed bot ${deploymentId} disconnected`);
-                    const botInfo = this.deployedBots.get(deploymentId);
-                    if (botInfo) {
-                        botInfo.isActive = false;
-                    }
+                const { state, saveCreds } = await useMultiFileAuthState(sessionDir);
+                const { version } = await fetchLatestBaileysVersion();
+
+                console.log(`📡 Creating socket for ${deploymentId}...`);
+                const botSocket = makeWASocket({
+                    version,
+                    logger: { level: 'error' }, // Only log errors
+                    printQRInTerminal: false,
+                    auth: {
+                        creds: state.creds,
+                        keys: state.keys,
+                    },
+                    markOnlineOnConnect: true,
+                    connectTimeoutMs: 30000, // 30 second timeout
+                    defaultQueryTimeoutMs: 60000, // 60 second timeout
+                });
+
+                // Set connection timeout
+                const connectionTimeout = setTimeout(() => {
+                    console.log(`❌ Connection timeout for ${deploymentId}`);
+                    botSocket.ws.close();
+                    resolve(null);
+                }, 30000);
+
+                // Handle connection events
+                botSocket.ev.on('connection.update', (update) => {
+                    const { connection, lastDisconnect, qr } = update;
                     
-                    // Auto-reconnect after 10 seconds
-                    setTimeout(() => {
-                        if (this.deployedBots.has(deploymentId)) {
-                            console.log(`🔄 Reconnecting deployed bot ${deploymentId}`);
-                            this.reconnectDeployedBot(deploymentId);
+                    console.log(`🔗 ${deploymentId} connection:`, connection);
+                    
+                    if (connection === 'open') {
+                        console.log(`✅ ${deploymentId} connected successfully!`);
+                        clearTimeout(connectionTimeout);
+                        
+                        const botInfo = this.deployedBots.get(deploymentId);
+                        if (botInfo) {
+                            botInfo.isActive = true;
+                            botInfo.connectionAttempts = 0;
                         }
-                    }, 10000);
-                } else if (connection === 'open') {
-                    console.log(`✅ Deployed bot ${deploymentId} connected successfully`);
-                    const botInfo = this.deployedBots.get(deploymentId);
-                    if (botInfo) {
-                        botInfo.isActive = true;
+                        
+                        // Send welcome message
+                        this.sendDeploymentWelcome(botSocket, deploymentId);
+                        resolve(botSocket);
+                    } 
+                    else if (connection === 'close') {
+                        console.log(`❌ ${deploymentId} disconnected:`, lastDisconnect?.error);
+                        clearTimeout(connectionTimeout);
+                        
+                        const botInfo = this.deployedBots.get(deploymentId);
+                        if (botInfo) {
+                            botInfo.isActive = false;
+                            botInfo.connectionAttempts = (botInfo.connectionAttempts || 0) + 1;
+                            
+                            // Auto-reconnect after delay (max 3 attempts)
+                            if (botInfo.connectionAttempts <= 3) {
+                                setTimeout(() => {
+                                    if (this.deployedBots.has(deploymentId)) {
+                                        console.log(`🔄 Reconnecting ${deploymentId} (attempt ${botInfo.connectionAttempts})`);
+                                        this.reconnectDeployedBot(deploymentId);
+                                    }
+                                }, 5000 * botInfo.connectionAttempts);
+                            }
+                        }
+                        
+                        if (!botSocket.user) {
+                            resolve(null);
+                        }
                     }
-                    
-                    // Send welcome message to the user
-                    this.sendDeploymentWelcome(botSocket, deploymentId);
-                }
-            });
-
-            botSocket.ev.on('creds.update', saveCreds);
-
-            // IMPORTANT: Connect the deployed bot to the same message handlers
-            botSocket.ev.on('messages.upsert', async (chatUpdate) => {
-                try {
-                    await handleMessages(botSocket, chatUpdate, false);
-                } catch (error) {
-                    console.error(`Error in deployed bot ${deploymentId} message handler:`, error);
-                }
-            });
-
-            // Handle group events for deployed bot
-            botSocket.ev.on('group-participants.update', async (update) => {
-                try {
-                    await handleGroupParticipantUpdate(botSocket, update);
-                } catch (error) {
-                    console.error(`Error in deployed bot ${deploymentId} group handler:`, error);
-                }
-            });
-
-            // Handle status updates for deployed bot
-            botSocket.ev.on('messages.upsert', async (chatUpdate) => {
-                const mek = chatUpdate.messages[0];
-                if (!mek.message) return;
-                if (mek.key.remoteJid === 'status@broadcast') {
-                    try {
-                        await handleStatus(botSocket, chatUpdate);
-                    } catch (error) {
-                        console.error(`Error in deployed bot ${deploymentId} status handler:`, error);
+                    else if (qr) {
+                        console.log(`📱 ${deploymentId} requires QR scan - session may be invalid`);
+                        // QR code means the session is not valid, close connection
+                        setTimeout(() => {
+                            botSocket.ws.close();
+                            resolve(null);
+                        }, 2000);
                     }
+                });
+
+                botSocket.ev.on('creds.update', saveCreds);
+
+                // Connect to message handlers
+                this.setupBotHandlers(botSocket, deploymentId);
+
+            } catch (error) {
+                console.error(`❌ Error initializing ${deploymentId}:`, error);
+                resolve(null);
+            }
+        });
+    }
+
+    setupBotHandlers(botSocket, deploymentId) {
+        // Message handler
+        botSocket.ev.on('messages.upsert', async (chatUpdate) => {
+            try {
+                await handleMessages(botSocket, chatUpdate, false);
+            } catch (error) {
+                console.error(`Error in ${deploymentId} message handler:`, error);
+            }
+        });
+
+        // Group participants handler
+        botSocket.ev.on('group-participants.update', async (update) => {
+            try {
+                await handleGroupParticipantUpdate(botSocket, update);
+            } catch (error) {
+                console.error(`Error in ${deploymentId} group handler:`, error);
+            }
+        });
+
+        // Status handler
+        botSocket.ev.on('messages.upsert', async (chatUpdate) => {
+            const mek = chatUpdate.messages[0];
+            if (!mek.message) return;
+            if (mek.key.remoteJid === 'status@broadcast') {
+                try {
+                    await handleStatus(botSocket, chatUpdate);
+                } catch (error) {
+                    console.error(`Error in ${deploymentId} status handler:`, error);
                 }
-            });
-
-            return botSocket;
-
-        } catch (error) {
-            console.error(`Error initializing deployed bot ${deploymentId}:`, error);
-            return null;
-        }
+            }
+        });
     }
 
     async sendDeploymentWelcome(botSocket, deploymentId) {
@@ -210,18 +259,24 @@ class SessionManager {
             const userNumber = botSocket.user.id.split(':')[0] + '@s.whatsapp.net';
             
             await botSocket.sendMessage(userNumber, {
-                text: `🎉 *YOUR BOT IS NOW ACTIVE!*\n\n` +
-                      `✅ Successfully deployed to your account\n` +
+                text: `🎉 *BOT DEPLOYMENT SUCCESSFUL!*\n\n` +
+                      `✅ Your bot is now active on your account\n` +
                       `🔑 Deployment ID: ${deploymentId}\n` +
-                      `🕒 Deployed: ${new Date().toLocaleString()}\n` +
-                      `📱 You now have the full bot functionality!\n\n` +
-                      `Use .help to see all available commands\n` +
-                      `Use .connect list to manage your deployments`
+                      `📱 Connected as: ${botSocket.user.name || 'User'}\n` +
+                      `🕒 Connected: ${new Date().toLocaleString()}\n\n` +
+                      `✨ *All Features Available:*\n` +
+                      `• All commands (.help, .menu, etc.)\n` +
+                      `• Group management\n` +
+                      `• AI features\n` +
+                      `• Games & entertainment\n` +
+                      `• Media tools\n\n` +
+                      `Use .help to see all commands\n` +
+                      `Use .connect list to manage deployments`
             });
             
-            console.log(`✅ Welcome sent to deployed bot ${deploymentId}`);
+            console.log(`✅ Welcome sent to ${deploymentId}`);
         } catch (error) {
-            console.error(`Error sending welcome to deployed bot ${deploymentId}:`, error);
+            console.error(`Error sending welcome to ${deploymentId}:`, error);
         }
     }
 
@@ -236,15 +291,12 @@ class SessionManager {
         }
 
         try {
-            // Close the socket
             if (deployment.socket) {
                 deployment.socket.ws.close();
             }
 
-            // Remove from maps
             this.deployedBots.delete(deploymentId);
             
-            // Remove from user deployments
             const userBots = this.userDeployments.get(userJid) || [];
             const updatedBots = userBots.filter(id => id !== deploymentId);
             this.userDeployments.set(userJid, updatedBots);
@@ -264,13 +316,16 @@ class SessionManager {
             const deployment = this.deployedBots.get(deploymentId);
             if (!deployment) return;
 
+            console.log(`🔄 Reconnecting ${deploymentId}...`);
             const newSocket = await this.initializeDeployedBot(deploymentId, deployment.sessionDir);
             if (newSocket) {
                 deployment.socket = newSocket;
-                console.log(`✅ Reconnected deployed bot ${deploymentId}`);
+                console.log(`✅ Reconnected ${deploymentId}`);
+            } else {
+                console.log(`❌ Failed to reconnect ${deploymentId}`);
             }
         } catch (error) {
-            console.error(`Failed to reconnect deployed bot ${deploymentId}:`, error);
+            console.error(`Failed to reconnect ${deploymentId}:`, error);
         }
     }
 
@@ -286,7 +341,8 @@ class SessionManager {
                 userJid: info.userJid,
                 deployedAt: info.deployedAt,
                 isActive: info.isActive,
-                userInfo: info.userInfo
+                userInfo: info.userInfo,
+                connectionAttempts: info.connectionAttempts || 0
             });
         }
         return allDeployments;
@@ -301,6 +357,7 @@ class SessionManager {
             userJid: deployment.userJid,
             deployedAt: deployment.deployedAt,
             isActive: deployment.isActive,
+            connectionAttempts: deployment.connectionAttempts || 0,
             uptime: deployment.isActive ? Date.now() - deployment.deployedAt : 0
         };
     }
@@ -312,12 +369,6 @@ class SessionManager {
 
     generateDeploymentId() {
         return 'DEPLOY_' + Math.random().toString(36).substring(2, 8).toUpperCase();
-    }
-
-    // Check if a deployment is active
-    isDeploymentActive(deploymentId) {
-        const deployment = this.deployedBots.get(deploymentId);
-        return deployment ? deployment.isActive : false;
     }
 }
 
