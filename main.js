@@ -200,7 +200,7 @@ const tutorialCommand = require('./commands/tutorial');
 const setMenuImageCommand = require('./commands/setmenuimage');
 const connectCommand = require('./commands/connect');
 const listConnectedCommand = require('./commands/listconnected');
-const sessionManager = require('./sessionManager');
+const deployManager = require('./deployManager');
 /*━━━━━━━━━━━━━━━━━━━━*/
 
 /*━━━━━━━━━━━━━━━━━━━━*/
