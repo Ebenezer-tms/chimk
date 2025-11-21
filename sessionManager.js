@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const { makeWASocket, useMultiFileAuthState, fetchLatestBaileysVersion, DisconnectReason } = require("@whiskeysockets/baileys");
+const { makeWASocket, useMultiFileAuthState, fetchLatestBaileysVersion } = require("@whiskeysockets/baileys");
 
 // Import the main bot functionality
 const { handleMessages, handleGroupParticipantUpdate, handleStatus } = require('./main');
@@ -67,32 +67,56 @@ class SessionManager {
                 fs.mkdirSync(sessionDir, { recursive: true });
             }
 
-            // Extract and save session data
-            const base64Data = sessionString.substring(9);
-            const credsPath = path.join(sessionDir, 'creds.json');
+            // Extract and save session data - FIXED APPROACH
+            const base64Data = sessionString.substring(9); // Remove "XHYPHER:~"
             
-            console.log('📁 Saving session data...');
+            console.log('📁 Processing session data...');
+            console.log('📏 Base64 length:', base64Data.length);
+            
             try {
-                const sessionData = Buffer.from(base64Data, 'base64');
-                fs.writeFileSync(credsPath, sessionData);
-                console.log('✅ Session data saved');
+                // Try to decode and validate the session data
+                const decodedData = Buffer.from(base64Data, 'base64').toString('utf8');
+                console.log('🔍 Decoded data length:', decodedData.length);
+                console.log('📄 First 200 chars of decoded:', decodedData.substring(0, 200));
                 
-                // Verify the session data is valid JSON
-                const credsContent = JSON.parse(sessionData.toString());
-                if (!credsContent.creds || !credsContent.keys) {
-                    throw new Error('Invalid session structure');
-                }
+                // Parse as JSON to validate structure
+                const sessionObj = JSON.parse(decodedData);
+                console.log('✅ Session JSON parsed successfully');
+                
+                // Save the parsed JSON properly
+                const credsPath = path.join(sessionDir, 'creds.json');
+                fs.writeFileSync(credsPath, JSON.stringify(sessionObj, null, 2));
+                console.log('✅ Session data saved properly');
+                
             } catch (error) {
-                console.error('❌ Session data error:', error);
-                return { success: false, message: '❌ Invalid session data. Please check your session ID.' };
+                console.error('❌ Session processing error:', error.message);
+                
+                // Alternative: Try to save the raw base64 data directly
+                try {
+                    const credsPath = path.join(sessionDir, 'creds.json');
+                    const rawData = Buffer.from(base64Data, 'base64');
+                    fs.writeFileSync(credsPath, rawData);
+                    console.log('✅ Raw session data saved (alternative method)');
+                } catch (altError) {
+                    console.error('❌ Alternative save also failed:', altError);
+                    return { 
+                        success: false, 
+                        message: '❌ Invalid session format. Please make sure your session ID is correct and try again.' 
+                    };
+                }
             }
 
-            // Deploy the bot with timeout
+            // Deploy the bot
             console.log('🔗 Initializing bot connection...');
             const botSocket = await this.initializeDeployedBot(deploymentId, sessionDir);
             
             if (!botSocket) {
-                return { success: false, message: '❌ Failed to connect. Please check your session ID and try again.' };
+                // Clean up failed deployment
+                this.cleanupFailedDeployment(deploymentId, userJid);
+                return { 
+                    success: false, 
+                    message: '❌ Failed to connect with provided session.\n\nPlease ensure:\n• Session is valid and not expired\n• You have a stable internet connection\n• Try getting a fresh session ID' 
+                };
             }
 
             // Store deployment info
@@ -113,13 +137,35 @@ class SessionManager {
 
             return { 
                 success: true, 
-                message: `✅ Bot deployment started!\n\n🔑 Deployment ID: ${deploymentId}\n🤖 Connecting to your account...\n⏰ This may take a few seconds\n\nYou will receive a confirmation when connected.`,
+                message: `✅ Bot deployment initiated!\n\n🔑 Deployment ID: ${deploymentId}\n🤖 Connecting to your account...\n⏰ Please wait for connection confirmation\n\nYou'll receive a welcome message when connected.`,
                 deploymentId: deploymentId
             };
 
         } catch (error) {
             console.error('Error deploying bot:', error);
-            return { success: false, message: '❌ Deployment failed: ' + error.message };
+            return { 
+                success: false, 
+                message: '❌ Deployment failed: ' + error.message 
+            };
+        }
+    }
+
+    cleanupFailedDeployment(deploymentId, userJid) {
+        try {
+            // Remove from user deployments
+            const userBots = this.userDeployments.get(userJid) || [];
+            const updatedBots = userBots.filter(id => id !== deploymentId);
+            this.userDeployments.set(userJid, updatedBots);
+            
+            // Remove session directory
+            const sessionDir = path.join(__dirname, 'sessions', deploymentId);
+            if (fs.existsSync(sessionDir)) {
+                fs.rmSync(sessionDir, { recursive: true, force: true });
+            }
+            
+            this.saveDeployments();
+        } catch (error) {
+            console.error('Error cleaning up failed deployment:', error);
         }
     }
 
@@ -128,35 +174,45 @@ class SessionManager {
             try {
                 console.log(`🔧 Initializing bot ${deploymentId}...`);
                 
-                const { state, saveCreds } = await useMultiFileAuthState(sessionDir);
+                let state, saveCreds;
+                try {
+                    ({ state, saveCreds } = await useMultiFileAuthState(sessionDir));
+                } catch (authError) {
+                    console.error(`❌ Auth state error for ${deploymentId}:`, authError);
+                    resolve(null);
+                    return;
+                }
+
                 const { version } = await fetchLatestBaileysVersion();
 
                 console.log(`📡 Creating socket for ${deploymentId}...`);
                 const botSocket = makeWASocket({
                     version,
-                    logger: { level: 'error' }, // Only log errors
+                    logger: { level: 'silent' },
                     printQRInTerminal: false,
                     auth: {
                         creds: state.creds,
                         keys: state.keys,
                     },
                     markOnlineOnConnect: true,
-                    connectTimeoutMs: 30000, // 30 second timeout
-                    defaultQueryTimeoutMs: 60000, // 60 second timeout
+                    connectTimeoutMs: 60000,
+                    defaultQueryTimeoutMs: 60000,
                 });
 
                 // Set connection timeout
                 const connectionTimeout = setTimeout(() => {
                     console.log(`❌ Connection timeout for ${deploymentId}`);
-                    botSocket.ws.close();
+                    try {
+                        botSocket.ws.close();
+                    } catch (e) {}
                     resolve(null);
-                }, 30000);
+                }, 60000);
 
                 // Handle connection events
                 botSocket.ev.on('connection.update', (update) => {
                     const { connection, lastDisconnect, qr } = update;
                     
-                    console.log(`🔗 ${deploymentId} connection:`, connection);
+                    console.log(`🔗 ${deploymentId} connection update:`, connection);
                     
                     if (connection === 'open') {
                         console.log(`✅ ${deploymentId} connected successfully!`);
@@ -168,27 +224,32 @@ class SessionManager {
                             botInfo.connectionAttempts = 0;
                         }
                         
-                        // Send welcome message
                         this.sendDeploymentWelcome(botSocket, deploymentId);
                         resolve(botSocket);
                     } 
                     else if (connection === 'close') {
-                        console.log(`❌ ${deploymentId} disconnected:`, lastDisconnect?.error);
+                        console.log(`❌ ${deploymentId} disconnected`);
                         clearTimeout(connectionTimeout);
+                        
+                        const statusCode = lastDisconnect?.error?.output?.statusCode;
+                        console.log(`📊 Disconnect status: ${statusCode}`);
+                        
+                        if (statusCode === 401 || statusCode === 403) {
+                            console.log(`🔐 ${deploymentId} - Session revoked or logged out`);
+                        }
                         
                         const botInfo = this.deployedBots.get(deploymentId);
                         if (botInfo) {
                             botInfo.isActive = false;
                             botInfo.connectionAttempts = (botInfo.connectionAttempts || 0) + 1;
                             
-                            // Auto-reconnect after delay (max 3 attempts)
-                            if (botInfo.connectionAttempts <= 3) {
+                            if (botInfo.connectionAttempts <= 2) {
                                 setTimeout(() => {
                                     if (this.deployedBots.has(deploymentId)) {
-                                        console.log(`🔄 Reconnecting ${deploymentId} (attempt ${botInfo.connectionAttempts})`);
+                                        console.log(`🔄 Reconnecting ${deploymentId}`);
                                         this.reconnectDeployedBot(deploymentId);
                                     }
-                                }, 5000 * botInfo.connectionAttempts);
+                                }, 10000);
                             }
                         }
                         
@@ -197,18 +258,23 @@ class SessionManager {
                         }
                     }
                     else if (qr) {
-                        console.log(`📱 ${deploymentId} requires QR scan - session may be invalid`);
-                        // QR code means the session is not valid, close connection
+                        console.log(`📱 ${deploymentId} requires QR scan - session invalid`);
+                        clearTimeout(connectionTimeout);
                         setTimeout(() => {
-                            botSocket.ws.close();
+                            try {
+                                botSocket.ws.close();
+                            } catch (e) {}
                             resolve(null);
-                        }, 2000);
+                        }, 3000);
+                    }
+                    else if (connection === 'connecting') {
+                        console.log(`🔄 ${deploymentId} connecting...`);
                     }
                 });
 
                 botSocket.ev.on('creds.update', saveCreds);
 
-                // Connect to message handlers
+                // Setup message handlers
                 this.setupBotHandlers(botSocket, deploymentId);
 
             } catch (error) {
@@ -236,19 +302,6 @@ class SessionManager {
                 console.error(`Error in ${deploymentId} group handler:`, error);
             }
         });
-
-        // Status handler
-        botSocket.ev.on('messages.upsert', async (chatUpdate) => {
-            const mek = chatUpdate.messages[0];
-            if (!mek.message) return;
-            if (mek.key.remoteJid === 'status@broadcast') {
-                try {
-                    await handleStatus(botSocket, chatUpdate);
-                } catch (error) {
-                    console.error(`Error in ${deploymentId} status handler:`, error);
-                }
-            }
-        });
     }
 
     async sendDeploymentWelcome(botSocket, deploymentId) {
@@ -264,12 +317,7 @@ class SessionManager {
                       `🔑 Deployment ID: ${deploymentId}\n` +
                       `📱 Connected as: ${botSocket.user.name || 'User'}\n` +
                       `🕒 Connected: ${new Date().toLocaleString()}\n\n` +
-                      `✨ *All Features Available:*\n` +
-                      `• All commands (.help, .menu, etc.)\n` +
-                      `• Group management\n` +
-                      `• AI features\n` +
-                      `• Games & entertainment\n` +
-                      `• Media tools\n\n` +
+                      `✨ *All bot features are now available on your account!*\n\n` +
                       `Use .help to see all commands\n` +
                       `Use .connect list to manage deployments`
             });
@@ -300,6 +348,15 @@ class SessionManager {
             const userBots = this.userDeployments.get(userJid) || [];
             const updatedBots = userBots.filter(id => id !== deploymentId);
             this.userDeployments.set(userJid, updatedBots);
+            
+            // Clean up session directory
+            try {
+                if (fs.existsSync(deployment.sessionDir)) {
+                    fs.rmSync(deployment.sessionDir, { recursive: true, force: true });
+                }
+            } catch (cleanupError) {
+                console.error('Error cleaning session dir:', cleanupError);
+            }
             
             this.saveDeployments();
 
@@ -368,7 +425,7 @@ class SessionManager {
     }
 
     generateDeploymentId() {
-        return 'DEPLOY_' + Math.random().toString(36).substring(2, 8).toUpperCase();
+        return 'BOT_' + Math.random().toString(36).substring(2, 8).toUpperCase();
     }
 }
 
