@@ -1,18 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const { makeWASocket, useMultiFileAuthState, fetchLatestBaileysVersion } = require("@whiskeysockets/baileys");
-
-// Create a proper logger object
-const logger = {
-    level: 'silent',
-    trace: () => {},
-    debug: () => {},
-    info: () => {},
-    warn: () => {},
-    error: () => {},
-    fatal: () => {},
-    child: () => logger
-};
+const { makeWASocket, useMultiFileAuthState, fetchLatestBaileysVersion, default: makeWASocket } = require("@whiskeysockets/baileys");
 
 class DeployManager {
     constructor() {
@@ -148,27 +136,31 @@ class DeployManager {
     convertToBaileysFormat(sessionData) {
         // Convert the session data to Baileys-compatible format
         const baileysSession = {
-            creds: {
-                noiseKey: sessionData.noiseKey,
-                signedIdentityKey: sessionData.signedIdentityKey,
-                signedPreKey: sessionData.signedPreKey,
-                registrationId: sessionData.registrationId,
-                advSecretKey: sessionData.advSecretKey,
-                processedHistoryMessages: sessionData.processedHistoryMessages || [],
-                nextPreKeyId: sessionData.nextPreKeyId || 1,
-                firstUnuploadedPreKeyId: sessionData.firstUnuploadedPreKeyId || 1,
-                accountSettings: sessionData.accountSettings || { unarchiveChats: false },
-                registered: sessionData.registered !== undefined ? sessionData.registered : true,
-                pairingCode: sessionData.pairingCode || null,
-                me: sessionData.me || null,
-                account: sessionData.account || null,
-                signalIdentities: sessionData.signalIdentities || [],
-                platform: sessionData.platform || 'android',
-                routingInfo: sessionData.routingInfo || Buffer.from([]),
-                lastAccountSyncTimestamp: sessionData.lastAccountSyncTimestamp || Date.now(),
-                myAppStateKeyId: sessionData.myAppStateKeyId || 'AAAAAAI1t'
-            },
-            keys: {}
+            noiseKey: sessionData.noiseKey ? { private: Buffer.from(sessionData.noiseKey.private, 'base64'), public: Buffer.from(sessionData.noiseKey.public, 'base64') } : undefined,
+            signedIdentityKey: sessionData.signedIdentityKey ? { private: Buffer.from(sessionData.signedIdentityKey.private, 'base64'), public: Buffer.from(sessionData.signedIdentityKey.public, 'base64') } : undefined,
+            signedPreKey: sessionData.signedPreKey ? {
+                keyId: sessionData.signedPreKey.keyId,
+                keyPair: {
+                    private: Buffer.from(sessionData.signedPreKey.keyPair.private, 'base64'),
+                    public: Buffer.from(sessionData.signedPreKey.keyPair.public, 'base64')
+                },
+                signature: Buffer.from(sessionData.signedPreKey.signature, 'base64')
+            } : undefined,
+            registrationId: sessionData.registrationId || 0,
+            advSecretKey: sessionData.advSecretKey ? Buffer.from(sessionData.advSecretKey, 'base64') : undefined,
+            processedHistoryMessages: sessionData.processedHistoryMessages || [],
+            nextPreKeyId: sessionData.nextPreKeyId || 1,
+            firstUnuploadedPreKeyId: sessionData.firstUnuploadedPreKeyId || 1,
+            accountSettings: sessionData.accountSettings || { unarchiveChats: false },
+            registered: sessionData.registered !== undefined ? sessionData.registered : false,
+            pairingCode: sessionData.pairingCode || null,
+            me: sessionData.me || null,
+            account: sessionData.account || null,
+            signalIdentities: sessionData.signalIdentities || [],
+            platform: sessionData.platform || 'android',
+            routingInfo: sessionData.routingInfo ? Buffer.from(sessionData.routingInfo, 'base64') : Buffer.alloc(0),
+            lastAccountSyncTimestamp: sessionData.lastAccountSyncTimestamp || 0,
+            myAppStateKeyId: sessionData.myAppStateKeyId || 'AAAAAA'
         };
 
         console.log('✅ Session converted to Baileys format');
@@ -177,6 +169,8 @@ class DeployManager {
 
     async initializeBot(deploymentId, sessionDir) {
         return new Promise(async (resolve) => {
+            let botSocket;
+            
             try {
                 console.log(`🔧 Initializing bot ${deploymentId}...`);
                 
@@ -193,19 +187,33 @@ class DeployManager {
                     return;
                 }
 
-                const { version } = await fetchLatestBaileysVersion();
+                const { version, isLatest } = await fetchLatestBaileysVersion();
+                console.log(`📱 Using WA v${version.join('.')}, isLatest: ${isLatest}`);
 
-                // FIXED: Changed variable name from 'bot' to 'botSocket' for consistency
-                const botSocket = makeWASocket({
+                // Create socket with better configuration
+                botSocket = makeWASocket({
                     version,
-                    logger: logger, // Use the proper logger object
+                    logger: { level: 'silent' },
                     printQRInTerminal: false,
                     auth: {
                         creds: state.creds,
                         keys: state.keys,
                     },
-                    markOnlineOnConnect: true,
-                    connectTimeoutMs: 30000,
+                    browser: ['Chrome', 'Windows', '10.0.0'],
+                    markOnlineOnConnect: false, // Changed to false for better stability
+                    generateHighQualityLinkPreview: true,
+                    syncFullHistory: false,
+                    connectTimeoutMs: 60000,
+                    keepAliveIntervalMs: 30000,
+                    retryRequestDelayMs: 1000,
+                    maxMsgRetryCount: 3,
+                    fireInitQueries: true,
+                    emitOwnEvents: true,
+                    defaultQueryTimeoutMs: 60000,
+                    transactionOpts: {
+                        maxCommitRetries: 3,
+                        delayBetweenTriesMs: 3000
+                    }
                 });
 
                 let connectionEstablished = false;
@@ -215,20 +223,24 @@ class DeployManager {
                     if (!connectionEstablished) {
                         console.log(`❌ Connection timeout for ${deploymentId}`);
                         try {
-                            botSocket.ws.close();
-                        } catch (e) {}
+                            if (botSocket && botSocket.ws) {
+                                botSocket.ws.close();
+                            }
+                        } catch (e) {
+                            console.error('Error closing socket:', e);
+                        }
                         resolve({ 
                             success: false, 
                             message: '❌ Connection timeout. Please check your session ID and try again.' 
                         });
                     }
-                }, 30000);
+                }, 60000);
 
                 // Handle connection events
                 botSocket.ev.on('connection.update', (update) => {
-                    const { connection, lastDisconnect, qr } = update;
+                    const { connection, lastDisconnect, qr, isNewLogin, receivedPendingNotifications } = update;
                     
-                    console.log(`🔗 ${deploymentId} connection:`, connection);
+                    console.log(`🔗 ${deploymentId} connection update:`, connection, qr ? 'QR Received' : '', isNewLogin ? 'New Login' : '');
                     
                     if (connection === 'open') {
                         console.log(`✅ ${deploymentId} connected successfully!`);
@@ -241,17 +253,27 @@ class DeployManager {
                     } 
                     else if (connection === 'close') {
                         console.log(`❌ ${deploymentId} disconnected`);
+                        const statusCode = lastDisconnect?.error?.output?.statusCode;
+                        const error = lastDisconnect?.error;
+                        
+                        console.log(`📊 Disconnect details - Status: ${statusCode}, Error: ${error?.message}`);
+                        
                         if (!connectionEstablished) {
                             clearTimeout(connectionTimeout);
-                            const statusCode = lastDisconnect?.error?.output?.statusCode;
                             let errorMsg = '❌ Connection failed. ';
                             
                             if (statusCode === 401) {
-                                errorMsg += 'Session revoked or expired.';
+                                errorMsg += 'Session revoked or expired. Please get a new session ID.';
                             } else if (statusCode === 403) {
-                                errorMsg += 'Session banned or blocked.';
+                                errorMsg += 'Session banned or blocked. Please use a different account.';
+                            } else if (statusCode === 400) {
+                                errorMsg += 'Bad request. Invalid session data.';
+                            } else if (statusCode === 429) {
+                                errorMsg += 'Too many attempts. Please try again later.';
+                            } else if (statusCode === 503) {
+                                errorMsg += 'Service unavailable. WhatsApp servers are down.';
                             } else {
-                                errorMsg += 'Please check your session ID.';
+                                errorMsg += `Please check your session ID and try again. (Error: ${error?.message || 'Unknown'})`;
                             }
                             
                             resolve({ success: false, message: errorMsg });
@@ -267,9 +289,20 @@ class DeployManager {
                             });
                         }
                     }
+                    else if (connection === 'connecting') {
+                        console.log(`🔄 ${deploymentId} is connecting...`);
+                    }
                 });
 
+                // Handle credentials updates
                 botSocket.ev.on('creds.update', saveCreds);
+
+                // Handle other important events
+                botSocket.ev.on('messages.upsert', (m) => {
+                    if (m.type === 'notify') {
+                        console.log(`💬 ${deploymentId} received message`);
+                    }
+                });
 
             } catch (error) {
                 console.error(`❌ Error initializing ${deploymentId}:`, error.message);
@@ -283,7 +316,13 @@ class DeployManager {
 
     async sendDeploymentWelcome(botSocket, deploymentId) {
         try {
-            if (!botSocket.user) return;
+            // Wait a bit for connection to stabilize
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            if (!botSocket.user) {
+                console.log(`❌ No user object found for ${deploymentId}`);
+                return;
+            }
 
             const userNumber = botSocket.user.id.split(':')[0] + '@s.whatsapp.net';
             
@@ -300,7 +339,7 @@ class DeployManager {
             
             console.log(`✅ Welcome sent to ${deploymentId}`);
         } catch (error) {
-            console.error(`Error sending welcome:`, error);
+            console.error(`Error sending welcome to ${deploymentId}:`, error.message);
         }
     }
 
@@ -316,6 +355,7 @@ class DeployManager {
             }
             
             this.saveDeployments();
+            console.log(`🧹 Cleaned up failed deployment: ${deploymentId}`);
         } catch (error) {
             console.error('Error cleaning up:', error);
         }
@@ -332,8 +372,9 @@ class DeployManager {
         }
 
         try {
-            if (deployment.socket) {
+            if (deployment.socket && deployment.socket.ws) {
                 deployment.socket.ws.close();
+                console.log(`🔌 Closed WebSocket for ${deploymentId}`);
             }
 
             this.deployedBots.delete(deploymentId);
@@ -346,6 +387,7 @@ class DeployManager {
             try {
                 if (fs.existsSync(deployment.sessionDir)) {
                     fs.rmSync(deployment.sessionDir, { recursive: true, force: true });
+                    console.log(`🗑️ Removed session directory for ${deploymentId}`);
                 }
             } catch (cleanupError) {
                 console.error('Error cleaning session dir:', cleanupError);
