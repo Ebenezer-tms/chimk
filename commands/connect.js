@@ -1,158 +1,81 @@
-const sessionManager = require('../sessionManager');
+const deployManager = require('../deployManager');
 
 async function connectCommand(sock, chatId, senderId, message, rawMessage, prefix) {
     const input = rawMessage.slice(prefix.length + 'connect'.length).trim();
 
     if (!input) {
         return await sock.sendMessage(chatId, {
-            text: `🚀 *Bot Deployment System*\n\n` +
-                  `*How to deploy:*\n` +
-                  `1. Get a fresh session ID from your bot\n` +
-                  `2. Use: ${prefix}connect <session_id>\n\n` +
-                  `*Management Commands:*\n` +
-                  `• ${prefix}connect list - Your deployments\n` +
-                  `• ${prefix}connect stop <id> - Stop deployment\n` +
-                  `• ${prefix}connect status <id> - Check status\n` +
-                  `• ${prefix}testsession <id> - Debug session\n\n` +
-                  `💡 *Make sure your session ID is:*\n` +
-                  `• Fresh (not expired)\n` +
-                  `• Complete (long base64 string)\n` +
-                  `• From a working WhatsApp connection`
+            text: `🚀 *Quick Bot Deployment*\n\n` +
+                  `*Usage:* ${prefix}connect <session_id>\n\n` +
+                  `*Example:*\n${prefix}connect XHYPHER:~eyJub2lzZUt...\n\n` +
+                  `💡 Get your session ID from your existing bot or WhatsApp Web session.`
         }, { quoted: message });
     }
 
     try {
         if (input.toLowerCase() === 'list') {
-            const userDeployments = sessionManager.listUserDeployments(senderId);
+            const userDeployments = deployManager.listUserDeployments(senderId);
             
             if (userDeployments.length === 0) {
                 await sock.sendMessage(chatId, {
-                    text: '📭 You have no active deployments\n\nUse the command above to deploy a bot to your account.'
+                    text: '📭 No active deployments\n\nUse the command above to deploy a bot.'
                 }, { quoted: message });
                 return;
             }
 
-            let deploymentList = `🚀 *Your Bot Deployments* (${userDeployments.length}/10)\n\n`;
-            userDeployments.forEach((deploymentId, index) => {
-                const status = sessionManager.getDeploymentStatus(deploymentId);
-                const timeAgo = getTimeAgo(status?.deployedAt || Date.now());
-                const statusEmoji = status?.isActive ? '🟢' : '🔴';
-                
-                deploymentList += `${index + 1}. ${statusEmoji} *${deploymentId}*\n`;
-                deploymentList += `   ⏰ Deployed: ${timeAgo}\n`;
-                deploymentList += `   📊 Status: ${status?.isActive ? 'Active' : 'Inactive'}\n\n`;
+            let list = `🤖 Your Deployments (${userDeployments.length}/10)\n\n`;
+            userDeployments.forEach((id, index) => {
+                const status = deployManager.getDeploymentStatus(id);
+                list += `${index + 1}. ${status?.isActive ? '🟢' : '🔴'} ${id}\n`;
             });
 
-            await sock.sendMessage(chatId, {
-                text: deploymentList
-            }, { quoted: message });
+            await sock.sendMessage(chatId, { text: list }, { quoted: message });
 
-        } else if (input.toLowerCase().startsWith('stop')) {
-            const deploymentId = input.split(' ')[1];
-            if (!deploymentId) {
-                return await sock.sendMessage(chatId, {
-                    text: `❌ Usage: ${prefix}connect stop <deployment_id>`
-                }, { quoted: message });
-            }
-
-            const result = sessionManager.stopDeployment(deploymentId, senderId);
-            await sock.sendMessage(chatId, {
-                text: result.message
-            }, { quoted: message });
-
-        } else if (input.toLowerCase().startsWith('status')) {
-            const deploymentId = input.split(' ')[1];
-            if (!deploymentId) {
-                return await sock.sendMessage(chatId, {
-                    text: `❌ Usage: ${prefix}connect status <deployment_id>`
-                }, { quoted: message });
-            }
-
-            const status = sessionManager.getDeploymentStatus(deploymentId);
-            if (!status) {
-                await sock.sendMessage(chatId, {
-                    text: '❌ Deployment not found'
+        } else if (input.toLowerCase() === 'stop') {
+            const userDeployments = deployManager.listUserDeployments(senderId);
+            if (userDeployments.length === 0) {
+                await sock.sendMessage(chatId, { 
+                    text: '❌ No deployments to stop' 
                 }, { quoted: message });
                 return;
             }
 
-            const uptime = status.isActive ? formatUptime(status.uptime) : 'Not active';
-            await sock.sendMessage(chatId, {
-                text: `📊 *Deployment Status*\n\n` +
-                      `🔑 *ID:* ${status.deploymentId}\n` +
-                      `🔄 *Status:* ${status.isActive ? '🟢 Active' : '🔴 Inactive'}\n` +
-                      `⏰ *Uptime:* ${uptime}\n` +
-                      `👤 *Owner:* ${formatJid(status.userJid)}`
+            // Stop the first deployment
+            const result = deployManager.stopDeployment(userDeployments[0], senderId);
+            await sock.sendMessage(chatId, { 
+                text: result.message 
             }, { quoted: message });
 
         } else {
-            // This is a session string - deploy the bot
+            // Deploy bot with session ID
             if (!input.startsWith('XHYPHER:~')) {
-                await sock.sendMessage(chatId, {
-                    text: '❌ Session must start with XHYPHER:~'
+                await sock.sendMessage(chatId, { 
+                    text: '❌ Session must start with XHYPHER:~' 
                 }, { quoted: message });
                 return;
             }
 
-            // Check if session string looks complete
-            if (input.length < 500) {
-                await sock.sendMessage(chatId, {
-                    text: '❌ Session ID seems too short. Please check if your session ID is complete.'
-                }, { quoted: message });
-                return;
-            }
-
-            // Get user info
-            const userInfo = {
-                pushName: message.pushName || 'Unknown',
-                deployTime: new Date().toLocaleString(),
-                originalJid: senderId
-            };
-
-            await sock.sendMessage(chatId, {
-                text: '🚀 Starting bot deployment...\n⏰ Please wait while we connect to your account'
+            await sock.sendMessage(chatId, { 
+                text: '🚀 Deploying bot to your account...' 
             }, { quoted: message });
 
-            const result = await sessionManager.deployBot(input, senderId, userInfo);
-            await sock.sendMessage(chatId, {
-                text: result.message
+            const userInfo = {
+                pushName: message.pushName || 'User',
+                deployTime: new Date().toLocaleString()
+            };
+
+            const result = await deployManager.deployBot(input, senderId, userInfo);
+            await sock.sendMessage(chatId, { 
+                text: result.message 
             }, { quoted: message });
         }
 
     } catch (error) {
-        console.error('Error in connect command:', error);
-        await sock.sendMessage(chatId, {
-            text: '❌ Deployment error: ' + error.message
+        console.error('Connect command error:', error);
+        await sock.sendMessage(chatId, { 
+            text: '❌ Error: ' + error.message 
         }, { quoted: message });
     }
-}
-
-function getTimeAgo(timestamp) {
-    const now = Date.now();
-    const diff = now - timestamp;
-    
-    const minutes = Math.floor(diff / 60000);
-    const hours = Math.floor(diff / 3600000);
-    const days = Math.floor(diff / 86400000);
-    
-    if (days > 0) return `${days} day${days > 1 ? 's' : ''} ago`;
-    if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
-    if (minutes > 0) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
-    return 'Just now';
-}
-
-function formatUptime(ms) {
-    const days = Math.floor(ms / 86400000);
-    const hours = Math.floor((ms % 86400000) / 3600000);
-    const minutes = Math.floor((ms % 3600000) / 60000);
-    
-    if (days > 0) return `${days}d ${hours}h ${minutes}m`;
-    if (hours > 0) return `${hours}h ${minutes}m`;
-    return `${minutes}m`;
-}
-
-function formatJid(jid) {
-    return jid.split('@')[0] + '***';
 }
 
 module.exports = connectCommand;
