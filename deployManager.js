@@ -1,7 +1,6 @@
 const fs = require('fs');
 const path = require('path');
 const { makeWASocket, useMultiFileAuthState, fetchLatestBaileysVersion } = require("@whiskeysockets/baileys");
-const logger = require('./logger');
 
 class DeployManager {
     constructor() {
