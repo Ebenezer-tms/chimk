@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { makeWASocket, useMultiFileAuthState, fetchLatestBaileysVersion } = require("@whiskeysockets/baileys");
+
 // Create a proper logger object
 const logger = {
     level: 'silent',
@@ -194,14 +195,14 @@ class DeployManager {
 
                 const { version } = await fetchLatestBaileysVersion();
 
-                const botSocket = makeWASocket({
-                    version,
-                    logger: { level: 'silent' },
-                    printQRInTerminal: false,
-                    auth: {
-                        creds: state.creds,
-                        keys: state.keys,
-                    },
+            const bot = makeWASocket({
+                version,
+                logger: logger, // Use the proper logger object
+                printQRInTerminal: false,
+                auth: {
+                    creds: state.creds,
+                    keys: state.keys,
+                },
                     markOnlineOnConnect: true,
                     connectTimeoutMs: 30000,
                 });
