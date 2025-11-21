@@ -153,10 +153,22 @@ class DeployManager {
                 const { version } = await fetchLatestBaileysVersion();
                 console.log(`📱 Using WA version: ${version.join('.')}`);
 
+                // Create a proper logger object that has the child method
+                const logger = {
+                    level: 'silent',
+                    trace: () => {},
+                    debug: () => {},
+                    info: () => {},
+                    warn: () => {},
+                    error: () => {},
+                    fatal: () => {},
+                    child: () => logger // Add the child method that returns itself
+                };
+
                 // Create socket with proper configuration
                 botSocket = makeWASocket({
                     version,
-                    logger: { level: 'silent' },
+                    logger: logger,
                     printQRInTerminal: false,
                     auth: {
                         creds: state.creds,
