@@ -195,14 +195,15 @@ class DeployManager {
 
                 const { version } = await fetchLatestBaileysVersion();
 
-            const bot = makeWASocket({
-                version,
-                logger: logger, // Use the proper logger object
-                printQRInTerminal: false,
-                auth: {
-                    creds: state.creds,
-                    keys: state.keys,
-                },
+                // FIXED: Changed variable name from 'bot' to 'botSocket' for consistency
+                const botSocket = makeWASocket({
+                    version,
+                    logger: logger, // Use the proper logger object
+                    printQRInTerminal: false,
+                    auth: {
+                        creds: state.creds,
+                        keys: state.keys,
+                    },
                     markOnlineOnConnect: true,
                     connectTimeoutMs: 30000,
                 });
