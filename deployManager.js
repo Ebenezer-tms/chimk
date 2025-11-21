@@ -15,10 +15,10 @@ class DeployManager {
             if (fs.existsSync(this.deploymentDataFile)) {
                 const data = JSON.parse(fs.readFileSync(this.deploymentDataFile, 'utf8'));
                 this.userDeployments = new Map(Object.entries(data.userDeployments || {}));
-                logger.info('Deployments loaded successfully');
+                console.log('✅ Deployments loaded');
             }
         } catch (error) {
-            logger.error({ error }, 'Error loading deployments');
+            console.error('❌ Error loading deployments:', error);
         }
     }
 
@@ -35,25 +35,22 @@ class DeployManager {
             }
             
             fs.writeFileSync(this.deploymentDataFile, JSON.stringify(data, null, 2));
-            logger.debug('Deployments saved successfully');
         } catch (error) {
-            logger.error({ error }, 'Error saving deployments');
+            console.error('❌ Error saving deployments:', error);
         }
     }
 
     async deployBot(sessionString, userJid, userInfo) {
-        logger.info({ userJid }, 'Starting bot deployment');
+        console.log('🚀 Starting deployment for:', userJid);
         
         // Check user limit
         const userBots = this.userDeployments.get(userJid) || [];
         if (userBots.length >= 10) {
-            logger.warn({ userJid, currentCount: userBots.length }, 'User reached deployment limit');
             return { success: false, message: '❌ You can only deploy up to 10 bots' };
         }
 
         // Validate session string
         if (!sessionString.startsWith('XHYPHER:~')) {
-            logger.warn({ userJid }, 'Invalid session format - missing XHYPHER prefix');
             return { success: false, message: '❌ Session must start with XHYPHER:~' };
         }
 
@@ -70,16 +67,16 @@ class DeployManager {
             // Extract base64 data
             const base64Data = sessionString.substring(9);
             
-            logger.debug('Processing session data');
+            console.log('📁 Processing session data...');
             
             try {
                 // Decode the base64 data
                 const decodedData = Buffer.from(base64Data, 'base64').toString('utf8');
-                logger.debug('Base64 decoded successfully');
+                console.log('✅ Base64 decoded successfully');
                 
                 // Parse as JSON
                 const sessionData = JSON.parse(decodedData);
-                logger.debug('JSON parsed successfully');
+                console.log('✅ JSON parsed successfully');
                 
                 // Convert the session data to Baileys format
                 const baileysSession = this.convertToBaileysFormat(sessionData);
@@ -87,10 +84,10 @@ class DeployManager {
                 // Save as creds.json
                 const credsPath = path.join(sessionDir, 'creds.json');
                 fs.writeFileSync(credsPath, JSON.stringify(baileysSession, null, 2));
-                logger.debug('Session converted and saved');
+                console.log('✅ Session converted and saved');
 
             } catch (error) {
-                logger.error({ error, userJid }, 'Session processing failed');
+                console.error('❌ Session processing failed:', error.message);
                 return { 
                     success: false, 
                     message: '❌ Invalid session format. Please get a fresh session ID.' 
@@ -98,7 +95,7 @@ class DeployManager {
             }
 
             // Initialize the bot
-            logger.debug({ deploymentId }, 'Initializing bot connection');
+            console.log('🔗 Initializing bot connection...');
             const botResult = await this.initializeBot(deploymentId, sessionDir);
             
             if (!botResult.success) {
@@ -121,8 +118,6 @@ class DeployManager {
             this.userDeployments.set(userJid, userBots);
             this.saveDeployments();
 
-            logger.info({ deploymentId, userJid }, 'Bot deployed successfully');
-
             return { 
                 success: true, 
                 message: `✅ Bot deployed successfully!\n\n🔑 Deployment ID: ${deploymentId}\n🤖 Your bot is now active on your account\n📱 You can use all bot features!`,
@@ -130,7 +125,7 @@ class DeployManager {
             };
 
         } catch (error) {
-            logger.error({ error, userJid }, 'Bot deployment failed');
+            console.error('Error deploying bot:', error);
             return { 
                 success: false, 
                 message: '❌ Deployment failed: ' + error.message 
@@ -164,21 +159,21 @@ class DeployManager {
             keys: {}
         };
 
-        logger.debug('Session converted to Baileys format');
+        console.log('✅ Session converted to Baileys format');
         return baileysSession;
     }
 
     async initializeBot(deploymentId, sessionDir) {
         return new Promise(async (resolve) => {
             try {
-                logger.debug({ deploymentId }, 'Initializing bot');
+                console.log(`🔧 Initializing bot ${deploymentId}...`);
                 
                 let state, saveCreds;
                 try {
                     ({ state, saveCreds } = await useMultiFileAuthState(sessionDir));
-                    logger.debug({ deploymentId }, 'Auth state loaded');
+                    console.log(`✅ Auth state loaded for ${deploymentId}`);
                 } catch (authError) {
-                    logger.error({ deploymentId, error: authError }, 'Auth state error');
+                    console.error(`❌ Auth state error:`, authError.message);
                     resolve({ 
                         success: false, 
                         message: '❌ Session authentication failed. Please use a fresh session ID.' 
@@ -205,7 +200,7 @@ class DeployManager {
                 // Set connection timeout
                 const connectionTimeout = setTimeout(() => {
                     if (!connectionEstablished) {
-                        logger.warn({ deploymentId }, 'Connection timeout');
+                        console.log(`❌ Connection timeout for ${deploymentId}`);
                         try {
                             botSocket.ws.close();
                         } catch (e) {}
@@ -220,10 +215,10 @@ class DeployManager {
                 botSocket.ev.on('connection.update', (update) => {
                     const { connection, lastDisconnect, qr } = update;
                     
-                    logger.debug({ deploymentId, connection }, 'Connection update');
+                    console.log(`🔗 ${deploymentId} connection:`, connection);
                     
                     if (connection === 'open') {
-                        logger.info({ deploymentId }, 'Bot connected successfully');
+                        console.log(`✅ ${deploymentId} connected successfully!`);
                         connectionEstablished = true;
                         clearTimeout(connectionTimeout);
                         
@@ -232,7 +227,7 @@ class DeployManager {
                         resolve({ success: true, socket: botSocket });
                     } 
                     else if (connection === 'close') {
-                        logger.warn({ deploymentId }, 'Bot disconnected');
+                        console.log(`❌ ${deploymentId} disconnected`);
                         if (!connectionEstablished) {
                             clearTimeout(connectionTimeout);
                             const statusCode = lastDisconnect?.error?.output?.statusCode;
@@ -250,7 +245,7 @@ class DeployManager {
                         }
                     }
                     else if (qr) {
-                        logger.debug({ deploymentId }, 'QR scan required');
+                        console.log(`📱 ${deploymentId} requires QR scan`);
                         if (!connectionEstablished) {
                             clearTimeout(connectionTimeout);
                             resolve({ 
@@ -264,7 +259,7 @@ class DeployManager {
                 botSocket.ev.on('creds.update', saveCreds);
 
             } catch (error) {
-                logger.error({ deploymentId, error }, 'Bot initialization failed');
+                console.error(`❌ Error initializing ${deploymentId}:`, error.message);
                 resolve({ 
                     success: false, 
                     message: '❌ Bot initialization failed: ' + error.message 
@@ -290,9 +285,9 @@ class DeployManager {
                       `Use .connect list to manage deployments`
             });
             
-            logger.debug({ deploymentId }, 'Welcome message sent');
+            console.log(`✅ Welcome sent to ${deploymentId}`);
         } catch (error) {
-            logger.error({ deploymentId, error }, 'Error sending welcome message');
+            console.error(`Error sending welcome:`, error);
         }
     }
 
@@ -308,21 +303,18 @@ class DeployManager {
             }
             
             this.saveDeployments();
-            logger.debug({ deploymentId, userJid }, 'Cleaned up failed deployment');
         } catch (error) {
-            logger.error({ deploymentId, error }, 'Error cleaning up failed deployment');
+            console.error('Error cleaning up:', error);
         }
     }
 
     stopDeployment(deploymentId, userJid) {
         const deployment = this.deployedBots.get(deploymentId);
         if (!deployment) {
-            logger.warn({ deploymentId, userJid }, 'Deployment not found for stop');
             return { success: false, message: '❌ Deployment not found' };
         }
 
         if (deployment.userJid !== userJid) {
-            logger.warn({ deploymentId, userJid, actualOwner: deployment.userJid }, 'Unauthorized stop attempt');
             return { success: false, message: '❌ You are not the owner of this deployment' };
         }
 
@@ -343,16 +335,15 @@ class DeployManager {
                     fs.rmSync(deployment.sessionDir, { recursive: true, force: true });
                 }
             } catch (cleanupError) {
-                logger.error({ deploymentId, error: cleanupError }, 'Error cleaning session directory');
+                console.error('Error cleaning session dir:', cleanupError);
             }
             
             this.saveDeployments();
 
-            logger.info({ deploymentId, userJid }, 'Deployment stopped successfully');
             return { success: true, message: '✅ Bot deployment stopped successfully' };
 
         } catch (error) {
-            logger.error({ deploymentId, error }, 'Error stopping deployment');
+            console.error('Error stopping deployment:', error);
             return { success: false, message: '❌ Failed to stop deployment' };
         }
     }
