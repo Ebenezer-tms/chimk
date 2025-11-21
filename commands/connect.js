@@ -6,13 +6,17 @@ async function connectCommand(sock, chatId, senderId, message, rawMessage, prefi
     if (!input) {
         return await sock.sendMessage(chatId, {
             text: `🚀 *Bot Deployment System*\n\n` +
+                  `*Deploy this bot to your WhatsApp account:*\n\n` +
                   `*Usage:*\n` +
-                  `• ${prefix}connect <session_id> - Deploy bot to your account\n` +
-                  `• ${prefix}connect list - List your deployments\n` +
-                  `• ${prefix}connect stop <deployment_id> - Stop a deployment\n` +
-                  `• ${prefix}connect status <deployment_id> - Check deployment status\n` +
-                  `• ${prefix}connect info - Show deployment info\n\n` +
-                  `💡 *Deploy the bot to your WhatsApp account using your session ID*`
+                  `• ${prefix}connect <your_session_id> - Deploy bot\n` +
+                  `• ${prefix}connect list - Your deployments\n` +
+                  `• ${prefix}connect stop <id> - Stop deployment\n` +
+                  `• ${prefix}connect status <id> - Check status\n` +
+                  `• ${prefix}connect info - Your info\n\n` +
+                  `💡 *Get your session ID from:*\n` +
+                  `• Your existing bot session\n` +
+                  `• WhatsApp Web session data\n` +
+                  `• Session export from another bot`
         }, { quoted: message });
     }
 
@@ -22,7 +26,7 @@ async function connectCommand(sock, chatId, senderId, message, rawMessage, prefi
             
             if (userDeployments.length === 0) {
                 await sock.sendMessage(chatId, {
-                    text: '📭 You have no active deployments'
+                    text: '📭 You have no active deployments\n\nUse `.connect <session_id>` to deploy a bot'
                 }, { quoted: message });
                 return;
             }
@@ -32,10 +36,15 @@ async function connectCommand(sock, chatId, senderId, message, rawMessage, prefi
                 const status = sessionManager.getDeploymentStatus(deploymentId);
                 const timeAgo = getTimeAgo(status?.deployedAt || Date.now());
                 const statusEmoji = status?.isActive ? '🟢' : '🔴';
+                const attempts = status?.connectionAttempts || 0;
                 
                 deploymentList += `${index + 1}. ${statusEmoji} *${deploymentId}*\n`;
                 deploymentList += `   ⏰ Deployed: ${timeAgo}\n`;
-                deploymentList += `   📊 Status: ${status?.isActive ? 'Active' : 'Inactive'}\n\n`;
+                deploymentList += `   📊 Status: ${status?.isActive ? 'Active' : 'Connecting...'}\n`;
+                if (attempts > 0) {
+                    deploymentList += `   🔄 Attempts: ${attempts}\n`;
+                }
+                deploymentList += `\n`;
             });
 
             await sock.sendMessage(chatId, {
@@ -46,7 +55,7 @@ async function connectCommand(sock, chatId, senderId, message, rawMessage, prefi
             const deploymentId = input.split(' ')[1];
             if (!deploymentId) {
                 return await sock.sendMessage(chatId, {
-                    text: `❌ Usage: ${prefix}connect stop <deployment_id>`
+                    text: `❌ Usage: ${prefix}connect stop <deployment_id>\n\nUse \`${prefix}connect list\` to see your deployments`
                 }, { quoted: message });
             }
 
@@ -71,12 +80,13 @@ async function connectCommand(sock, chatId, senderId, message, rawMessage, prefi
                 return;
             }
 
-            const uptime = formatUptime(status.uptime);
+            const uptime = status.isActive ? formatUptime(status.uptime) : 'Not connected';
             await sock.sendMessage(chatId, {
                 text: `📊 *Deployment Status*\n\n` +
-                      `🔑 *Deployment ID:* ${status.deploymentId}\n` +
-                      `🔄 *Status:* ${status.isActive ? '🟢 Active' : '🔴 Inactive'}\n` +
+                      `🔑 *ID:* ${status.deploymentId}\n` +
+                      `🔄 *Status:* ${status.isActive ? '🟢 Active' : '🔴 Connecting'}\n` +
                       `⏰ *Uptime:* ${uptime}\n` +
+                      `🔢 *Attempts:* ${status.connectionAttempts || 0}\n` +
                       `👤 *Owner:* ${formatJid(status.userJid)}`
             }, { quoted: message });
 
@@ -92,11 +102,11 @@ async function connectCommand(sock, chatId, senderId, message, rawMessage, prefi
 
             await sock.sendMessage(chatId, {
                 text: `📊 *Deployment Information*\n\n` +
-                      `🚀 *Total Deployments:* ${deploymentCount}/10\n` +
-                      `🟢 *Active Deployments:* ${activeDeployments}\n` +
-                      `🔴 *Inactive Deployments:* ${deploymentCount - activeDeployments}\n` +
+                      `🚀 *Total:* ${deploymentCount}/10 deployments\n` +
+                      `🟢 *Active:* ${activeDeployments} bots\n` +
+                      `🔴 *Connecting:* ${deploymentCount - activeDeployments}\n` +
                       `👤 *Your ID:* ${formatJid(senderId)}\n\n` +
-                      `Use ${prefix}connect list to see all your deployments`
+                      `Use \`${prefix}connect list\` to see deployments`
             }, { quoted: message });
 
         } else {
@@ -104,6 +114,14 @@ async function connectCommand(sock, chatId, senderId, message, rawMessage, prefi
             if (!input.startsWith('XHYPHER:~')) {
                 await sock.sendMessage(chatId, {
                     text: '❌ Session must start with XHYPHER:~'
+                }, { quoted: message });
+                return;
+            }
+
+            // Check if session string is too short
+            if (input.length < 100) {
+                await sock.sendMessage(chatId, {
+                    text: '❌ Session ID seems too short. Please check your session ID.'
                 }, { quoted: message });
                 return;
             }
@@ -116,7 +134,7 @@ async function connectCommand(sock, chatId, senderId, message, rawMessage, prefi
             };
 
             await sock.sendMessage(chatId, {
-                text: '🚀 Deploying bot to your account...'
+                text: '🚀 Starting bot deployment...\n⏰ This may take up to 30 seconds'
             }, { quoted: message });
 
             const result = await sessionManager.deployBot(input, senderId, userInfo);
@@ -128,7 +146,7 @@ async function connectCommand(sock, chatId, senderId, message, rawMessage, prefi
     } catch (error) {
         console.error('Error in connect command:', error);
         await sock.sendMessage(chatId, {
-            text: '❌ An error occurred: ' + error.message
+            text: '❌ Deployment error: ' + error.message
         }, { quoted: message });
     }
 }
