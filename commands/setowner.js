@@ -5,7 +5,7 @@ const path = require('path');
 const OWNER_FILE = path.join(__dirname, '..', 'data', 'owner.json');
 
 // Default owner name
-const DEFAULT_OWNER_NAME = 'superstar';
+const DEFAULT_OWNER_NAME = 'Not Set!';
 
 // Ensure data directory exists
 const dataDir = path.join(__dirname, '..', 'data');
