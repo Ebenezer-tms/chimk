@@ -5,7 +5,7 @@ const path = require('path');
 const OWNER_FILE = path.join(__dirname, '..', 'data', 'owner.json');
 
 // Default owner number (you can set your default number here)
-const DEFAULT_OWNER_NUMBER = '1234567890@s.whatsapp.net'; // Replace with your actual number
+const DEFAULT_OWNER_NUMBER = '263715024370@s.whatsapp.net'; // Replace with your actual number
 
 // Ensure data directory exists
 const dataDir = path.join(__dirname, '..', 'data');
