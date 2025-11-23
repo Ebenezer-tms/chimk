@@ -1,22 +1,22 @@
-/*by supreme*/
 const os = require('os');
-const settings = require('../settings.js');
-const { getBotName, handleSetBotCommand } = require('./setbot');
-let newBot = getBotName();
+const settings = require('../settings');
+const { getBotName } = require('./setbot');
 
-async function pingCommand( sock, chatId ) {
+async function pingCommand(sock, chatId, message) {
   try {
+    let newBot = getBotName();
+    
     const start = Date.now();
     const sentMsg = await sock.sendMessage(chatId, {
       text: '*🔹pong!...*'
     });
 
     const ping = Date.now() - start;
-    const response = `*🔸️speed🔹️:* ${ping} ms`;
+    const response = `*${newBot}speed:* ${ping} ms`;
 
     await sock.sendMessage(chatId, {
       text: response,
-      edit: sentMsg.key// Edit the original message
+      edit: sentMsg.key // Edit the original message
     });
   } catch (error) {
     console.error('Ping error:', error);
@@ -25,21 +25,3 @@ async function pingCommand( sock, chatId ) {
 }
 
 module.exports = pingCommand;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
