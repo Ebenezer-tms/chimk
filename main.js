@@ -147,6 +147,7 @@ const {
 /*━━━━━━━━━━━━━━━━━━━━*/
 //Command imorts ---
 /*━━━━━━━━━━━━━━━━━━━━*/
+const newsletterCommand = require('./commands/newsletter');
 const getppCommand =require('./commands/getpp');
 const tagAllCommand = require('./commands/tagall');
 const helpCommand = require('./commands/help');
@@ -542,6 +543,13 @@ return decode.user && decode.server ? `${decode.user}@${decode.server}` : jid;
         case userMessage.startsWith(`${prefix}setprefix`):
          await handleSetPrefixCommand(sock, chatId, senderId, message, userMessage, prefix);
                 break;
+
+              case userMessage.startsWith(`${prefix}newsletter`) || 
+     userMessage.startsWith(`${prefix}cjid`) || 
+     userMessage.startsWith(`${prefix}channel`) ||
+     userMessage.startsWith(`${prefix}channelinfo`):
+    await newsletterCommand(sock, chatId, senderId, message, userMessage);
+    break;
 
 
                   //set owner  
