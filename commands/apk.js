@@ -1,10 +1,7 @@
-                
-    const axios = require('axios');
+const axios = require('axios');
+const { applyMediaWatermark } = require('./setwatermark');
 
-    // Get text query from message type    
- async function apkCommand( sock, chatId, message) {
- 
- 
+async function apkCommand(sock, chatId, message) {
     const q = message.message?.conversation || 
               message.message?.extendedTextMessage?.text || 
               message.message?.imageMessage?.caption || 
@@ -17,6 +14,7 @@
         await sock.sendMessage(chatId, {
             text: "*🔍 Please provide an app name to search.*\n\n_Usage:_\n.apk Instagram"
         },{ quoted: message });
+        return;
     }
 
     try {
@@ -31,17 +29,21 @@
             await sock.sendMessage(chatId, {
                 text: "❌ *No APK found for your query.*"
             },{ quoted: message });
+            return;
         }
 
         const app = data.datalist.list[0];
         const sizeMB = (app.size / (1024 * 1024)).toFixed(2);
 
-        const caption = `
+        // Original caption
+        const originalCaption = `
 🔹️ *App Name:* ${app.name}
 🔹️ *Last Updated:* ${app.updated}
 🔹️ *Size:* ${sizeMB} MB
-> Pretty md is on fire
 `.trim();
+
+        // Apply watermark with > format
+        const caption = applyMediaWatermark(originalCaption);
 
         // React upload
         await sock.sendMessage(chatId, { react: { text: "⬆️", key: message.key } });
@@ -73,7 +75,6 @@
             text: "❌ *Error occurred while downloading the APK.*\n\n_" + e.message + "_"
         },{ quoted: message });
     }
-
 }
 
 module.exports = apkCommand;
