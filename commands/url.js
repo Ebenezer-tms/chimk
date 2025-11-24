@@ -1,7 +1,8 @@
 const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
 const fs = require('fs');
 const path = require('path');
-const { UploadFileUgu, TelegraPh } = require('../lib/uploader');
+const fetch = require('node-fetch');
+const FormData = require('form-data');
 const { applyMediaWatermark } = require('./setwatermark');
 
 async function getMediaBufferAndExt(message) {
@@ -22,7 +23,6 @@ async function getMediaBufferAndExt(message) {
         const stream = await downloadContentFromMessage(m.audioMessage, 'audio');
         const chunks = [];
         for await (const chunk of stream) chunks.push(chunk);
-        // default mp3 for voice/ptt may be opus; still use .mp3 generically
         return { buffer: Buffer.concat(chunks), ext: '.mp3' };
     }
     if (m.documentMessage) {
@@ -48,6 +48,37 @@ async function getQuotedMediaBufferAndExt(message) {
     return getMediaBufferAndExt({ message: quoted });
 }
 
+// Upload to Catbox.moe
+async function uploadToCatbox(buffer, ext) {
+    try {
+        const formData = new FormData();
+        formData.append('reqtype', 'fileupload');
+        formData.append('fileToUpload', buffer, `file${ext}`);
+
+        const response = await fetch('https://catbox.moe/user/api.php', {
+            method: 'POST',
+            body: formData,
+            timeout: 30000
+        });
+
+        if (!response.ok) {
+            throw new Error(`Upload failed with status ${response.status}`);
+        }
+
+        const url = await response.text();
+        
+        // Validate URL
+        if (!url || !url.startsWith('http')) {
+            throw new Error('Invalid response from Catbox');
+        }
+
+        return url;
+    } catch (error) {
+        console.error('Catbox upload error:', error);
+        throw new Error(`Catbox upload failed: ${error.message}`);
+    }
+}
+
 async function urlCommand(sock, chatId, message) {
     try {
         // Prefer current message media, else quoted media
@@ -61,49 +92,43 @@ async function urlCommand(sock, chatId, message) {
             return;
         }
 
-        const tempDir = path.join(__dirname, '../temp');
-        if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
-        const tempPath = path.join(tempDir, `${Date.now()}${media.ext}`);
-        fs.writeFileSync(tempPath, media.buffer);
+        await sock.sendMessage(chatId, { 
+            text: applyMediaWatermark('⏳ Uploading to Catbox.moe...')
+        }, { quoted: message });
 
         let url = '';
         try {
-            if (media.ext === '.jpg' || media.ext === '.png' || media.ext === '.webp') {
-                // Try TelegraPh for images/webp first (fast, simple)
-                try {
-                    url = await TelegraPh(tempPath);
-                } catch {
-                    // Fallback to Uguu for any file type
-                    const res = await UploadFileUgu(tempPath);
-                    url = typeof res === 'string' ? res : (res.url || res.url_full || JSON.stringify(res));
-                }
-            } else {
-                const res = await UploadFileUgu(tempPath);
-                url = typeof res === 'string' ? res : (res.url || res.url_full || JSON.stringify(res));
+            // Upload to Catbox.moe
+            url = await uploadToCatbox(media.buffer, media.ext);
+            
+            if (!url) {
+                throw new Error('No URL received from Catbox');
             }
-        } finally {
-            setTimeout(() => {
-                try { if (fs.existsSync(tempPath)) fs.unlinkSync(tempPath); } catch {}
-            }, 2000);
-        }
 
-        if (!url) {
+        } catch (uploadError) {
+            console.error('Upload error:', uploadError);
             await sock.sendMessage(chatId, { 
-                text: applyMediaWatermark('Failed to upload media.')
+                text: applyMediaWatermark('❌ Failed to upload media to Catbox.moe. Please try again.')
             }, { quoted: message });
             return;
         }
 
         // Apply watermark to the success message
-        const successMessage = applyMediaWatermark(`Your URL: ${url}`);
+        const successMessage = applyMediaWatermark(`✅ *Upload Successful!*\n\n🔗 *URL:* ${url}\n\n📁 *Host:* Catbox.moe`);
         
         await sock.sendMessage(chatId, { 
             text: successMessage
         }, { quoted: message });
+
+        // Also send a quick copy version
+        await sock.sendMessage(chatId, { 
+            text: applyMediaWatermark(`📋 *Quick Copy:*\n\`\`\`${url}\`\`\``)
+        });
+
     } catch (error) {
         console.error('[URL] error:', error?.message || error);
         await sock.sendMessage(chatId, { 
-            text: applyMediaWatermark('Failed to convert media to URL.')
+            text: applyMediaWatermark('❌ Failed to convert media to URL. Please try again with a different file.')
         }, { quoted: message });
     }
 }
