@@ -49,6 +49,8 @@ const {
   handleSetBotCommand 
 } = require('./commands/setbot');
 
+const { setWatermarkCommand, applyWatermark, applyMediaWatermark } = require('./commands/setwatermark');
+
 // Add this with your other owner-related imports
 const {
   getOwnerNumber,
@@ -550,7 +552,11 @@ return decode.user && decode.server ? `${decode.user}@${decode.server}` : jid;
      userMessage.startsWith(`${prefix}channelinfo`):
     await newsletterCommand(sock, chatId, senderId, message, userMessage);
     break;
+              //watermark import
 
+           case userMessage.startsWith(`${prefix}setwatermark`):
+    await setWatermarkCommand(sock, chatId, senderId, message, userMessage);
+    break;
 
                   //set owner  
               
