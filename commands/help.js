@@ -1,16 +1,13 @@
-
-// help.js - Enhanced version with integrated functions
 const settings = require('../settings');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
 const { getMenuStyle, getMenuSettings, MENU_STYLES } = require('./menuSettings');
 const { generateWAMessageFromContent } = require('@whiskeysockets/baileys');
-const { getPrefix, handleSetPrefixCommand } = require('./setprefix');
-
-const { getOwnerName, handleSetOwnerCommand } = require('./setowner');
-
-const { getBotName, handleSetBotCommand } = require('./setbot')
+const { getPrefix } = require('./setprefix');
+const { getOwnerName } = require('./setowner');
+const { getBotName } = require('./setbot');
+const { applyWatermark } = require('./setwatermark');
 
 const more = String.fromCharCode(8206);
 const readmore = more.repeat(4001);
@@ -77,7 +74,7 @@ const generateMenu = (pushname, currentMode, hostName, ping, uptimeFormatted, pr
     let newBot = getBotName();
     const menuSettings = getMenuSettings();
     
-    let menu = `┏❐  *◈ ${newBot} ◈* \n`;
+    let menu = `┏❐  *❴《 ${newBot} 》❵* ❐\n`;
     menu += `├◆ *Owner:* ${newOwner}\n`;
     menu += `├◆ *Mode:* ${currentMode}\n`;
     menu += `├◆ *Host:* ${hostName}\n`;
@@ -114,7 +111,7 @@ const generateMenu = (pushname, currentMode, hostName, ping, uptimeFormatted, pr
 
     // Setting Menu
     menu += `┏❐ 《 *SETTING MENU* 》 ❐\n`;
-    menu += `┃├◆ .mode\n┃├◆ .autostatus\n┃├◆ .pmblock\n┃├◆ .setmention\n┃├◆ .autoread\n┃├◆ .clearsession\n┃├◆ .antidelete\n┃├◆ .cleartmp\n┃├◆ .autoreact\n┃├◆ .getpp\n┃├◆ .setpp\n┃├◆ .sudo\n┃├◆ .autotyping\n┃├◆ .setmenu\n┃├◆ .setprefix\n┃├◆ .setownername\n┃├◆ .setbotname\n┃├◆ .setvar\n┃├◆ .setmenuimage\n┃├◆ .setownernumber`;
+    menu += `┃├◆ .mode\n┃├◆ .autostatus\n┃├◆ .pmblock\n┃├◆ .setmention\n┃├◆ .autoread\n┃├◆ .clearsession\n┃├◆ .antidelete\n┃├◆ .cleartmp\n┃├◆ .autoreact\n┃├◆ .getpp\n┃├◆ .setpp\n┃├◆ .sudo\n┃├◆ .autotyping\n┃├◆ .setmenu\n┃├◆ .setprefix\n┃├◆ .setownername\n┃├◆ .setbotname\n┃├◆ .setvar\n┃├◆ .setwatermark\n┃├◆ .setownernumber\n`;
     menu += `┗❐\n${readmore}\n`;
 
     // Main Menu
@@ -161,6 +158,7 @@ const generateMenu = (pushname, currentMode, hostName, ping, uptimeFormatted, pr
     menu += `┏❐ 《 *GUIDE MENU* 》 ❐\n`;
     menu += `┃├◆ .tutorial\n`
     menu += `┗❐`
+    
     return menu;
 };
 
@@ -188,11 +186,11 @@ function createFakeContact(message) {
             participants: "0@s.whatsapp.net",
             remoteJid: "status@broadcast",
             fromMe: false,
-            id: "whatsapp"
+            id: "Smart project"
         },
         message: {
             contactMessage: {
-                vcard: `BEGIN:VCARD\nVERSION:3.0\nN:Sy;Bot;;;\nFN:whatsapp\nitem1.TEL;waid=${message.key.participant?.split('@')[0] || message.key.remoteJid.split('@')[0]}:${message.key.participant?.split('@')[0] || message.key.remoteJid.split('@')[0]}\nitem1.X-ABLabel:Ponsel\nEND:VCARD`
+                vcard: `BEGIN:VCARD\nVERSION:3.0\nN:Sy;Bot;;;\nFN: whatsapp bot\nitem1.TEL;waid=${message.key.participant?.split('@')[0] || message.key.remoteJid.split('@')[0]}:${message.key.participant?.split('@')[0] || message.key.remoteJid.split('@')[0]}\nitem1.X-ABLabel:Ponsel\nEND:VCARD`
             }
         },
         participant: "0@s.whatsapp.net"
@@ -202,9 +200,9 @@ function createFakeContact(message) {
 // YOUR EXACT MENU STYLE FUNCTION WITH FIXED tylorkids AND fkontak FOR ALL STYLES
 async function sendMenuWithStyle(sock, chatId, message, menulist, menustyle, thumbnailBuffer, pushname) {
     const fkontak = createFakeContact(message);
-    const botname = "whatsapp bot";
-    const ownername = pushname;
-    const tylorkids = thumbnailBuffer; // Fixed: using thumbnails from assets
+    const botname = getBotName();
+    const ownername = getOwnerName();
+    const tylorkids = thumbnailBuffer;
     const plink = "https://www.instagram.com/superstar_official10?igsh=NGlxeWVqajg2bGw3";
 
     if (menustyle === '4') {
@@ -324,7 +322,9 @@ async function helpCommand(sock, chatId, message) {
     const currentMode = data.isPublic ? 'public' : 'private';    
     const hostName = detectHost();
     
-    const menulist = generateMenu(pushname, currentMode, hostName, ping, uptimeFormatted);
+    // Generate menu and apply watermark
+    let menulist = generateMenu(pushname, currentMode, hostName, ping, uptimeFormatted);
+    menulist = applyWatermark(menulist);
 
     // Random thumbnail selection from local files
     const thumbnailFiles = [
