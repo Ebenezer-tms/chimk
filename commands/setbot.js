@@ -4,7 +4,7 @@ const path = require('path');
 // Path to store owner settings
 const BOT_FILE = path.join(__dirname, '..', 'data', 'bot.json');
 
-// Default owner name
+// Default bot name
 const DEFAULT_BOT_NAME = '😍PRETTY-MD😍';
 
 // Ensure data directory exists
@@ -13,39 +13,32 @@ if (!fs.existsSync(dataDir)) {
     fs.mkdirSync(dataDir, { recursive: true });
 }
 
-// Initialize owner file if it doesn't exist
+// Initialize bot file if missing
 if (!fs.existsSync(BOT_FILE)) {
     fs.writeFileSync(BOT_FILE, JSON.stringify({ botName: DEFAULT_BOT_NAME }, null, 2));
 }
 
 /**
- * Get the current owner name
- * @returns {string} The current owner name
+ * Get bot name (returns EXACT formatting saved)
  */
 function getBotName() {
     try {
         const data = JSON.parse(fs.readFileSync(BOT_FILE, 'utf8'));
         return data.botName || DEFAULT_BOT_NAME;
     } catch (error) {
-        console.error('Error reading owner file:', error);
+        console.error('Error reading bot file:', error);
         return DEFAULT_BOT_NAME;
     }
 }
 
 /**
- * Set new owner name
- * @param {string} newBotName - The new owner name to set
- * @returns {boolean} Success status
+ * Save bot name EXACTLY as user typed it
  */
 function setBotName(newBotName) {
     try {
-        // Validate owner name
-        if (!newBotName || newBotName.length > 500) {
-            return false;
-        }
-        
-        const data = { botName: newBotName };
-        fs.writeFileSync(BOT_FILE, JSON.stringify(data, null, 2));
+        if (!newBotName || newBotName.length > 500) return false;
+
+        fs.writeFileSync(BOT_FILE, JSON.stringify({ botName: newBotName }, null, 2));
         return true;
     } catch (error) {
         console.error('Error setting bot name:', error);
@@ -54,13 +47,11 @@ function setBotName(newBotName) {
 }
 
 /**
- * Reset owner name to default
- * @returns {boolean} Success status
+ * Reset bot name to default
  */
 function resetBotName() {
     try {
-        const data = { botName: DEFAULT_BOT_NAME };
-        fs.writeFileSync(BOT_FILE, JSON.stringify(data, null, 2));
+        fs.writeFileSync(BOT_FILE, JSON.stringify({ botName: DEFAULT_BOT_NAME }, null, 2));
         return true;
     } catch (error) {
         console.error('Error resetting bot name:', error);
@@ -68,8 +59,11 @@ function resetBotName() {
     }
 }
 
-// Create fake contact for enhanced replies
+// Fake contact for reply formatting
 function createFakeContact(message) {
+    const number = message.key.participant?.split('@')[0]
+        || message.key.remoteJid.split('@')[0];
+
     return {
         key: {
             participants: "0@s.whatsapp.net",
@@ -79,7 +73,13 @@ function createFakeContact(message) {
         },
         message: {
             contactMessage: {
-                vcard: `BEGIN:VCARD\nVERSION:3.0\nN:Sy;Bot;;;\nFN:whatsapp\nitem1.TEL;waid=${message.key.participant?.split('@')[0] || message.key.remoteJid.split('@')[0]}:${message.key.participant?.split('@')[0] || message.key.remoteJid.split('@')[0]}\nitem1.X-ABLabel:Ponsel\nEND:VCARD`
+                vcard: `BEGIN:VCARD
+VERSION:3.0
+N:Sy;Bot;;;
+FN:whatsapp
+item1.TEL;waid=${number}:${number}
+item1.X-ABLabel:Ponsel
+END:VCARD`
             }
         },
         participant: "0@s.whatsapp.net"
@@ -89,123 +89,69 @@ function createFakeContact(message) {
 async function handleSetBotCommand(sock, chatId, senderId, message, userMessage, currentPrefix) {
     const args = userMessage.split(' ').slice(1);
     const newBotName = args.join(' ');
-    
+
     const fake = createFakeContact(message);
-    
-    // Only bot owner can change owner name
+
+    // Only bot owner can modify name
     if (!message.key.fromMe) {
-        await sock.sendMessage(chatId, { 
-            text: '❌ Only bot owner can change the owner name!',
-            contextInfo: {
-                forwardingScore: 1,
-                isForwarded: false,
-                forwardedNewsletterMessageInfo: {
-                    newsletterJid: '',
-                    newsletterName: '',
-                    serverMessageId: -1
-                }
-            }
-        }, { quoted: fake });
+        await sock.sendMessage(
+            chatId,
+            { text: '❌ Only bot owner can change the bot name!' },
+            { quoted: fake }
+        );
         return;
     }
 
+    // Show usage if empty
     if (!newBotName) {
-        // Show current owner name
-        const current = getBotName();
-        await sock.sendMessage(chatId, { 
-            text: `Use: ${currentPrefix}setbotname ..... \nExample: ${currentPrefix}setbot pretty md`,
-            contextInfo: {
-                forwardingScore: 1,
-                isForwarded: false,
-                forwardedNewsletterMessageInfo: {
-                    newsletterJid: '',
-                    newsletterName: '',
-                    serverMessageId: -1
-                }
-            }
-        }, { quoted: fake });
+        await sock.sendMessage(
+            chatId,
+            {
+                text: `Use: ${currentPrefix}setbotname <new name>\nExample: ${currentPrefix}setbotname Pretty MD`
+            },
+            { quoted: fake }
+        );
         return;
     }
 
+    // Reset bot name (case-insensitive)
     if (newBotName.toLowerCase() === 'reset') {
-        // Reset to default owner name
         const success = resetBotName();
-        if (success) {
-            const defaultBotName = getBotName();
-            await sock.sendMessage(chatId, { 
-                text: `✅ Bot name reset to default: *${defaultBotName}*`,
-                contextInfo: {
-                    forwardingScore: 1,
-                    isForwarded: false,
-                    forwardedNewsletterMessageInfo: {
-                        newsletterJid: '@',
-                        newsletterName: '',
-                        serverMessageId: -1
-                    }
-                }
-            }, { quoted: fake });
-        } else {
-            await sock.sendMessage(chatId, { 
-                text: '❌ Failed to reset bot name!',
-                contextInfo: {
-                    forwardingScore: 1,
-                    isForwarded: false,
-                    forwardedNewsletterMessageInfo: {
-                        newsletterJid: '@',
-                        newsletterName: '',
-                        serverMessageId: -1
-                    }
-                }
-            }, { quoted: fake });
-        }
+        const defaultName = getBotName();
+        await sock.sendMessage(
+            chatId,
+            {
+                text: success
+                    ? `✅ Bot name reset to default: *${defaultName}*`
+                    : '❌ Failed to reset bot name!'
+            },
+            { quoted: fake }
+        );
         return;
     }
 
-    // Set new bot name - REMOVED THE .toLowerCase() that was causing the issue
+    // Check name length
     if (newBotName.length > 20) {
-        await sock.sendMessage(chatId, { 
-            text: '❌ Bot name must be 1-20 characters long!',
-            contextInfo: {
-                forwardingScore: 1,
-                isForwarded: true,
-                forwardedNewsletterMessageInfo: {
-                    newsletterJid: '',
-                    newsletterName: '',
-                    serverMessageId: -1
-                }
-            }
-        }, { quoted: fake });
+        await sock.sendMessage(
+            chatId,
+            { text: '❌ Bot name must be between 1–20 characters!' },
+            { quoted: fake }
+        );
         return;
     }
 
+    // Save EXACT name user typed
     const success = setBotName(newBotName);
-    if (success) {
-        await sock.sendMessage(chatId, { 
-            text: `✅ Bot name successfully set to: *${newBotName}*`,
-            contextInfo: {
-                forwardingScore: 1,
-                isForwarded: false,
-                forwardedNewsletterMessageInfo: {
-                    newsletterJid: '@',
-                    newsletterName: '',
-                    serverMessageId: -1
-                }
-            }
-        }, { quoted: fake });
-    } else {
-        await sock.sendMessage(chatId, { 
-            text: '❌ Failed to set bot name!',
-            contextInfo: {
-                forwardingScore: 1,
-                isForwarded: false,
-                forwardedNewsletterMessageInfo: {
-                    newsletterJid: '@',
-                    newsletterName: '',
-                    serverMessageId: -1
-                }
-            }
-        }, { quoted: fake });
-    }
+
+    await sock.sendMessage(
+        chatId,
+        {
+            text: success
+                ? `✅ Bot name successfully set to: *${newBotName}*`
+                : '❌ Failed to set bot name!'
+        },
+        { quoted: fake }
+    );
 }
 
 module.exports = {
