@@ -12,7 +12,9 @@ async function pingCommand(sock, chatId, message) {
     });
 
     const ping = Date.now() - start;
-    const response = `*${newBot} speed:* ${ping} ms`;
+    // Format ping to 4 decimal places
+    const formattedPing = ping.toFixed(3);
+    const response = `*${newBot} speed: ${formattedPing} ms*`;
 
     await sock.sendMessage(chatId, {
       text: response,
