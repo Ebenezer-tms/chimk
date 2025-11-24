@@ -87,13 +87,13 @@ async function urlCommand(sock, chatId, message) {
 
         if (!media) {
             await sock.sendMessage(chatId, { 
-                text: applyMediaWatermark('Send or reply to a media (image, video, audio, sticker, document) to get a URL.')
+                text: 'Send or reply to a media (image, video, audio, sticker, document) to get a URL.'
             }, { quoted: message });
             return;
         }
 
         await sock.sendMessage(chatId, { 
-            text: applyMediaWatermark('')
+            text: ''
         }, { quoted: message });
 
         let url = '';
@@ -108,27 +108,22 @@ async function urlCommand(sock, chatId, message) {
         } catch (uploadError) {
             console.error('Upload error:', uploadError);
             await sock.sendMessage(chatId, { 
-                text: applyMediaWatermark('❌ Failed to upload media to Catbox.moe. Please try again.')
+                text: '❌ Failed to upload media to Catbox.moe. Please try again.'
             }, { quoted: message });
             return;
         }
 
-        // Apply watermark to the success message
+        // Apply watermark ONLY to the URL result
         const successMessage = applyMediaWatermark(`*URL:* ${url}`);
         
         await sock.sendMessage(chatId, { 
             text: successMessage
         }, { quoted: message });
 
-        // Also send a quick copy version
-        await sock.sendMessage(chatId, { 
-            text: applyMediaWatermark(``)
-        });
-
     } catch (error) {
         console.error('[URL] error:', error?.message || error);
         await sock.sendMessage(chatId, { 
-            text: applyMediaWatermark('❌ Failed to convert media to URL. Please try again with a different file.')
+            text: '❌ Failed to convert media to URL. Please try again with a different file.'
         }, { quoted: message });
     }
 }
