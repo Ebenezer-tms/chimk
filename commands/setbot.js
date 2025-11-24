@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-// Path to store owner settings
+// Path to store bot settings
 const BOT_FILE = path.join(__dirname, '..', 'data', 'bot.json');
 
 // Default bot name
@@ -19,7 +19,7 @@ if (!fs.existsSync(BOT_FILE)) {
 }
 
 /**
- * Get bot name (returns EXACT formatting saved)
+ * Get bot name EXACTLY as saved
  */
 function getBotName() {
     try {
@@ -32,16 +32,17 @@ function getBotName() {
 }
 
 /**
- * Save bot name EXACTLY as user typed it
+ * Store bot name EXACTLY as the user typed
  */
 function setBotName(newBotName) {
     try {
-        if (!newBotName || newBotName.length > 500) return false;
+        if (!newBotName || newBotName.length > 20) return false;
 
         fs.writeFileSync(BOT_FILE, JSON.stringify({ botName: newBotName }, null, 2));
         return true;
+
     } catch (error) {
-        console.error('Error setting bot name:', error);
+        console.error('Error saving bot name:', error);
         return false;
     }
 }
@@ -59,7 +60,22 @@ function resetBotName() {
     }
 }
 
-// Fake contact for reply formatting
+/**
+ * Extract the RAW user message without lowercase
+ */
+function extractRawText(message) {
+    try {
+        if (message.message?.conversation) return message.message.conversation;
+        if (message.message?.extendedTextMessage?.text) return message.message.extendedTextMessage.text;
+        if (message.message?.imageMessage?.caption) return message.message.imageMessage.caption;
+        if (message.message?.videoMessage?.caption) return message.message.videoMessage.caption;
+        return "";
+    } catch {
+        return "";
+    }
+}
+
+// Create a fake contact for WhatsApp quoting
 function createFakeContact(message) {
     const number = message.key.participant?.split('@')[0]
         || message.key.remoteJid.split('@')[0];
@@ -86,72 +102,61 @@ END:VCARD`
     };
 }
 
-async function handleSetBotCommand(sock, chatId, senderId, message, userMessage, currentPrefix) {
-    const args = userMessage.split(' ').slice(1);
-    const newBotName = args.join(' ');
+/**
+ * Handle the setbotname command
+ */
+async function handleSetBotCommand(sock, chatId, senderId, message, userMessage, prefix) {
+
+    // 🔥 RAW MESSAGE (uppercase preserved even if handler lowercased)
+    const RAW = extractRawText(message);
+
+    // real arguments
+    const args = RAW.split(" ").slice(1);
+    const newBotName = args.join(" ");
 
     const fake = createFakeContact(message);
 
-    // Only bot owner can modify name
+    // Only bot owner
     if (!message.key.fromMe) {
-        await sock.sendMessage(
-            chatId,
-            { text: '❌ Only bot owner can change the bot name!' },
-            { quoted: fake }
-        );
+        await sock.sendMessage(chatId, {
+            text: "❌ Only bot owner can change the bot name!"
+        }, { quoted: fake });
         return;
     }
 
-    // Show usage if empty
+    // No new name
     if (!newBotName) {
-        await sock.sendMessage(
-            chatId,
-            {
-                text: `Use: ${currentPrefix}setbotname <new name>\nExample: ${currentPrefix}setbotname Pretty MD`
-            },
-            { quoted: fake }
-        );
+        await sock.sendMessage(chatId, {
+            text: `Use: ${prefix}setbotname <name>\nExample: ${prefix}setbotname Pretty MD`
+        }, { quoted: fake });
         return;
     }
 
-    // Reset bot name (case-insensitive)
-    if (newBotName.toLowerCase() === 'reset') {
-        const success = resetBotName();
-        const defaultName = getBotName();
-        await sock.sendMessage(
-            chatId,
-            {
-                text: success
-                    ? `✅ Bot name reset to default: *${defaultName}*`
-                    : '❌ Failed to reset bot name!'
-            },
-            { quoted: fake }
-        );
+    // Reset (case-insensitive)
+    if (newBotName.toLowerCase() === "reset") {
+        resetBotName();
+        await sock.sendMessage(chatId, {
+            text: `🔄 Bot name reset to default: *${DEFAULT_BOT_NAME}*`
+        }, { quoted: fake });
         return;
     }
 
-    // Check name length
+    // Name too long
     if (newBotName.length > 20) {
-        await sock.sendMessage(
-            chatId,
-            { text: '❌ Bot name must be between 1–20 characters!' },
-            { quoted: fake }
-        );
+        await sock.sendMessage(chatId, {
+            text: "❌ Bot name must be 1–20 characters!"
+        }, { quoted: fake });
         return;
     }
 
-    // Save EXACT name user typed
-    const success = setBotName(newBotName);
+    // SAVE EXACT formatting
+    const ok = setBotName(newBotName);
 
-    await sock.sendMessage(
-        chatId,
-        {
-            text: success
-                ? `✅ Bot name successfully set to: *${newBotName}*`
-                : '❌ Failed to set bot name!'
-        },
-        { quoted: fake }
-    );
+    await sock.sendMessage(chatId, {
+        text: ok
+            ? `✅ Bot name updated to: *${newBotName}*`
+            : "❌ Failed to set bot name!"
+    }, { quoted: fake });
 }
 
 module.exports = {
