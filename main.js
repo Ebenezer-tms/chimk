@@ -49,8 +49,6 @@ const {
   handleSetBotCommand 
 } = require('./commands/setbot');
 
-const { setWatermarkCommand, applyWatermark, applyMediaWatermark } = require('./commands/setwatermark');
-
 // Add this with your other owner-related imports
 const {
   getOwnerNumber,
@@ -159,7 +157,7 @@ const { demoteCommand } = require('./commands/demote');
 const muteCommand = require('./commands/mute');
 const unmuteCommand = require('./commands/unmute');
 const stickerCommand = require('./commands/sticker');
-
+const setwatermarkCommand = require('./commands/setwatermark');
 /*━━━━━━━━━━━━━━━━━━━━*/
 const warnCommand = require('./commands/warn');
 const warningsCommand = require('./commands/warnings');
