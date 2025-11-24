@@ -143,6 +143,11 @@ const {
  miscCommand, 
  handleHeart 
  } = require('./commands/misc');
+const { 
+   setWatermarkCommand, 
+   applyWatermark, 
+   applyMediaWatermark 
+} = require('./commands/setwatermark');
  
 /*━━━━━━━━━━━━━━━━━━━━*/
 //Command imorts ---
@@ -157,7 +162,7 @@ const { demoteCommand } = require('./commands/demote');
 const muteCommand = require('./commands/mute');
 const unmuteCommand = require('./commands/unmute');
 const stickerCommand = require('./commands/sticker');
-const setwatermarkCommand = require('./commands/setwatermark');
+
 /*━━━━━━━━━━━━━━━━━━━━*/
 const warnCommand = require('./commands/warn');
 const warningsCommand = require('./commands/warnings');
