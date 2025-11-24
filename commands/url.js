@@ -2,6 +2,7 @@ const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
 const fs = require('fs');
 const path = require('path');
 const { UploadFileUgu, TelegraPh } = require('../lib/uploader');
+const { applyMediaWatermark } = require('./setwatermark');
 
 async function getMediaBufferAndExt(message) {
     const m = message.message || {};
@@ -54,7 +55,9 @@ async function urlCommand(sock, chatId, message) {
         if (!media) media = await getQuotedMediaBufferAndExt(message);
 
         if (!media) {
-            await sock.sendMessage(chatId, { text: 'Send or reply to a media (image, video, audio, sticker, document) to get a URL.' }, { quoted: message });
+            await sock.sendMessage(chatId, { 
+                text: applyMediaWatermark('Send or reply to a media (image, video, audio, sticker, document) to get a URL.')
+            }, { quoted: message });
             return;
         }
 
@@ -85,17 +88,24 @@ async function urlCommand(sock, chatId, message) {
         }
 
         if (!url) {
-            await sock.sendMessage(chatId, { text: 'Failed to upload media.' }, { quoted: message });
+            await sock.sendMessage(chatId, { 
+                text: applyMediaWatermark('Failed to upload media.')
+            }, { quoted: message });
             return;
         }
 
-        await sock.sendMessage(chatId, { text: `Your Url: ${url}\n\n> coverted by *Pretty Md*` }, { quoted: message });
+        // Apply watermark to the success message
+        const successMessage = applyMediaWatermark(`Your URL: ${url}`);
+        
+        await sock.sendMessage(chatId, { 
+            text: successMessage
+        }, { quoted: message });
     } catch (error) {
         console.error('[URL] error:', error?.message || error);
-        await sock.sendMessage(chatId, { text: 'Failed to convert media to URL.' }, { quoted: message });
+        await sock.sendMessage(chatId, { 
+            text: applyMediaWatermark('Failed to convert media to URL.')
+        }, { quoted: message });
     }
 }
 
 module.exports = urlCommand;
-
-
