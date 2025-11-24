@@ -93,7 +93,7 @@ async function urlCommand(sock, chatId, message) {
         }
 
         await sock.sendMessage(chatId, { 
-            text: applyMediaWatermark('⏳ Uploading to Catbox.moe...')
+            text: applyMediaWatermark('')
         }, { quoted: message });
 
         let url = '';
@@ -114,7 +114,7 @@ async function urlCommand(sock, chatId, message) {
         }
 
         // Apply watermark to the success message
-        const successMessage = applyMediaWatermark(`✅ *Upload Successful!*\n\n🔗 *URL:* ${url}\n\n📁 *Host:* Catbox.moe`);
+        const successMessage = applyMediaWatermark(`*URL:* ${url}`);
         
         await sock.sendMessage(chatId, { 
             text: successMessage
@@ -122,7 +122,7 @@ async function urlCommand(sock, chatId, message) {
 
         // Also send a quick copy version
         await sock.sendMessage(chatId, { 
-            text: applyMediaWatermark(`📋 *Quick Copy:*\n\`\`\`${url}\`\`\``)
+            text: applyMediaWatermark(``)
         });
 
     } catch (error) {
