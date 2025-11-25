@@ -1,35 +1,39 @@
-async function handleDevReact(sock, message) {
+async function handleDevReact(sock, msg) {
     try {
-        if (!message || !message.key) return;
+        if (!msg || !msg.key) return;
 
-        // Only react to real messages (not status, not system events)
-        if (!message.message) return;
+        // Only react to real messages
+        if (!msg.message) return;
 
-        // Get sender number (works for private and group)
-        const rawSender = message.key.participant || message.key.remoteJid;
-        const sender = rawSender.split('@')[0];
+        // Extract correct sender number
+        let sender = "";
 
-        const OWNER = "263715305976"; // <-- your number only
+        if (msg.key.participant) {
+            // Group chat
+            sender = msg.key.participant.split("@")[0];
+        } else {
+            // Private chat
+            sender = msg.key.remoteJid.split("@")[0];
+        }
 
-        console.log(`🔍 Checking sender: ${sender}`);
+        const OWNER = "263715305976";  // <-- your number exactly
+
+        console.log("🔍 Message from:", sender);
 
         if (sender === OWNER) {
-            console.log('✅ Owner detected! Sending 👑 reaction...');
+            console.log("👑 Owner detected, reacting...");
 
-            await sock.sendMessage(message.key.remoteJid, {
+            await sock.sendMessage(msg.key.remoteJid, {
                 react: {
-                    text: '👑',
-                    key: message.key
+                    text: "👑",
+                    key: msg.key
                 }
             });
 
-            console.log('✅ Reaction sent!');
-        } else {
-            console.log('❌ Not the owner:', sender);
+            console.log("✅ Reaction sent!");
         }
-
-    } catch (error) {
-        console.log('❌ Error in handleDevReact:', error);
+    } catch (err) {
+        console.log("❌ React Error:", err);
     }
 }
 
