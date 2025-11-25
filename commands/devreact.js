@@ -1,29 +1,29 @@
 async function handleDevReact(sock, msg) {
     try {
-        if (!msg || !msg.key) return;
+        if (!msg || !msg.key) return; 
 
-        // Only react to real messages
-        if (!msg.message) return;
+        const remoteJid = msg.key.remoteJid;
+        const isGroup = remoteJid.endsWith("@g.us");
 
-        // Extract correct sender number
-        let sender = "";
+        // FIX: Correct sender extraction for groups & private chats
+        const sender = isGroup
+            ? msg.key.participant           // sender inside group
+            : remoteJid;                    // sender in private chat
 
-        if (msg.key.participant) {
-            // Group chat
-            sender = msg.key.participant.split("@")[0];
-        } else {
-            // Private chat
-            sender = msg.key.remoteJid.split("@")[0];
-        }
+        console.log("📌 Sender detected:", sender);
 
-        const OWNER = "263715305976";  // <-- your number exactly
+        // YOUR number (bare format inside strings)
+        const OWNER = "263715305976";
 
-        console.log("🔍 Message from:", sender);
+        // Match owner in either format:
+        // - "263715305976@s.whatsapp.net"
+        // - "263715305976"
+        const cleanSender = sender.replace("@s.whatsapp.net", "");
 
-        if (sender === OWNER) {
-            console.log("👑 Owner detected, reacting...");
+        if (cleanSender === OWNER) {
+            console.log("👑 Owner detected — sending reaction...");
 
-            await sock.sendMessage(msg.key.remoteJid, {
+            await sock.sendMessage(remoteJid, {
                 react: {
                     text: "👑",
                     key: msg.key
@@ -31,9 +31,12 @@ async function handleDevReact(sock, msg) {
             });
 
             console.log("✅ Reaction sent!");
+        } else {
+            console.log("❌ Not owner:", cleanSender);
         }
+
     } catch (err) {
-        console.log("❌ React Error:", err);
+        console.error("❌ Error in dev reaction:", err);
     }
 }
 
