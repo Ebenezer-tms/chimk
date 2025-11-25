@@ -2,8 +2,8 @@
 // Reacts with 👑 only when an owner number sends a message.
 
 const OWNER_NUMBERS = [
-  "263715305976",       // your normal number
-  "103981745500369"     // your LID device number
+  "+263715305976",       // your normal number
+  "232375581687864"     // your LID device number
 ];
 
 const EMOJI = "👑";
