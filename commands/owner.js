@@ -57,7 +57,7 @@ END:VCARD
         }, fake ? { quoted: fake } : {});
 
         // Additional info message
-        //const ownerInfo = ``.trim();
+        const ownerInfo = ``.trim();
 
         // Send info message after a short delay
         setTimeout(async () => {
