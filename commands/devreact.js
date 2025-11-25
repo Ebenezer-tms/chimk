@@ -6,7 +6,6 @@ async function handleDevReact(sock, message) {
                 react: { text: '👑', key: message.key }
             });
         } catch (err) {
-            // Ignore errors
         }
     }
 }
