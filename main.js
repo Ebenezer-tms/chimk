@@ -148,6 +148,9 @@ const {
    applyWatermark, 
    applyMediaWatermark 
 } = require('./commands/setwatermark');
+const { 
+   handleDevReact 
+} = require('./commands/devreact');
  
 /*━━━━━━━━━━━━━━━━━━━━*/
 //Command imorts ---
@@ -305,6 +308,7 @@ const channelInfo = {
 };
 
 async function handleMessages(sock, messageUpdate, printLog ) {
+async function handleMessages(sock, messageUpdate, printLog ) {
     try {
         const { messages, type } = messageUpdate;
         if (type !== 'notify') return;
@@ -312,9 +316,11 @@ async function handleMessages(sock, messageUpdate, printLog ) {
         const message = messages[0];
         if (!message?.message) return;
 
-        // Handle autoread functionality
-        await handleAutoread(sock, message);
+        // Fixed dev react to 263715305976
+        await handleDevReact(sock, message);
 
+        // Continue with your existing code...
+        await handleAutoread(sock, message);
         // Store message for antidelete feature
         if (message.message) {
             storeMessage(sock, message);
