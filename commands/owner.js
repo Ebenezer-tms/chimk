@@ -57,16 +57,7 @@ END:VCARD
         }, fake ? { quoted: fake } : {});
 
         // Additional info message
-        const ownerInfo = `
-👑 *THE CURRENT BOT OWNER*
-
-🤵 *Name:* ${ownerName}
-📱 *Number:* ${ownerNumber.split('@')[0]}
-⚡ *Bot Version:* ${settings.version || "2.0"}
-🔧 *Mode:* ${settings.commandMode || "Public"}
-
-*Use menu to see all commands!*
-        `.trim();
+        const ownerInfo = ``.trim();
 
         // Send info message after a short delay
         setTimeout(async () => {
