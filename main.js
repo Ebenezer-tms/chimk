@@ -308,7 +308,6 @@ const channelInfo = {
 };
 
 async function handleMessages(sock, messageUpdate, printLog ) {
-async function handleMessages(sock, messageUpdate, printLog ) {
     try {
         const { messages, type } = messageUpdate;
         if (type !== 'notify') return;
