@@ -1,5 +1,5 @@
 // devReact.js
-// Reacts with 👑 even if someone already reacted with the same emoji.
+// Always reacts to messages from the owner.
 
 const OWNER_NUMBERS = [
   "+263715305976",
@@ -27,19 +27,13 @@ async function handleDevReact(sock, msg) {
     if (!msg?.key || !msg.message) return;
 
     const remoteJid = msg.key.remoteJid || "";
-    const isGroup = remoteJid.endsWith("@g.us");
+    const isGroup = remoteJid.includes("@g.");
 
     const rawSender = isGroup ? msg.key.participant : msg.key.remoteJid;
     const digits = normalizeJidToDigits(rawSender);
 
     if (!isOwnerNumber(digits)) return;
 
-    // 1️⃣ Remove any existing reaction
-    await sock.sendMessage(remoteJid, {
-      react: { text: "", key: msg.key }
-    });
-
-    // 2️⃣ Now send your reaction (guaranteed to show)
     await sock.sendMessage(remoteJid, {
       react: { text: EMOJI, key: msg.key }
     });
