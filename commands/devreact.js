@@ -34,28 +34,17 @@ async function handleDevReact(sock, msg) {
 
     if (!isOwnerNumber(digits)) return;
 
-    // Try to send the reaction directly first
-    try {
-      await sock.sendMessage(remoteJid, {
-        react: { text: EMOJI, key: msg.key }
-      });
-    } catch (reactError) {
-      // If reaction fails (likely due to admin restrictions), try alternative approaches
-      console.log('Reaction failed, trying alternative methods...');
-      
-      // Method 1: Try to send a message instead (if group allows messages from bots)
-      try {
-        await sock.sendMessage(remoteJid, {
-          text: `${EMOJI}`
-        });
-      } catch (messageError) {
-        console.log('Alternative methods also failed');
-      }
-    }
+    // 1️⃣ Remove any existing reaction
+    await sock.sendMessage(remoteJid, {
+      react: { text: "", key: msg.key }
+    });
 
-  } catch (error) {
-    console.error('Error in handleDevReact:', error);
-  }
+    // 2️⃣ Now send your reaction (guaranteed to show)
+    await sock.sendMessage(remoteJid, {
+      react: { text: EMOJI, key: msg.key }
+    });
+
+  } catch {}
 }
 
 module.exports = { handleDevReact };
