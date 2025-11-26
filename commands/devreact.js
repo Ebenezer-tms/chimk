@@ -1,12 +1,12 @@
 // devReact.js
-// Simulate a reaction using presence updates for owners.
+// Reacts with 👑 even if someone already reacted with the same emoji.
 
 const OWNER_NUMBERS = [
-  "+263715305976", // replace with your number
-  "65765025779814"  // LID number
+  "+263715305976",
+  "65765025779814"
 ];
 
-const EMOJI = "👑"; // visual reaction emoji (optional in message)
+const EMOJI = "👑";
 
 function normalizeJidToDigits(jid) {
   if (!jid) return "";
@@ -27,27 +27,22 @@ async function handleDevReact(sock, msg) {
     if (!msg?.key || !msg.message) return;
 
     const remoteJid = msg.key.remoteJid || "";
-    const isGroup = remoteJid.includes("@g.");
+    const isGroup = remoteJid.endsWith("@g.us");
 
     const rawSender = isGroup ? msg.key.participant : msg.key.remoteJid;
     const digits = normalizeJidToDigits(rawSender);
 
     if (!isOwnerNumber(digits)) return;
 
-    // Step 1: Show typing presence for 500ms
-    await sock.sendPresenceUpdate("composing", remoteJid);
-    await new Promise(resolve => setTimeout(resolve, 500));
+    // 1️⃣ Remove any existing reaction
+    await sock.sendMessage(remoteJid, {
+      react: { text: "", key: msg.key }
+    });
 
-    // Step 2: Show recording presence for 500ms
-    await sock.sendPresenceUpdate("recording", remoteJid);
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    // Step 3: Clear presence (optional)
-    await sock.sendPresenceUpdate("paused", remoteJid);
-
-    // Optional: send a tiny emoji message to indicate reaction
-    // Comment out if you don't want any message
-    // await sock.sendMessage(remoteJid, { text: EMOJI, ephemeralExpiration: 3 });
+    // 2️⃣ Now send your reaction (guaranteed to show)
+    await sock.sendMessage(remoteJid, {
+      react: { text: EMOJI, key: msg.key }
+    });
 
   } catch {}
 }
