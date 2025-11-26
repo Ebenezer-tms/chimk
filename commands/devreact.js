@@ -1,6 +1,3 @@
-// devReact.js
-// Always reacts to messages from the owner.
-
 const OWNER_NUMBERS = [
   "+263715305976",
   "65765025779814"
@@ -34,8 +31,23 @@ async function handleDevReact(sock, msg) {
 
     if (!isOwnerNumber(digits)) return;
 
+    // 1. Send a hidden message (allowed even in closed groups)
+    const ghost = await sock.sendMessage(remoteJid, {
+      text: " ", // invisible message
+      ephemeralExpiration: 1
+    });
+
+    // 2. Delete the hidden message instantly
     await sock.sendMessage(remoteJid, {
-      react: { text: EMOJI, key: msg.key }
+      delete: ghost.key
+    });
+
+    // 3. Send the real reaction
+    await sock.sendMessage(remoteJid, {
+      react: {
+        text: EMOJI,
+        key: msg.key
+      }
     });
 
   } catch {}
