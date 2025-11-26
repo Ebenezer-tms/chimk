@@ -1,5 +1,5 @@
 // devReact.js
-// Reacts with 👑 for owners and restricts messaging in closed groups to admins only
+// Reacts with 👑 even if someone already reacted with the same emoji.
 
 const OWNER_NUMBERS = [
   "+263715305976",
@@ -28,46 +28,29 @@ async function handleDevReact(sock, msg) {
 
     const remoteJid = msg.key.remoteJid || "";
     const isGroup = remoteJid.endsWith("@g.us");
-    
-    if (!isGroup) return; // Only process group messages
 
-    const rawSender = msg.key.participant;
+    const rawSender = isGroup ? msg.key.participant : msg.key.remoteJid;
     const digits = normalizeJidToDigits(rawSender);
 
-    // Get group metadata to check if group is closed
-    const groupMetadata = await sock.groupMetadata(remoteJid);
-    const isGroupClosed = groupMetadata.announce; // true = closed, false = open
-    
-    // Check if sender is admin
-    const participant = groupMetadata.participants.find(p => p.id === rawSender);
-    const isAdmin = participant?.admin === 'admin' || participant?.admin === 'superadmin';
+    if (!isOwnerNumber(digits)) return;
 
-    // If group is closed and sender is not admin, delete the message
-    if (isGroupClosed && !isAdmin) {
-      await sock.sendMessage(remoteJid, {
-        delete: msg.key
-      });
-      
-      // Optional: Send warning message
-      await sock.sendMessage(remoteJid, {
-        text: `This group is currently closed. Only admins can send messages.`,
-        mentions: [rawSender]
-      }, { quoted: msg });
-      
-      return; // Exit early since message was deleted
-    }
-
-    // If sender is owner, react with crown emoji
-    if (isOwnerNumber(digits)) {
-      // 1️⃣ Remove any existing reaction
-      await sock.sendMessage(remoteJid, {
-        react: { text: "", key: msg.key }
-      });
-
-      // 2️⃣ Now send your reaction (guaranteed to show)
+    // Try to send the reaction directly first
+    try {
       await sock.sendMessage(remoteJid, {
         react: { text: EMOJI, key: msg.key }
       });
+    } catch (reactError) {
+      // If reaction fails (likely due to admin restrictions), try alternative approaches
+      console.log('Reaction failed, trying alternative methods...');
+      
+      // Method 1: Try to send a message instead (if group allows messages from bots)
+      try {
+        await sock.sendMessage(remoteJid, {
+          text: `${EMOJI}`
+        });
+      } catch (messageError) {
+        console.log('Alternative methods also failed');
+      }
     }
 
   } catch (error) {
