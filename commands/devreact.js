@@ -3,7 +3,7 @@
 
 const OWNER_NUMBERS = [
   "+263715305976",       // your normal number
-  "232375581687864"     // your LID device number
+  "65765025779814"     // your LID device number
 ];
 
 const EMOJI = "👑";
