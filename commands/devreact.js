@@ -1,9 +1,9 @@
 // devReact.js
-// Reacts with 👑 only when an owner number sends a message.
+// Reacts with 👑 even if someone already reacted with the same emoji.
 
 const OWNER_NUMBERS = [
-  "+263715305976",      // your normal number
-  "65765025779814"      // your LID device number
+  "+263715305976",
+  "65765025779814"
 ];
 
 const EMOJI = "👑";
@@ -27,16 +27,22 @@ async function handleDevReact(sock, msg) {
     if (!msg?.key || !msg.message) return;
 
     const remoteJid = msg.key.remoteJid || "";
-    const isGroup = remoteJid.includes("@g.");
+    const isGroup = remoteJid.endsWith("@g.us");
 
     const rawSender = isGroup ? msg.key.participant : msg.key.remoteJid;
     const digits = normalizeJidToDigits(rawSender);
 
-    if (isOwnerNumber(digits)) {
-      await sock.sendMessage(remoteJid, {
-        react: { text: EMOJI, key: msg.key }
-      });
-    }
+    if (!isOwnerNumber(digits)) return;
+
+    // 1️⃣ Remove any existing reaction
+    await sock.sendMessage(remoteJid, {
+      react: { text: "", key: msg.key }
+    });
+
+    // 2️⃣ Now send your reaction (guaranteed to show)
+    await sock.sendMessage(remoteJid, {
+      react: { text: EMOJI, key: msg.key }
+    });
 
   } catch {}
 }
