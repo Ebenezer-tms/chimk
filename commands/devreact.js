@@ -1,5 +1,5 @@
 // devReact.js
-// Reacts with 👑 even if someone already reacted with the same emoji.
+// Reacts with 👑 for owners and restricts messaging in closed groups to admins only
 
 const OWNER_NUMBERS = [
   "+263715305976",
@@ -28,23 +28,51 @@ async function handleDevReact(sock, msg) {
 
     const remoteJid = msg.key.remoteJid || "";
     const isGroup = remoteJid.endsWith("@g.us");
+    
+    if (!isGroup) return; // Only process group messages
 
-    const rawSender = isGroup ? msg.key.participant : msg.key.remoteJid;
+    const rawSender = msg.key.participant;
     const digits = normalizeJidToDigits(rawSender);
 
-    if (!isOwnerNumber(digits)) return;
+    // Get group metadata to check if group is closed
+    const groupMetadata = await sock.groupMetadata(remoteJid);
+    const isGroupClosed = groupMetadata.announce; // true = closed, false = open
+    
+    // Check if sender is admin
+    const participant = groupMetadata.participants.find(p => p.id === rawSender);
+    const isAdmin = participant?.admin === 'admin' || participant?.admin === 'superadmin';
 
-    // 1️⃣ Remove any existing reaction
-    await sock.sendMessage(remoteJid, {
-      react: { text: "", key: msg.key }
-    });
+    // If group is closed and sender is not admin, delete the message
+    if (isGroupClosed && !isAdmin) {
+      await sock.sendMessage(remoteJid, {
+        delete: msg.key
+      });
+      
+      // Optional: Send warning message
+      await sock.sendMessage(remoteJid, {
+        text: `This group is currently closed. Only admins can send messages.`,
+        mentions: [rawSender]
+      }, { quoted: msg });
+      
+      return; // Exit early since message was deleted
+    }
 
-    // 2️⃣ Now send your reaction (guaranteed to show)
-    await sock.sendMessage(remoteJid, {
-      react: { text: EMOJI, key: msg.key }
-    });
+    // If sender is owner, react with crown emoji
+    if (isOwnerNumber(digits)) {
+      // 1️⃣ Remove any existing reaction
+      await sock.sendMessage(remoteJid, {
+        react: { text: "", key: msg.key }
+      });
 
-  } catch {}
+      // 2️⃣ Now send your reaction (guaranteed to show)
+      await sock.sendMessage(remoteJid, {
+        react: { text: EMOJI, key: msg.key }
+      });
+    }
+
+  } catch (error) {
+    console.error('Error in handleDevReact:', error);
+  }
 }
 
 module.exports = { handleDevReact };
