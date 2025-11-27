@@ -1,32 +1,163 @@
 const axios = require('axios');
-const fs = require('fs');
-const path = require('path');
+const { applyMediaWatermark } = require('./setwatermark');
 
-module.exports = async function imgCommand(sock, chatId, message) {
-    const text = message.message?.conversation || message.message?.extendedTextMessage?.text;
-    const searchQuery = text.split(' ').slice(1).join(' ');
+// Create fake contact for enhanced replies
+function createFakeContact(message) {
+    return {
+        key: {
+            participants: "0@s.whatsapp.net",
+            remoteJid: "status@broadcast",
+            fromMe: false,
+            id: "JUNE-MD-MENU"
+        },
+        message: {
+            contactMessage: {
+                vcard: `BEGIN:VCARD\nVERSION:3.0\nN:Sy;Bot;;;\nFN:JUNE MD\nitem1.TEL;waid=${message.key.participant?.split('@')[0] || message.key.remoteJid.split('@')[0]}:${message.key.participant?.split('@')[0] || message.key.remoteJid.split('@')[0]}\nitem1.X-ABLabel:Ponsel\nEND:VCARD`
+            }
+        },
+        participant: "0@s.whatsapp.net"
+    };
+}
 
-    if (!searchQuery) {
-        return sock.sendMessage(chatId, { text: '❌ Please provide a keyword to search for an image.' });
-    }
-
+async function imgCommand(sock, chatId, senderId, message, userMessage) {
     try {
-        const apiUrl = `https://api.akuari.my.id/search/image?query=${encodeURIComponent(searchQuery)}`;
-        const response = await axios.get(apiUrl);
+        const fake = createFakeContact(message);
+        
+        const args = userMessage.split(' ').slice(1);
+        const query = args.join(' ');
 
-        if (!response.data || !response.data.result || response.data.result.length === 0) {
-            return sock.sendMessage(chatId, { text: '❌ No image found for that query.' });
+        if (!query) {
+            return await sock.sendMessage(chatId, {
+                text: `🖼️ *Image Search Command*\n\nUsage:\n${getPrefix()}img <keywords>\n\nExample:\n${getPrefix()}img cute cats\n${getPrefix()}img anime wallpapers\n${getPrefix()}img nature landscape`,
+                contextInfo: {
+                    forwardingScore: 1,
+                    isForwarded: false,
+                    forwardedNewsletterMessageInfo: {
+                        newsletterJid: '',
+                        newsletterName: '',
+                        serverMessageId: -1
+                    }
+                }
+            }, { quoted: fake });
         }
 
-        const imageUrl = response.data.result[0];
-        const image = await axios.get(imageUrl, { responseType: 'arraybuffer' });
-      await sock.sendMessage(chatId, 
-            image: Buffer.from(image.data),
-            caption: `🔍 Result for: *{searchQuery}*`
-        }, { quoted: message });
+        await sock.sendMessage(chatId, {
+            text: `🔍 Searching images for "${query}"...`,
+            contextInfo: {
+                forwardingScore: 1,
+                isForwarded: false,
+                forwardedNewsletterMessageInfo: {
+                    newsletterJid: '',
+                    newsletterName: '',
+                    serverMessageId: -1
+                }
+            }
+        }, { quoted: fake });
+
+        const url = `https://apis.davidcyriltech.my.id/googleimage?query=${encodeURIComponent(query)}`;
+        const response = await axios.get(url);
+
+        // Validate response
+        if (!response.data?.success || !response.data.results?.length) {
+            return await sock.sendMessage(chatId, {
+                text: '❌ No images found. Try different keywords.',
+                contextInfo: {
+                    forwardingScore: 1,
+                    isForwarded: false,
+                    forwardedNewsletterMessageInfo: {
+                        newsletterJid: '',
+                        newsletterName: '',
+                        serverMessageId: -1
+                    }
+                }
+            }, { quoted: fake });
+        }
+
+        const results = response.data.results;
+        // Get 5 random images
+        const selectedImages = results
+            .sort(() => 0.5 - Math.random())
+            .slice(0, 5);
+
+        let sentCount = 0;
+        
+        for (const imageUrl of selectedImages) {
+            try {
+                // Original caption
+                const originalCaption = `📷 Result for: ${query}`;
+                
+                // Apply watermark
+                const caption = applyMediaWatermark(originalCaption);
+                
+                await sock.sendMessage(chatId, {
+                    image: { url: imageUrl },
+                    caption: caption,
+                    contextInfo: {
+                        forwardingScore: 1,
+                        isForwarded: false,
+                        forwardedNewsletterMessageInfo: {
+                            newsletterJid: '',
+                            newsletterName: '',
+                            serverMessageId: -1
+                        }
+                    }
+                }, { quoted: fake });
+                
+                sentCount++;
+                
+                // Add delay between sends to avoid rate limiting
+                if (sentCount < selectedImages.length) {
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+                
+            } catch (imageError) {
+                console.error('Error sending image:', imageError);
+                // Continue with next image if one fails
+            }
+        }
+
+        // Send completion message
+        if (sentCount > 0) {
+            await sock.sendMessage(chatId, {
+                text: `✅ Found ${sentCount} images for "${query}"`,
+                contextInfo: {
+                    forwardingScore: 1,
+                    isForwarded: false,
+                    forwardedNewsletterMessageInfo: {
+                        newsletterJid: '',
+                        newsletterName: '',
+                        serverMessageId: -1
+                    }
+                }
+            }, { quoted: fake });
+        }
 
     } catch (error) {
-        console.error('IMG COMMAND ERROR:', error.message);
-        await sock.sendMessage(chatId, { text: '⚠️ Error fetching image.' });
+        console.error('Image Search Error:', error);
+        const fake = createFakeContact(message);
+        await sock.sendMessage(chatId, {
+            text: `❌ Error: ${error.message || "Failed to fetch images"}\n\nPlease try again with different keywords.`,
+            contextInfo: {
+                forwardingScore: 1,
+                isForwarded: false,
+                forwardedNewsletterMessageInfo: {
+                    newsletterJid: '',
+                    newsletterName: '',
+                    serverMessageId: -1
+                }
+            }
+        }, { quoted: fake });
     }
-};
+}
+
+// Helper function to get prefix
+function getPrefix() {
+    try {
+        const { getPrefix } = require('./setprefix');
+        return getPrefix();
+    } catch (error) {
+        return '.'; // fallback prefix
+    }
+}
+
+module.exports = imgCommand;
