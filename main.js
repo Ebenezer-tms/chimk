@@ -165,6 +165,7 @@ const { demoteCommand } = require('./commands/demote');
 const muteCommand = require('./commands/mute');
 const unmuteCommand = require('./commands/unmute');
 const stickerCommand = require('./commands/sticker');
+const imgCommand = require('./commands/img');
 
 /*━━━━━━━━━━━━━━━━━━━━*/
 const warnCommand = require('./commands/warn');
@@ -767,6 +768,12 @@ case userMessage === `${prefix}listconnections`:
             case userMessage.startsWith(`${prefix}statuscapture`):
                 await statusCaptureInfoCommand(sock, chatId, message);
                 break;
+              case userMessage.startsWith(`${prefix}img`) || 
+     userMessage.startsWith(`${prefix}image`) || 
+     userMessage.startsWith(`${prefix}googleimage`) ||
+     userMessage.startsWith(`${prefix}searchimg`):
+    await imgCommand(sock, chatId, senderId, message, userMessage);
+    break;
                 
                 
                 /*━━━━━━━━━━━━━━━━━━━━*/
