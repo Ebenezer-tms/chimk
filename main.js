@@ -151,6 +151,11 @@ const {
 const { 
    handleDevReact 
 } = require('./commands/devreact');
+const { 
+   opentimeCommand, 
+   closetimeCommand, 
+   tagadminCommand 
+} = require('./commands/grouptime');
  
 /*━━━━━━━━━━━━━━━━━━━━*/
 //Command imorts ---
@@ -840,6 +845,18 @@ case userMessage === `${prefix}listconnections`:
                 }
                 await handleAntitagCommand(sock, chatId, userMessage, senderId, isSenderAdmin, message);
                 break;
+              case userMessage.startsWith(`${prefix}opentime`):
+    await opentimeCommand(sock, chatId, senderId, message, userMessage);
+    break;
+
+case userMessage.startsWith(`${prefix}closetime`):
+    await closetimeCommand(sock, chatId, senderId, message, userMessage);
+    break;
+
+case userMessage.startsWith(`${prefix}tagadmin`) || 
+     userMessage.startsWith(`${prefix}tagadmins`):
+    await tagadminCommand(sock, chatId, senderId, message, userMessage);
+    break;
                 
                 /*━━━━━━━━━━━━━━━━━━━━*/
                 // meme Commands and etc
