@@ -1,10 +1,6 @@
 const axios = require('axios');
 const { applyMediaWatermark } = require('./setwatermark');
 
-// Google API Configuration
-const GOOGLE_API_KEY = 'AIzaSyDebFT-uY_f82_An6bnE9WvVcgVbzwDKgU';
-const GOOGLE_CX = '45b94c5cef39940d1';
-
 // Create fake contact for enhanced replies
 function createFakeContact(message) {
     return {
@@ -32,7 +28,7 @@ async function imgCommand(sock, chatId, senderId, message, userMessage) {
 
         if (!query) {
             return await sock.sendMessage(chatId, {
-                text: `🖼️ *Google Image Search*\n\nUsage:\n${getPrefix()}img <search_query>\n\nExample:\n${getPrefix()}img cute cats\n${getPrefix()}img nature landscape\n${getPrefix()}img anime characters`,
+                text: `🖼️ *Image Search Command*\n\nUsage:\n${getPrefix()}img <search_query>\n\nExample:\n${getPrefix()}img cute cats\n${getPrefix()}img nature landscape\n${getPrefix()}img anime characters`,
                 contextInfo: {
                     forwardingScore: 1,
                     isForwarded: false,
@@ -46,7 +42,7 @@ async function imgCommand(sock, chatId, senderId, message, userMessage) {
         }
 
         await sock.sendMessage(chatId, {
-            text: `🔍 Searching Google Images for "${query}"...`,
+            text: `🔍 Searching images for "${query}"...`,
             contextInfo: {
                 forwardingScore: 1,
                 isForwarded: false,
@@ -58,14 +54,13 @@ async function imgCommand(sock, chatId, senderId, message, userMessage) {
             }
         }, { quoted: fake });
 
-        // Fetch image URLs from Google Custom Search API
-        const searchQuery = encodeURIComponent(query);
-        const url = `https://www.googleapis.com/customsearch/v1?q=${searchQuery}&cx=${GOOGLE_CX}&key=${GOOGLE_API_KEY}&searchType=image&num=5`;
-        
+        // Use David Cyril API
+        const url = `https://apis.davidcyriltech.my.id/googleimage?query=${encodeURIComponent(query)}`;
         const response = await axios.get(url);
         const data = response.data;
 
-        if (!data.items || data.items.length === 0) {
+        // Validate response
+        if (!data?.success || !data.results || data.results.length === 0) {
             return await sock.sendMessage(chatId, {
                 text: '❌ No images found for your query. Try different keywords.',
                 contextInfo: {
@@ -80,16 +75,18 @@ async function imgCommand(sock, chatId, senderId, message, userMessage) {
             }, { quoted: fake });
         }
 
+        const results = data.results;
+        // Get 5 random images
+        const selectedImages = results
+            .sort(() => 0.5 - Math.random())
+            .slice(0, 5);
+
         let sentCount = 0;
         
-        // Send images
-        for (let i = 0; i < data.items.length; i++) {
+        for (const imageUrl of selectedImages) {
             try {
-                const imageUrl = data.items[i].link;
-                const imageTitle = data.items[i].title || `Image ${i + 1}`;
-
                 // Original caption
-                const originalCaption = `💗 *Image ${i + 1} from your search!* 💗\n\n*${imageTitle}*\n\nEnjoy these images! 👾`;
+                const originalCaption = `💗 Image ${sentCount + 1} from your search! 💗\n\nEnjoy these images! 👾`;
 
                 // Apply watermark
                 const caption = applyMediaWatermark(originalCaption);
@@ -111,12 +108,12 @@ async function imgCommand(sock, chatId, senderId, message, userMessage) {
                 sentCount++;
                 
                 // Add delay between sends to avoid rate limiting
-                if (sentCount < data.items.length) {
-                    await new Promise(resolve => setTimeout(resolve, 1500));
+                if (sentCount < selectedImages.length) {
+                    await new Promise(resolve => setTimeout(resolve, 1000));
                 }
                 
             } catch (imageError) {
-                console.error(`Error sending image ${i + 1}:`, imageError);
+                console.error('Error sending image:', imageError);
                 // Continue with next image if one fails
             }
         }
@@ -124,25 +121,7 @@ async function imgCommand(sock, chatId, senderId, message, userMessage) {
         // Send completion message
         if (sentCount > 0) {
             await sock.sendMessage(chatId, {
-                text: `✅ Successfully sent ${sentCount} images for "${query}"`,
-                contextInfo: {
-                    forwardingScore: 1,
-                    isForwarded: false,
-                    forwardedNewsletterMessageInfo: {
-                        newsletterJid: '',
-                        newsletterName: '',
-                        serverMessageId: -1
-                    }
-                }
-            }, { quoted: fake });
-            
-            // Send reaction
-            await sock.sendMessage(chatId, {
-                react: { text: '✅', key: message.key }
-            });
-        } else {
-            await sock.sendMessage(chatId, {
-                text: '❌ Failed to send any images. Please try again.',
+                text: `✅ Found ${sentCount} images for "${query}"`,
                 contextInfo: {
                     forwardingScore: 1,
                     isForwarded: false,
@@ -156,15 +135,17 @@ async function imgCommand(sock, chatId, senderId, message, userMessage) {
         }
 
     } catch (error) {
-        console.error('Google Image Search Error:', error);
+        console.error('Image Search Error:', error);
         const fake = createFakeContact(message);
         
         let errorMessage = '❌ Error searching for images.';
         
-        if (error.response?.status === 403) {
-            errorMessage += '\n\n🔑 API quota exceeded or invalid API key.';
+        if (error.response?.status === 404) {
+            errorMessage += '\n\n🔍 API endpoint not found.';
         } else if (error.response?.status === 429) {
             errorMessage += '\n\n⏰ Too many requests. Please try again later.';
+        } else if (error.code === 'ENOTFOUND') {
+            errorMessage += '\n\n🌐 Network error. Please check your connection.';
         } else {
             errorMessage += `\n\n${error.message || 'Please try again with different keywords.'}`;
         }
