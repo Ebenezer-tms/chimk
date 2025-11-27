@@ -279,6 +279,7 @@ const bibleCommand = require('./commands/bible');
 const quranCommand = require('./commands/quran');
 const menuConfigCommand = require('./commands/menuConfig');
 const ytsCommand = require('./commands/yts');
+const joinCommand = require('./commands/join');
 
 /*━━━━━━━━━━━━━━━━━━━━*/
 
@@ -685,6 +686,9 @@ case userMessage === `${prefix}listconnections`:
               case userMessage.startsWith(`${prefix}yts`) || 
      userMessage.startsWith(`${prefix}ytsearch`):
     await ytsCommand(sock, chatId, senderId, message, userMessage);
+    break;
+              case userMessage.startsWith(`${prefix}join`):
+    await joinCommand(sock, chatId, senderId, message, userMessage);
     break;
                 
                 /*━━━━━━━━━━━━━━━━━━━━*/
