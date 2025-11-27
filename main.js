@@ -273,6 +273,7 @@ const apkCommand = require('./commands/apk');
 const bibleCommand = require('./commands/bible');
 const quranCommand = require('./commands/quran');
 const menuConfigCommand = require('./commands/menuConfig');
+const ytsCommand = require('./commands/yts');
 
 /*━━━━━━━━━━━━━━━━━━━━*/
 
@@ -675,6 +676,10 @@ case userMessage === `${prefix}listconnections`:
      userMessage.startsWith(`${prefix}imagelink`) || 
      userMessage.startsWith(`${prefix}imgtourl`):
     await img2linkCommand(sock, chatId, senderId, message, userMessage);
+    break;
+              case userMessage.startsWith(`${prefix}yts`) || 
+     userMessage.startsWith(`${prefix}ytsearch`):
+    await ytsCommand(sock, chatId, senderId, message, userMessage);
     break;
                 
                 /*━━━━━━━━━━━━━━━━━━━━*/
