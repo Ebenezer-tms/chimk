@@ -14,7 +14,7 @@ async function pingCommand(sock, chatId, message) {
     const ping = Date.now() - start;
     // Format ping to 4 decimal places
     const formattedPing = ping.toFixed(3);
-    const response = `*${newBot} speed:* ${formattedPing} *ms*`;
+    const response = `*${newBot} Speed:* ${formattedPing} ms`;
 
     await sock.sendMessage(chatId, {
       text: response,
