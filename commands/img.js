@@ -19,6 +19,40 @@ function createFakeContact(message) {
     };
 }
 
+async function searchImagesFromAPI(query, apiUrl) {
+    try {
+        const response = await axios.get(apiUrl, {
+            timeout: 15000,
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            }
+        });
+
+        const data = response.data;
+        let images = [];
+
+        // Handle MrFrank API structure
+        if (apiUrl.includes('mrfrankofc')) {
+            if (data.status === true && data.result && Array.isArray(data.result)) {
+                images = data.result;
+            } else if (data.data && Array.isArray(data.data)) {
+                images = data.data;
+            }
+        }
+        // Handle David Cyril API structure (fallback)
+        else if (apiUrl.includes('davidcyriltech')) {
+            if (data.success && data.results && Array.isArray(data.results)) {
+                images = data.results;
+            }
+        }
+
+        return images;
+    } catch (error) {
+        console.error(`API ${apiUrl} error:`, error.message);
+        return [];
+    }
+}
+
 async function imgCommand(sock, chatId, senderId, message, userMessage) {
     try {
         const fake = createFakeContact(message);
@@ -36,23 +70,52 @@ async function imgCommand(sock, chatId, senderId, message, userMessage) {
             text: `🔍 Searching images for "${query}"...`
         }, { quoted: fake });
 
-        // Use David Cyril API
-        const url = `https://apis.davidcyriltech.my.id/googleimage?query=${encodeURIComponent(query)}`;
-        const response = await axios.get(url);
-        const data = response.data;
+        // Try multiple APIs with fallback
+        const apis = [
+            `https://api.mrfrankofc.gleeze.com/api/search/image?q=${encodeURIComponent(query)}`,
+            `https://apis.davidcyriltech.my.id/googleimage?query=${encodeURIComponent(query)}`
+        ];
 
-        if (!data.success || !data.results || data.results.length === 0) {
+        let images = [];
+        let usedAPI = '';
+
+        for (const apiUrl of apis) {
+            images = await searchImagesFromAPI(query, apiUrl);
+            if (images.length > 0) {
+                usedAPI = apiUrl.includes('mrfrankofc') ? 'MrFrank API' : 'David Cyril API';
+                break;
+            }
+        }
+
+        if (images.length === 0) {
             return await sock.sendMessage(chatId, {
                 text: '❌ No images found for your query. Try different keywords.'
             }, { quoted: fake });
         }
 
-        const images = data.results.slice(0, 5); // Get first 5 images
+        const imagesToSend = images.slice(0, 5);
         let sentCount = 0;
 
-        for (const imageUrl of images) {
+        for (const image of imagesToSend) {
             try {
-                const caption = applyMediaWatermark(`💗 Image ${sentCount + 1} from your search! 💗\n\nEnjoy these images! 👾`);
+                let imageUrl = '';
+                
+                if (typeof image === 'string') {
+                    imageUrl = image;
+                } else if (image.url) {
+                    imageUrl = image.url;
+                } else if (image.link) {
+                    imageUrl = image.link;
+                }
+
+                if (!imageUrl) continue;
+
+                const caption = applyMediaWatermark(
+                    `🖼️ *Image Search* 🖼️\n\n` +
+                    `📝 *Query:* ${query}\n` +
+                    `📊 *Image:* ${sentCount + 1}/${imagesToSend.length}\n` +
+                    `🔧 *API:* ${usedAPI}`
+                );
 
                 await sock.sendMessage(chatId, {
                     image: { url: imageUrl },
@@ -60,7 +123,7 @@ async function imgCommand(sock, chatId, senderId, message, userMessage) {
                 }, { quoted: fake });
 
                 sentCount++;
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                await new Promise(resolve => setTimeout(resolve, 1500));
                 
             } catch (imageError) {
                 console.error('Error sending image:', imageError);
@@ -69,7 +132,7 @@ async function imgCommand(sock, chatId, senderId, message, userMessage) {
 
         if (sentCount > 0) {
             await sock.sendMessage(chatId, {
-                text: `✅ Sent ${sentCount} images for "${query}"`
+                text: `✅ Successfully sent ${sentCount} images for "${query}"\n\n📸 *Total Found:* ${images.length} images\n🔧 *Source:* ${usedAPI}`
             }, { quoted: fake });
         }
 
