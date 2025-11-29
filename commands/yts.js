@@ -122,26 +122,6 @@ async function ytsCommand(sock, chatId, senderId, message, userMessage) {
             }
         }, { quoted: fake });
 
-        // Send first video as preview (optional)
-        try {
-            const firstVideo = videos[0];
-            await sock.sendMessage(chatId, {
-                image: { url: firstVideo.thumbnail },
-                caption: `🎬 *Preview: ${firstVideo.title}*\n\n⏱️ ${firstVideo.timestamp} | 👀 ${firstVideo.views?.toLocaleString() || 'N/A'} views\n\n🔗 ${firstVideo.url}`,
-                contextInfo: {
-                    forwardingScore: 1,
-                    isForwarded: false,
-                    forwardedNewsletterMessageInfo: {
-                        newsletterJid: '',
-                        newsletterName: '',
-                        serverMessageId: -1
-                    }
-                }
-            });
-        } catch (previewError) {
-            console.log('Could not send preview image, continuing...');
-        }
-
     } catch (error) {
         console.error('YouTube search command error:', error);
         const fake = createFakeContact(message);
