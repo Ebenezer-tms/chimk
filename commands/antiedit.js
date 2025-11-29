@@ -507,14 +507,14 @@ async function sendEditNotification(sock, original, editedContent, editorId, tar
             year: 'numeric'
         });
 
-        let text = `🚨 *EDITED MESSAGE!* 🚨\n\n`;
-        text += `CHAT: ${groupName || 'Private Chat'}\n`;
-        text += `SENT BY: @${pushName}\n`;
-        text += `TIME: ${time.split(', ')[1]}\n`;
-        text += `DATE: ${time.split(', ')[0]}\n`;
-        text += `EDITED BY: @${editorName}\n\n`;
-        text += `ORIGINAL: ${original.content || '[No text content]'}\n\n`;
-        text += `EDITED TO: ${editedContent || '[No text content]'}`;
+        let text = `🚨 *𝙴𝙳𝙸𝚃𝙴𝙳 𝙼𝙴𝚂𝚂𝙰𝙶𝙴!* 🚨\n\n`;
+        text += `𝙲𝙷𝙰𝚃: ${groupName || 'Private Chat'}\n`;
+        text += `𝚂𝙴𝙽𝚃 𝙱𝚈: @${pushName}\n`;
+        text += `𝚃𝙸𝙼𝙴: ${time.split(', ')[1]}\n`;
+        text += `𝙳𝙰𝚃𝙴: ${time.split(', ')[0]}\n`;
+        text += `𝙴𝙳𝙸𝚃𝙴𝙳 𝙱𝚈: @${editorName}\n\n`;
+        text += `𝙾𝚁𝙸𝙶𝙸𝙽𝙰𝙻: ${original.content || '[No text content]'}\n\n`;
+        text += `𝙴𝙳𝙸𝚃𝙴𝙳 𝚃𝙾: ${editedContent || '[No text content]'}`;
 
         const textMessage = {
             text,
