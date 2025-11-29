@@ -107,7 +107,8 @@ const {
 const {
  handleAntieditCommand,
  handleMessageEdit,
- storeMessage: storeEditMessage } = require('./commands/antiedit');
+ storeMessage,
+ storeEditMessage } = require('./commands/antiedit');
  
 const {
  anticallCommand,
