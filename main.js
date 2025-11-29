@@ -107,7 +107,6 @@ const {
 const {
  handleAntieditCommand,
  handleMessageEdit,
- storeMessage,
  storeEditMessage } = require('./commands/antiedit');
  
 const {
