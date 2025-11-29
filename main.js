@@ -104,10 +104,7 @@ const {
  handleMessageRevocation,
  storeMessage } = require('./commands/antidelete');
 
-const {
- handleAntieditCommand,
- handleMessageEdit,
- storeEditMessage } = require('./commands/antiedit');
+
  
 const {
  anticallCommand,
