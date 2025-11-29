@@ -89,7 +89,7 @@ async function ytsCommand(sock, chatId, senderId, message, userMessage) {
 
         // Format search results (limit to 10 to avoid message too long)
         const videos = searchResults.videos.slice(0, 10);
-        let resultMessage = `📺 *YouTube Search Results for:* "${query}"\n\n`;
+        let resultMessage = `🌍 *YouTube Search Results for:* "${query}"\n\n`;
 
         videos.forEach((video, index) => {
             const duration = video.timestamp || 'N/A';
@@ -97,11 +97,11 @@ async function ytsCommand(sock, chatId, senderId, message, userMessage) {
             const uploadDate = video.ago || 'N/A';
             
             resultMessage += `*${index + 1}. ${video.title}*\n`;
-            resultMessage += `🔗 *URL:* ${video.url}\n`;
-            resultMessage += `⏱️ *Duration:* ${duration}\n`;
-            resultMessage += `👀 *Views:* ${views}\n`;
-            resultMessage += `📅 *Uploaded:* ${uploadDate}\n`;
-            resultMessage += `👤 *Channel:* ${video.author?.name || 'N/A'}\n`;
+            resultMessage += `□ *URL:* ${video.url}\n`;
+            resultMessage += `□ *Duration:* ${duration}\n`;
+            resultMessage += `□ *Views:* ${views}\n`;
+            resultMessage += `□ *Uploaded:* ${uploadDate}\n`;
+            resultMessage += `□ *Channel:* ${video.author?.name || 'N/A'}\n`;
             resultMessage += `\n`;
         });
 
