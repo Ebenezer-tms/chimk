@@ -1,25 +1,6 @@
 const axios = require('axios');
 const { applyMediaWatermark } = require('./setwatermark');
 
-// Multiple API endpoints as fallback
-const API_ENDPOINTS = [
-    {
-        name: 'David Cyril API',
-        url: (query) => `https://apis.davidcyriltech.my.id/googleimage?query=${encodeURIComponent(query)}`,
-        parser: (data) => data.success ? data.results : null
-    },
-    {
-        name: 'ZeroChan API',
-        url: (query) => `https://api.heckerman06.repl.co/api/search/image?q=${encodeURIComponent(query)}`,
-        parser: (data) => data.result || null
-    },
-    {
-        name: 'AEM API',
-        url: (query) => `https://aem-search.jenazads.repl.co/search/${encodeURIComponent(query)}`,
-        parser: (data) => data.result || null
-    }
-];
-
 // Create fake contact for enhanced replies
 function createFakeContact(message) {
     return {
@@ -38,31 +19,38 @@ function createFakeContact(message) {
     };
 }
 
-async function searchImagesFromAPI(query) {
-    for (const api of API_ENDPOINTS) {
-        try {
-            console.log(`Trying ${api.name}...`);
-            const response = await axios.get(api.url(query), { timeout: 10000 });
-            const images = api.parser(response.data);
-            
-            if (images && images.length > 0) {
-                console.log(`✅ ${api.name} returned ${images.length} images`);
-                return {
-                    success: true,
-                    images: images,
-                    source: api.name
-                };
+async function searchImagesFromAPI(query, apiUrl) {
+    try {
+        const response = await axios.get(apiUrl, {
+            timeout: 15000,
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
             }
-        } catch (error) {
-            console.log(`❌ ${api.name} failed:`, error.message);
-            continue;
+        });
+
+        const data = response.data;
+        let images = [];
+
+        // Handle MrFrank API structure
+        if (apiUrl.includes('mrfrankofc')) {
+            if (data.status === true && data.result && Array.isArray(data.result)) {
+                images = data.result;
+            } else if (data.data && Array.isArray(data.data)) {
+                images = data.data;
+            }
         }
+        // Handle David Cyril API structure (fallback)
+        else if (apiUrl.includes('davidcyriltech')) {
+            if (data.success && data.results && Array.isArray(data.results)) {
+                images = data.results;
+            }
+        }
+
+        return images;
+    } catch (error) {
+        console.error(`API ${apiUrl} error:`, error.message);
+        return [];
     }
-    
-    return {
-        success: false,
-        error: 'All image APIs failed'
-    };
 }
 
 async function imgCommand(sock, chatId, senderId, message, userMessage) {
@@ -74,135 +62,95 @@ async function imgCommand(sock, chatId, senderId, message, userMessage) {
 
         if (!query) {
             return await sock.sendMessage(chatId, {
-                text: `🖼️ *Image Search Command*\n\nUsage:\n${getPrefix()}img <search_query>\n\nExample:\n${getPrefix()}img cute cats\n${getPrefix()}img nature landscape\n${getPrefix()}img anime characters`,
-                contextInfo: {
-                    forwardingScore: 1,
-                    isForwarded: false,
-                    forwardedNewsletterMessageInfo: {
-                        newsletterJid: '',
-                        newsletterName: '',
-                        serverMessageId: -1
-                    }
-                }
+                text: `🖼️ *Image Search Command*\n\nUsage:\n${getPrefix()}img <search_query>\n\nExample:\n${getPrefix()}img cute cats\n${getPrefix()}img nature landscape`
             }, { quoted: fake });
         }
 
         await sock.sendMessage(chatId, {
-            text: `🔍 Searching images for "${query}"...`,
-            contextInfo: {
-                forwardingScore: 1,
-                isForwarded: false,
-                forwardedNewsletterMessageInfo: {
-                    newsletterJid: '',
-                    newsletterName: '',
-                    serverMessageId: -1
-                }
-            }
+            text: `🔍 Searching images for "${query}"...`
         }, { quoted: fake });
 
-        // Try multiple APIs
-        const searchResult = await searchImagesFromAPI(query);
+        // Try multiple APIs with fallback
+        const apis = [
+            `https://api.mrfrankofc.gleeze.com/api/search/image?q=${encodeURIComponent(query)}`,
+            `https://apis.davidcyriltech.my.id/googleimage?query=${encodeURIComponent(query)}`
+        ];
 
-        if (!searchResult.success) {
+        let images = [];
+        let usedAPI = '';
+
+        for (const apiUrl of apis) {
+            images = await searchImagesFromAPI(query, apiUrl);
+            if (images.length > 0) {
+                usedAPI = apiUrl.includes('mrfrankofc') ? 'MrFrank API' : 'David Cyril API';
+                break;
+            }
+        }
+
+        if (images.length === 0) {
             return await sock.sendMessage(chatId, {
-                text: '❌ No images found for your query. Try different keywords or try again later.',
-                contextInfo: {
-                    forwardingScore: 1,
-                    isForwarded: false,
-                    forwardedNewsletterMessageInfo: {
-                        newsletterJid: '',
-                        newsletterName: '',
-                        serverMessageId: -1
-                    }
-                }
+                text: '❌ No images found for your query. Try different keywords.'
             }, { quoted: fake });
         }
 
-        const images = searchResult.images;
-        // Get up to 5 random images
-        const selectedImages = images
-            .sort(() => 0.5 - Math.random())
-            .slice(0, 5);
-
+        const imagesToSend = images.slice(0, 5);
         let sentCount = 0;
-        
-        for (const imageUrl of selectedImages) {
-            try {
-                // Original caption
-                const originalCaption = `💗 Image ${sentCount + 1} from your search! 💗\n\nSource: ${searchResult.source}\n\nEnjoy these images! 👾`;
 
-                // Apply watermark
-                const caption = applyMediaWatermark(originalCaption);
+        for (const image of imagesToSend) {
+            try {
+                let imageUrl = '';
+                
+                if (typeof image === 'string') {
+                    imageUrl = image;
+                } else if (image.url) {
+                    imageUrl = image.url;
+                } else if (image.link) {
+                    imageUrl = image.link;
+                }
+
+                if (!imageUrl) continue;
+
+                const caption = applyMediaWatermark(
+                    `🖼️ *Image Search* 🖼️\n\n` +
+                    `📝 *Query:* ${query}\n` +
+                    `📊 *Image:* ${sentCount + 1}/${imagesToSend.length}\n` +
+                    `🔧 *API:* ${usedAPI}`
+                );
 
                 await sock.sendMessage(chatId, {
                     image: { url: imageUrl },
-                    caption: caption,
-                    contextInfo: {
-                        forwardingScore: 1,
-                        isForwarded: false,
-                        forwardedNewsletterMessageInfo: {
-                            newsletterJid: '',
-                            newsletterName: '',
-                            serverMessageId: -1
-                        }
-                    }
+                    caption: caption
                 }, { quoted: fake });
 
                 sentCount++;
-                
-                // Add delay between sends to avoid rate limiting
-                if (sentCount < selectedImages.length) {
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-                }
+                await new Promise(resolve => setTimeout(resolve, 1500));
                 
             } catch (imageError) {
                 console.error('Error sending image:', imageError);
-                // Continue with next image if one fails
             }
         }
 
-        // Send completion message
         if (sentCount > 0) {
             await sock.sendMessage(chatId, {
-                text: `✅ Found ${sentCount} images for "${query}"\n📡 Source: ${searchResult.source}`,
-                contextInfo: {
-                    forwardingScore: 1,
-                    isForwarded: false,
-                    forwardedNewsletterMessageInfo: {
-                        newsletterJid: '',
-                        newsletterName: '',
-                        serverMessageId: -1
-                    }
-                }
+                text: `✅ Successfully sent ${sentCount} images for "${query}"\n\n📸 *Total Found:* ${images.length} images\n🔧 *Source:* ${usedAPI}`
             }, { quoted: fake });
         }
 
     } catch (error) {
         console.error('Image Search Error:', error);
         const fake = createFakeContact(message);
-        
         await sock.sendMessage(chatId, {
-            text: '❌ Error searching for images. Please try again with different keywords.',
-            contextInfo: {
-                forwardingScore: 1,
-                isForwarded: false,
-                forwardedNewsletterMessageInfo: {
-                    newsletterJid: '',
-                    newsletterName: '',
-                    serverMessageId: -1
-                }
-            }
+            text: '❌ Error searching for images. Please try again.'
         }, { quoted: fake });
     }
 }
 
-// Helper function to get prefix
 function getPrefix() {
     try {
         const { getPrefix } = require('./setprefix');
         return getPrefix();
     } catch (error) {
-        return '.'; // fallback prefix
+        return '.';
     }
 }
 
