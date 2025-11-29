@@ -1,4 +1,4 @@
-/*const fs = require('fs');
+const fs = require('fs');
 const path = require('path');
 const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
 const { writeFile, unlink, readdir, stat } = require('fs/promises');
@@ -608,4 +608,4 @@ module.exports = {
     handleMessageEdit,
     storeMessage,
     cleanTempFolder
-};*/
+};
