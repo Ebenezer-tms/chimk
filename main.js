@@ -34,6 +34,12 @@ const {
    showTypingAfterCommand
  } = require('./commands/autotyping');
 
+const {
+  handleAntieditCommand,
+  handleMessageEdit,
+  storeMessage: storeEditMessage
+} = require('./commands/antiedit');
+
  const {
   getPrefix, 
   handleSetPrefixCommand 
@@ -689,6 +695,10 @@ case userMessage === `${prefix}listconnections`:
     break;
               case userMessage.startsWith(`${prefix}join`):
     await joinCommand(sock, chatId, senderId, message, userMessage);
+    break;
+              case userMessage.startsWith(`${prefix}antiedit`):
+    const antieditMatch = userMessage.slice(9).trim();
+    await handleAntieditCommand(sock, chatId, message, antieditMatch);
     break;
                 
                 /*━━━━━━━━━━━━━━━━━━━━*/
