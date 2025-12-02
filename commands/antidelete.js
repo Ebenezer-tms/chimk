@@ -37,7 +37,7 @@ const getFolderSizeInMB = (folderPath) => {
 const cleanTempFolderIfLarge = () => {
     try {
         const sizeMB = getFolderSizeInMB(TEMP_MEDIA_DIR);
-        
+
         if (sizeMB > 200) {
             const files = fs.readdirSync(TEMP_MEDIA_DIR);
             for (const file of files) {
@@ -77,7 +77,7 @@ async function handleAntideleteCommand(sock, chatId, message, match) {
     const { isSudo } = require('../lib/index');
     const senderId = message.key.participant || message.key.remoteJid;
     const senderIsSudo = await isSudo(senderId);
-    
+
     if (!message.key.fromMe && !senderIsSudo) {
         return sock.sendMessage(chatId, { text: '*Only the bot owner can use this command.*' }, { quoted: message });
     }
@@ -87,7 +87,7 @@ async function handleAntideleteCommand(sock, chatId, message, match) {
     if (!match) {
         return sock.sendMessage(chatId, {
             text: `*ANTIDELETE SETUP*\n\nCurrent Status: ${config.enabled ? '✅ Enabled' : '❌ Disabled'}\n\n*.antidelete on* - Enable\n*.antidelete off* - Disable`
-        }, {quoted: message});
+        }, { quoted: message });
     }
 
     if (match === 'on') {
@@ -95,11 +95,11 @@ async function handleAntideleteCommand(sock, chatId, message, match) {
     } else if (match === 'off') {
         config.enabled = false;
     } else {
-        return sock.sendMessage(chatId, { text: '*Invalid command. Use .antidelete to see usage.*' }, {quoted:message});
+        return sock.sendMessage(chatId, { text: '*Invalid command. Use .antidelete to see usage.*' }, { quoted: message });
     }
 
     saveAntideleteConfig(config);
-    return sock.sendMessage(chatId, { text: `*Antidelete ${match === 'on' ? 'enabled' : 'disabled'}*` }, {quoted:message});
+    return sock.sendMessage(chatId, { text: `*Antidelete ${match === 'on' ? 'enabled' : 'disabled'}*` }, { quoted: message });
 }
 
 // Store incoming messages (also handles anti-view-once by forwarding immediately)
@@ -182,8 +182,7 @@ async function storeMessage(sock, message) {
                 const ownerNumber = sock.user.id.split(':')[0] + '@s.whatsapp.net';
                 const senderName = sender.split('@')[0];
                 const mediaOptions = {
-                    caption: `*Anti-ViewOnce ${mediaType}*
-From: @${senderName}`,
+                    caption: `*Anti-ViewOnce ${mediaType}*\n\nFrom: @${senderName}`,
                     mentions: [sender]
                 };
                 if (mediaType === 'image') {
@@ -192,7 +191,7 @@ From: @${senderName}`,
                     await sock.sendMessage(ownerNumber, { video: { url: mediaPath }, ...mediaOptions });
                 }
                 // Cleanup immediately for view-once forward
-                try { fs.unlinkSync(mediaPath); } catch {}
+                try { fs.unlinkSync(mediaPath); } catch { }
             } catch (e) {
                 // ignore
             }
@@ -220,36 +219,56 @@ async function handleMessageRevocation(sock, revocationMessage) {
 
         const sender = original.sender;
         const senderName = sender.split('@')[0];
-        const groupName = original.group ? (await sock.groupMetadata(original.group)).subject : '';
+        let groupName = '';
+        if (original.group) {
+            try {
+                const metadata = await sock.groupMetadata(original.group);
+                groupName = metadata.subject || 'Unknown Group';
+            } catch (err) {
+                groupName = 'Unknown Group';
+            }
+        }
 
-        const time = new Date().toLocaleString('en-US', {
-            timeZone: 'Asia/Kolkata',
-            hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit',
-            day: '2-digit', month: '2-digit', year: 'numeric'
+        // Format time and date for EAT (East Africa Time)
+        const originalDate = new Date(original.timestamp);
+        const timeSent = originalDate.toLocaleTimeString('en-US', {
+            timeZone: 'Africa/Nairobi',
+            hour12: false,
+            hour: '2-digit',
+            minute: '2-digit'
+        }) + ' EAT';
+        
+        const dateSent = originalDate.toLocaleDateString('en-GB', {
+            timeZone: 'Africa/Nairobi',
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
         });
 
-        let text = `*🗑️ ANTIDELETE REPORT 🗑️*\n\n` +
-            `*🗑️ Deleted By:* @${deletedBy.split('@')[0]}\n` +
-            `*👤 Sender:* @${senderName}\n` +
-            `*📱 Number:* ${sender}\n` +
-            `*🕒 Time:* ${time}\n`;
-
-        if (groupName) text += `*👥 Group:* ${groupName}\n`;
-
+        // Create the formatted message
+        let text = `*🔮 𝙳𝙴𝙻𝙴𝚃𝙴𝙳 𝙼𝙴𝚂𝚂𝙰𝙶𝙴! 🔮*\n`;
+        text += `\n𝙲𝙷𝙰𝚃: ${groupName || 'Private Chat'}`;
+        text += `\n𝚂𝙴𝙽𝚃 𝙱𝚈: @${senderName}`;
+        text += `\n𝚃𝙸𝙼𝙴 𝚂𝙴𝙽𝚃: ${timeSent}`;
+        text += `\n𝙳𝙰𝚃𝙴 𝚂𝙴𝙽𝚃: ${dateSent}`;
+        text += `\n𝙳𝙴𝙻𝙴𝚃𝙴𝙳 𝙱𝚈: @${deletedBy.split('@')[0]}`;
+        
         if (original.content) {
-            text += `\n*💬 Deleted Message:*\n${original.content}`;
+            text += `\n\n𝙼𝙴𝚂𝚂𝙰𝙶𝙴: ${original.content}`;
+        } else if (original.mediaType) {
+            text += `\n\n𝙼𝙴𝚂𝚂𝙰𝙶𝙴: [${original.mediaType.toUpperCase()} FILE]`;
         }
 
         await sock.sendMessage(ownerNumber, {
             text,
-            mentions: [deletedBy, sender]
+            mentions: [sender, deletedBy]
         });
 
         // Media sending
         if (original.mediaType && fs.existsSync(original.mediaPath)) {
             const mediaOptions = {
-                caption: `*Deleted ${original.mediaType}*\nFrom: @${senderName}`,
-                mentions: [sender]
+                caption: `🔮 𝙳𝙴𝙻𝙴𝚃𝙴𝙳 ${original.mediaType.toUpperCase()}!\nFrom: @${senderName}\nDeleted by: @${deletedBy.split('@')[0]}`,
+                mentions: [sender, deletedBy]
             };
 
             try {
