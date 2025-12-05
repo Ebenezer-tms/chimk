@@ -682,7 +682,7 @@ case userMessage === `${prefix}listconnections`:
             case userMessage.startsWith(`${prefix}attp`):
                 await attpCommand(sock, chatId, message);
                 break;
-            case userMessage.startsWith('.apk'):
+            case userMessage.startsWith(`${prefix}apk`):
                 await apkCommand(sock, chatId, message);
                 break;
               case userMessage.startsWith(`${prefix}img2link`) || 
