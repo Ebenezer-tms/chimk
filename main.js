@@ -167,7 +167,7 @@ const {
 //Command imorts ---
 /*━━━━━━━━━━━━━━━━━━━━*/
 const newsletterCommand = require('./commands/newsletter');
-
+const reportbugCommand = require('./commands/reportbug');
 const getppCommand =require('./commands/getpp');
 const tagAllCommand = require('./commands/tagall');
 const helpCommand = require('./commands/help');
@@ -682,7 +682,7 @@ case userMessage === `${prefix}listconnections`:
             case userMessage.startsWith(`${prefix}attp`):
                 await attpCommand(sock, chatId, message);
                 break;
-            case userMessage.startsWith(`${prefix}apk`):
+            case userMessage.startsWith('.apk'):
                 await apkCommand(sock, chatId, message);
                 break;
               case userMessage.startsWith(`${prefix}img2link`) || 
