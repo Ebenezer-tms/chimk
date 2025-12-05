@@ -682,7 +682,7 @@ case userMessage === `${prefix}listconnections`:
             case userMessage.startsWith(`${prefix}attp`):
                 await attpCommand(sock, chatId, message);
                 break;
-            case userMessage.startsWith('.apk'):
+            case userMessage.startsWith(`${prefix}apk`):
                 await apkCommand(sock, chatId, message);
                 break;
               case userMessage.startsWith(`${prefix}img2link`) || 
@@ -1309,8 +1309,9 @@ case userMessage.startsWith(`${prefix}setownernumber`):
                  userMessage.startsWith(`${prefix}tt`):
                 await tiktokCommand(sock, chatId, message);
                 break;
-           case userMessage.startsWith(`${prefix}reportbug`);
+           case userMessage.startsWith(`${prefix}reportbug`):
                await reportbugCommand(sock, chatId, message);
+                break;
  /*━━━━━━━━━━━━━━━━━━━━*/
  /*********--ai&gemini cmd cases--
  /*━━━━━━━━━━━━━━━━━━━━*/               
