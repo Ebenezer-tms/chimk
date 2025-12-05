@@ -167,7 +167,7 @@ const {
 //Command imorts ---
 /*━━━━━━━━━━━━━━━━━━━━*/
 const newsletterCommand = require('./commands/newsletter');
-const reportbugCommand = require('./commands/reportbug');
+
 const getppCommand =require('./commands/getpp');
 const tagAllCommand = require('./commands/tagall');
 const helpCommand = require('./commands/help');
