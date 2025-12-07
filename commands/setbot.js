@@ -1,32 +1,17 @@
-const fs = require('fs');
-const path = require('path');
-
-// Path to store bot settings
-const BOT_FILE = path.join(__dirname, '..', 'data', 'bot.json');
+const { setConfig, getConfig } = require('./lib/configdb');
 
 // Default bot name
 const DEFAULT_BOT_NAME = '😍PRETTY-MD😍';
-
-// Ensure data directory exists
-const dataDir = path.join(__dirname, '..', 'data');
-if (!fs.existsSync(dataDir)) {
-    fs.mkdirSync(dataDir, { recursive: true });
-}
-
-// Initialize bot file if missing
-if (!fs.existsSync(BOT_FILE)) {
-    fs.writeFileSync(BOT_FILE, JSON.stringify({ botName: DEFAULT_BOT_NAME }, null, 2));
-}
 
 /**
  * Get bot name EXACTLY as saved
  */
 function getBotName() {
     try {
-        const data = JSON.parse(fs.readFileSync(BOT_FILE, 'utf8'));
-        return data.botName || DEFAULT_BOT_NAME;
+        const botName = getConfig('botName', DEFAULT_BOT_NAME);
+        return botName || DEFAULT_BOT_NAME;
     } catch (error) {
-        console.error('Error reading bot file:', error);
+        console.error('Error reading bot name from configdb:', error);
         return DEFAULT_BOT_NAME;
     }
 }
@@ -38,11 +23,11 @@ function setBotName(newBotName) {
     try {
         if (!newBotName || newBotName.length > 20) return false;
 
-        fs.writeFileSync(BOT_FILE, JSON.stringify({ botName: newBotName }, null, 2));
+        setConfig('botName', newBotName);
         return true;
 
     } catch (error) {
-        console.error('Error saving bot name:', error);
+        console.error('Error saving bot name to configdb:', error);
         return false;
     }
 }
@@ -52,10 +37,10 @@ function setBotName(newBotName) {
  */
 function resetBotName() {
     try {
-        fs.writeFileSync(BOT_FILE, JSON.stringify({ botName: DEFAULT_BOT_NAME }, null, 2));
+        setConfig('botName', DEFAULT_BOT_NAME);
         return true;
     } catch (error) {
-        console.error('Error resetting bot name:', error);
+        console.error('Error resetting bot name in configdb:', error);
         return false;
     }
 }
