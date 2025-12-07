@@ -1,4 +1,4 @@
-const { setConfig, getConfig } = require('./lib/configdb');
+const { setConfig, getConfig } = require('../lib/configdb.js');
 
 // Default bot name
 const DEFAULT_BOT_NAME = '😍PRETTY-MD😍';
