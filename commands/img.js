@@ -1,77 +1,158 @@
 const axios = require('axios');
 const { applyMediaWatermark } = require('./setwatermark');
 
+// Create fake contact for enhanced replies
 function createFakeContact(message) {
-    const participant = message?.key?.participant || message?.key?.remoteJid || "0@s.whatsapp.net";
-    return {
-        key: {
-            participants: "0@s.whatsapp.net",
-            remoteJid: "status@broadcast",
-            fromMe: false,
-            id: "JUNE-MD-MENU"
-        },
-        message: {
-            contactMessage: {
-                vcard: `BEGIN:VCARD\nVERSION:3.0\nN:Sy;Bot;;;\nFN:JUNE MD\nitem1.TEL;waid=${participant.split('@')[0]}:${participant.split('@')[0]}\nitem1.X-ABLabel:Ponsel\nEND:VCARD`
-            }
-        },
-        participant: "0@s.whatsapp.net"
-    };
+return {
+key: {
+participants: "0@s.whatsapp.net",
+remoteJid: "status@broadcast",
+fromMe: false,
+id: "JUNE-MD-MENU"
+},
+message: {
+contactMessage: {
+vcard: BEGIN:VCARD\nVERSION:3.0\nN:Sy;Bot;;;\nFN:JUNE MD\nitem1.TEL;waid=${message.key.participant?.split('@')[0] || message.key.remoteJid.split('@')[0]}:${message.key.participant?.split('@')[0] || message.key.remoteJid.split('@')[0]}\nitem1.X-ABLabel:Ponsel\nEND:VCARD
+}
+},
+participant: "0@s.whatsapp.net"
+};
+}
+
+async function searchImagesFromAPI(query, apiUrl) {
+try {
+const response = await axios.get(apiUrl, {
+timeout: 15000,
+headers: {
+'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+}
+});
+
+const data = response.data;  
+    let images = [];  
+
+    // Handle MrFrank API structure  
+    if (apiUrl.includes('mrfrankofc')) {  
+        if (data.status === true && data.result && Array.isArray(data.result)) {  
+            images = data.result;  
+        } else if (data.data && Array.isArray(data.data)) {  
+            images = data.data;  
+        }  
+    }  
+    // Handle David Cyril API structure (fallback)  
+    else if (apiUrl.includes('davidcyriltech')) {  
+        if (data.success && data.results && Array.isArray(data.results)) {  
+            images = data.results;  
+        }  
+    }  
+
+    return images;  
+} catch (error) {  
+    console.error(`API ${apiUrl} error:`, error.message);  
+    return [];  
+}
+
 }
 
 async function imgCommand(sock, chatId, senderId, message, userMessage) {
-    try {
-        const fake = createFakeContact(message);
-        const args = userMessage.split(' ').slice(1);
-        const query = args.join(' ');
-        if (!query) {
-            return await sock.sendMessage(chatId, {
-                text: `🖼️ Usage:\n${getPrefix()}img <search_query>\nExample: ${getPrefix()}img cute cats`
-            }, { quoted: fake });
-        }
+try {
+const fake = createFakeContact(message);
 
-        await sock.sendMessage(chatId, {
-            text: `🔍 Searching images for "${query}"...`
-        }, { quoted: fake });
+const args = userMessage.split(' ').slice(1);  
+    const query = args.join(' ');  
 
-        const apiUrl = `https://api.mrfrankofc.gleeze.com/api/search/image?q=${encodeURIComponent(query)}`;
-        const response = await axios.get(apiUrl, { timeout: 15000 });
-        const images = response.data?.result || response.data?.data || [];
+    if (!query) {  
+        return await sock.sendMessage(chatId, {  
+            text: `🖼️ *Image Search Command*\n\nUsage:\n${getPrefix()}img <search_query>\n\nExample:\n${getPrefix()}img cute cats\n${getPrefix()}img nature landscape`  
+        }, { quoted: fake });  
+    }  
 
-        if (!Array.isArray(images) || images.length === 0) {
-            return await sock.sendMessage(chatId, {
-                text: '❌ No images found for your query.'
-            }, { quoted: fake });
-        }
+    await sock.sendMessage(chatId, {  
+        text: `🔍 Searching images for "${query}"...`  
+    }, { quoted: fake });  
 
-        const imagesToSend = images.slice(0, 5);
-        for (let i = 0; i < imagesToSend.length; i++) {
-            const img = imagesToSend[i];
-            const imageUrl = typeof img === 'string' ? img : img.url || img.link;
-            if (!imageUrl) continue;
+    // Try multiple APIs with fallback  
+    const apis = [  
+        `https://api.mrfrankofc.gleeze.com/api/search/image?q=${encodeURIComponent(query)}`,  
+    ];  
 
-            const caption = applyMediaWatermark(
-                `🖼️ *Image Search*\nQuery: ${query}\nImage: ${i + 1}/${imagesToSend.length}\nAPI: MrFrank`
-            );
+    let images = [];  
+    let usedAPI = '';  
 
-            await sock.sendMessage(chatId, { image: { url: imageUrl }, caption }, { quoted: fake });
-            await new Promise(res => setTimeout(res, 1500));
-        }
+    for (const apiUrl of apis) {  
+        images = await searchImagesFromAPI(query, apiUrl);  
+        if (images.length > 0) {  
+            usedAPI = apiUrl.includes('mrfrankofc') ? 'MrFrank API' : 'David Cyril API';  
+            break;  
+        }  
+    }  
 
-        await sock.sendMessage(chatId, {
-            text: `✅ Sent ${imagesToSend.length} images for "${query}" (Total found: ${images.length})`
-        }, { quoted: fake });
+    if (images.length === 0) {  
+        return await sock.sendMessage(chatId, {  
+            text: '❌ No images found for your query. Try different keywords.'  
+        }, { quoted: fake });  
+    }  
 
-    } catch (error) {
-        console.error('Image Search Error:', error.message);
-        const fake = createFakeContact(message);
-        await sock.sendMessage(chatId, { text: '❌ Failed to process command.' }, { quoted: fake });
-    }
+    const imagesToSend = images.slice(0, 5);  
+    let sentCount = 0;  
+
+    for (const image of imagesToSend) {  
+        try {  
+            let imageUrl = '';  
+              
+            if (typeof image === 'string') {  
+                imageUrl = image;  
+            } else if (image.url) {  
+                imageUrl = image.url;  
+            } else if (image.link) {  
+                imageUrl = image.link;  
+            }  
+
+            if (!imageUrl) continue;  
+
+            const caption = applyMediaWatermark(  
+                `🖼️ *Image Search* 🖼️\n\n` +  
+                `📝 *Query:* ${query}\n` +  
+                `📊 *Image:* ${sentCount + 1}/${imagesToSend.length}\n` +  
+                `🔧 *API:* ${usedAPI}`  
+            );  
+
+            await sock.sendMessage(chatId, {  
+                image: { url: imageUrl },  
+                caption: caption  
+            }, { quoted: fake });  
+
+            sentCount++;  
+            await new Promise(resolve => setTimeout(resolve, 1500));  
+              
+        } catch (imageError) {  
+            console.error('Error sending image:', imageError);  
+        }  
+    }  
+
+    if (sentCount > 0) {  
+        await sock.sendMessage(chatId, {  
+            text: `✅ Successfully sent ${sentCount} images for "${query}"\n\n📸 *Total Found:* ${images.length} images\n🔧 *Source:* ${usedAPI}`  
+        }, { quoted: fake });  
+    }  
+
+} catch (error) {  
+    console.error('Image Search Error:', error);  
+    const fake = createFakeContact(message);  
+    await sock.sendMessage(chatId, {  
+        text: '❌ Error searching for images. Please try again.'  
+    }, { quoted: fake });  
+}
+
 }
 
 function getPrefix() {
-    try { return require('./setprefix').getPrefix(); } 
-    catch { return '.'; }
+try {
+const { getPrefix } = require('./setprefix');
+return getPrefix();
+} catch (error) {
+return '.';
+}
 }
 
 module.exports = imgCommand;
