@@ -181,6 +181,7 @@ const { demoteCommand } = require('./commands/demote');
 const muteCommand = require('./commands/mute');
 const unmuteCommand = require('./commands/unmute');
 const stickerCommand = require('./commands/sticker');
+const imgCommand = require('./commands/img');
 
 /*━━━━━━━━━━━━━━━━━━━━*/
 const warnCommand = require('./commands/warn');
