@@ -30,7 +30,7 @@ async function githubCommand(sock, chatId, message) {
   const fkontak = createFakeContact(message);
     
 const pushname = message.pushName || "Unknown User";
-    const res = await fetch('https://api.github.com/repos/vinpink2/June-md');
+    const res = await fetch('https://api.github.com/repos/superstar-zimtk/pretty-md');
     if (!res.ok) throw new Error('Error fetching repository data');
     const json = await res.json();
 
