@@ -110,10 +110,7 @@ async function imgCommand(sock, chatId, senderId, message, userMessage) {
                 if (!imageUrl) continue;
 
                 const caption = applyMediaWatermark(
-                    `🖼️ *Image Search* 🖼️\n\n` +
-                    `📝 *Query:* ${query}\n` +
-                    `📊 *Image:* ${sentCount + 1}/${imagesToSend.length}\n` +
-                    `🔧 *API:* ${usedAPI}`
+                    `${query}\n`
                 );
 
                 await sock.sendMessage(chatId, {
@@ -131,7 +128,7 @@ async function imgCommand(sock, chatId, senderId, message, userMessage) {
 
         if (sentCount > 0) {
             await sock.sendMessage(chatId, {
-                text: `✅ Successfully sent ${sentCount} images for "${query}"\n\n📸 *Total Found:* ${images.length} images\n🔧 *Source:* ${usedAPI}`
+                text: `✅ Successfully sent ${sentCount} images for "${query}"\n\n📸 *Total Found:* ${images.length} images`
             }, { quoted: fake });
         }
 
