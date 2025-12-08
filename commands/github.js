@@ -47,7 +47,7 @@ const pushname = message.pushName || "Unknown User";
     txt += `@${pushname} Don't forget to fork and star my repo`;
 
     // Use the local asset image
-    const imgPath = path.join(__dirname, '');
+    const imgPath = path.join(__dirname, '../assets/IMG-20251114-WA0002.jpg');
     const imgBuffer = fs.readFileSync(imgPath);
 
     /*await sock.sendMessage(chatId, { image: imgBuffer, caption: txt }, { quoted: message });*/
