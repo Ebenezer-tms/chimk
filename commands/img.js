@@ -72,7 +72,7 @@ async function imgCommand(sock, chatId, senderId, message, userMessage) {
 
         // Try multiple APIs with fallback
         const apis = [
-            `https://api.mrfrankofc.gleeze.com/api/search/image?q=${encodeURIComponent(query)}`,
+            `https://api.mrfrankofc.gleeze.com/api/images?query=${encodeURIComponent(query)}`,
         ];
 
         let images = [];
