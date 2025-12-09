@@ -39,7 +39,7 @@ async function facebookCommand(sock, chatId, message) {
 
         // Helper to call API with retries and variants
         async function fetchFromApi(u) {
-            const apiUrl = `https://api.mrfrankofc.gleeze.com/api/d/facebook?=${encodeURIComponent(u)}`;
+            const apiUrl = `https://api.hanggts.xyz/download/facebook?url=${encodeURIComponent(u)}`;
             return axios.get(apiUrl, {
                 timeout: 40000,
                 headers: {
