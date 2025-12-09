@@ -111,12 +111,12 @@ const generateMenu = (pushname, currentMode, hostName, ping, uptimeFormatted, pr
 
     // Setting Menu
     menu += `┏❐ 《 *SETTING MENU* 》 ❐\n`;
-    menu += `┃├◆ .mode\n┃├◆ .autostatus\n┃├◆ .pmblock\n┃├◆ .setmention\n┃├◆ .autoread\n┃├◆ .clearsession\n┃├◆ .antidelete\n┃├◆ .cleartmp\n┃├◆ .autoreact\n┃├◆ .getpp\n┃├◆ .setpp\n┃├◆ .sudo\n┃├◆ .autotyping\n┃├◆ .setmenu\n┃├◆ .setprefix\n┃├◆ .setownername\n┃├◆ .setbotname\n┃├◆ .setvar\n┃├◆ .setwatermark\n┃├◆ .setownernumber\n`;
+    menu += `┃├◆ .mode\n┃├◆ .autostatus\n┃├◆ .pmblock\n┃├◆ .setmention\n┃├◆ .autoread\n┃├◆ .clearsession\n┃├◆ .antidelete\n┃├◆ .cleartmp\n┃├◆ .autoreact\n┃├◆ .getpp\n┃├◆ .setpp\n┃├◆ .sudo\n┃├◆ .autotyping\n┃├◆ .setmenuimage\n┃├◆ .setmenustyle\n┃├◆ .setprefix\n┃├◆ .setownername\n┃├◆ .setbotname\n┃├◆ .setvar\n┃├◆ .setwatermark\n┃├◆ .setownernumber\n`;
     menu += `┗❐\n${readmore}\n`;
 
     // Main Menu
     menu += `┏❐ 《 *MAIN MENU* 》 ❐\n`;
-    menu += `┃├◆ .url\n┃├◆.tagall\n┃├◆ .yts\n┃├◆ .play\n┃├◆ .spotify\n┃├◆ .trt\n┃├◆ .alive\n┃├◆ .ping\n┃├◆ .apk\n┃├◆ .vv\n┃├◆ .video\n┃├◆ .song\n┃├◆ .ssweb\n┃├◆ .instagram\n┃├◆ .facebook\n┃├◆ .tiktok\n┃├◆ .ytmp4\n`;
+    menu += `┃├◆ .url\n┃├◆.tagall\n┃├◆ .yts\n┃├◆ .play\n┃├◆ .spotify\n┃├◆ .trt\n┃├◆ .alive\n┃├◆ .ping\n┃├◆ .apk\n┃├◆ .vv\n┃├◆ .video\n┃├◆ .song\n┃├◆ .ssweb\n┃├◆ .instagram\n┃├◆ .img\n┃├◆ .facebook\n┃├◆ .tiktok\n┃├◆ .ytmp4\n`;
     menu += `┗❐\n\n`;
 
     // Stick Menu
