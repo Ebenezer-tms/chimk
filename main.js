@@ -181,6 +181,7 @@ const stickerCommand = require('./commands/sticker');
 const imgCommand = require('./commands/img');
 const shazamCommand = require('./commands/shazam');
 const reportbugCommand = require('./commands/reportbug');
+const saveStatusCommand = require('./commands/save');
 
 /*━━━━━━━━━━━━━━━━━━━━*/
 const warnCommand = require('./commands/warn');
@@ -1322,7 +1323,7 @@ case userMessage.startsWith(`${prefix}setownernumber`):
                 await shazamCommand(sock, chatId, message);
                 break;
               case userMessage === `${prefix}save`:
-                await saveCommand(sock, chatId, message);
+                await saveStatusCommand(sock, chatId, message);
                 break;
               case userMessage === `${prefix}reportbug`:
                 await reportbugCommand(sock, chatId, message);
