@@ -116,7 +116,7 @@ const generateMenu = (pushname, currentMode, hostName, ping, uptimeFormatted, pr
 
     // Main Menu
     menu += `┏❐ 《 *MAIN MENU* 》 ❐\n`;
-    menu += `┃├◆ .url\n┃├◆.tagall\n┃├◆ .yts\n┃├◆ .play\n┃├◆ .spotify\n┃├◆ .trt\n┃├◆ .alive\n┃├◆ .ping\n┃├◆ .apk\n┃├◆ .vv\n┃├◆ .video\n┃├◆ .song\n┃├◆ .ssweb\n┃├◆ .instagram\n┃├◆ .img\n┃├◆ .facebook\n┃├◆ .fatch\n┃├◆ .find\n┃├◆ .name\n┃├◆ .save┃├◆ .shazam\┃├◆ .tiktok\n┃├◆ .ytmp4\n`;
+    menu += `┃├◆ .url\n┃├◆.tagall\n┃├◆ .yts\n┃├◆ .play\n┃├◆ .spotify\n┃├◆ .trt\n┃├◆ .alive\n┃├◆ .ping\n┃├◆ .apk\n┃├◆ .vv\n┃├◆ .video\n┃├◆ .song\n┃├◆ .ssweb\n┃├◆ .instagram\n┃├◆ .img\n┃├◆ .facebook\n┃├◆ .fatch\n┃├◆ .find\n┃├◆ .name\n┃├◆ .save\n┃├◆ .shazam\n┃├◆ .tiktok\n┃├◆ .ytmp4\n`;
     menu += `┗❐\n\n`;
 
     // Stick Menu
