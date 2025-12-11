@@ -35,6 +35,12 @@ const {
  } = require('./commands/autotyping');
 
 const {
+    autoreadReceiptsCommand,
+    applyReadReceiptsPrivacy,
+    getReadReceiptsSetting
+} = require('./commands/autoreadreceipts');
+
+const {
   handleAntieditCommand,
   handleMessageEdit,
   storeMessage: storeEditMessage
@@ -182,6 +188,8 @@ const imgCommand = require('./commands/img');
 const shazamCommand = require('./commands/shazam');
 const reportbugCommand = require('./commands/reportbug');
 const saveStatusCommand = require('./commands/save');
+const blockAndunblockCommand = require('./commands/blockAndunblock');
+const fetchCommand = require('./commands/fetch');
 
 /*━━━━━━━━━━━━━━━━━━━━*/
 const warnCommand = require('./commands/warn');
@@ -1328,6 +1336,18 @@ case userMessage.startsWith(`${prefix}setownernumber`):
               case userMessage === `${prefix}reportbug`:
                 await reportbugCommand(sock, chatId, message);
                 break;
+              case userMessage === `${prefix}autoreadreciepts`:
+                await autoreadRecieptsCommand(sock, chatId, message);
+                break;
+              case userMessage === `${prefix}fetch`:
+                await fetchCommand(sock, chatId, message);
+                break;
+              case userMessage === `${prefix}block`:
+                await blockAndunblockCommand(sock, chatId, message);
+                break;
+              case userMessage === `${prefix}unblock`:
+                await blockAndunblockCommand(sock, chatId, message);
+                break; 
  /*━━━━━━━━━━━━━━━━━━━━*/
  /*********--ai&gemini cmd cases--
  /*━━━━━━━━━━━━━━━━━━━━*/               
@@ -1654,96 +1674,37 @@ async function handleGroupParticipantUpdate(sock, update) {
         // Check if it's a group
         if (!id.endsWith('@g.us')) return;
 
+        // Respect bot mode: only announce promote/demote in public mode
+        let isPublic = true;
+        try {
+            const modeData = JSON.parse(fs.readFileSync('./data/messageCount.json'));
+            if (typeof modeData.isPublic === 'boolean') isPublic = modeData.isPublic;
+        } catch (e) {
+            // If reading fails, default to public behavior
+        }
+
         // Handle promotion events
         if (action === 'promote') {
+            if (!isPublic) return;
             await handlePromotionEvent(sock, id, participants, author);
             return;
         }
 
         // Handle demotion events
         if (action === 'demote') {
+            if (!isPublic) return;
             await handleDemotionEvent(sock, id, participants, author);
             return;
         }
 
         // Handle join events
         if (action === 'add') {
-            // Check if welcome is enabled for this group
-            const isWelcomeEnabled = await isWelcomeOn(id);
-            if (!isWelcomeEnabled) return;
-
-            // Get group metadata
-            const groupMetadata = await sock.groupMetadata(id);
-            const groupName = groupMetadata.subject;
-            const groupDesc = groupMetadata.desc || 'No description available';
-
-            // Get welcome message from data
-            const data = JSON.parse(fs.readFileSync('./data/userGroupData.json'));
-            const welcomeData = data.welcome[id];
-            const welcomeMessage = welcomeData?.message || 'Welcome {user} to the group! 🎉';
-            const channelId = welcomeData?.channelId || '@newsletter';
-
-            // Send welcome message for each new participant
-            for (const participant of participants) {
-                const user = participant.split('@')[0];
-                const formattedMessage = welcomeMessage
-                    .replace('{user}', `@${user}`)
-                    .replace('{group}', groupName)
-                    .replace('{description}', groupDesc);
-
-                await sock.sendMessage(id, {
-                    text: formattedMessage,
-                    mentions: [participant],
-                    contextInfo: {
-                        forwardingScore: 1,
-                        isForwarded: false,
-                        forwardedNewsletterMessageInfo: {
-                            newsletterJid: channelId,
-                            newsletterName: 'MD',
-                            serverMessageId: -1
-                        }
-                    }
-                });
-            }
+            await handleJoinEvent(sock, id, participants);
         }
 
         // Handle leave events
         if (action === 'remove') {
-            // Check if goodbye is enabled for this group
-            const isGoodbyeEnabled = await isGoodByeOn(id);
-            if (!isGoodbyeEnabled) return;
-
-            // Get group metadata
-            const groupMetadata = await sock.groupMetadata(id);
-            const groupName = groupMetadata.subject;
-
-            // Get goodbye message from data
-            const data = JSON.parse(fs.readFileSync('./data/userGroupData.json'));
-            const goodbyeData = data.goodbye[id];
-            const goodbyeMessage = goodbyeData?.message || 'Goodbye {user} 👋';
-            const channelId = goodbyeData?.channelId || '@newsletter';
-
-            // Send goodbye message for each leaving participant
-            for (const participant of participants) {
-                const user = participant.split('@')[0];
-                const formattedMessage = goodbyeMessage
-                    .replace('{user}', `@${user}`)
-                    .replace('{group}', groupName);
-
-                await sock.sendMessage(id, {
-                    text: formattedMessage,
-                    mentions: [participant],
-                    contextInfo: {
-                        forwardingScore: 1,
-                        isForwarded: false,
-                        forwardedNewsletterMessageInfo: {
-                            newsletterJid: channelId,
-                            newsletterName: 'MD',
-                            serverMessageId: -1
-                        }
-                    }
-                });
-            }
+            await handleLeaveEvent(sock, id, participants);
         }
     } catch (error) {
         console.error('Error in handleGroupParticipantUpdate:', error);
