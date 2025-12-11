@@ -163,9 +163,6 @@ const {
    closetimeCommand, 
    tagadminCommand 
 } = require('./commands/grouptime');
-const { 
-   reportbug
-} = require('./commands/reportbug');
 
  
 /*━━━━━━━━━━━━━━━━━━━━*/
@@ -183,6 +180,7 @@ const unmuteCommand = require('./commands/unmute');
 const stickerCommand = require('./commands/sticker');
 const imgCommand = require('./commands/img');
 const shazamCommand = require('./commands/shazam');
+const reportbugCommand = require('./commands/reportbug);
 
 /*━━━━━━━━━━━━━━━━━━━━*/
 const warnCommand = require('./commands/warn');
@@ -804,11 +802,7 @@ case userMessage === `${prefix}listconnections`:
      userMessage.startsWith(`${prefix}searchimg`):
     await imgCommand(sock, chatId, senderId, message, userMessage);
     break;
-           case userMessage.startsWith(`${prefix}shazam`) || 
-     userMessage.startsWith(`${prefix}find`) ||
-     userMessage.startsWith(`${prefix}name`):
-   await shazamCommand(sock, chatId, senderId, message, userMessage
-     break;                  
+                     
                 
                 /*━━━━━━━━━━━━━━━━━━━━*/
                 // GroupCommands------
@@ -1318,8 +1312,20 @@ case userMessage.startsWith(`${prefix}setownernumber`):
                  userMessage.startsWith(`${prefix}tt`):
                 await tiktokCommand(sock, chatId, message);
                 break;
-           case userMessage.startsWith(`${prefix}reportbug`):
-               await reportbugCommand(sock, chatId, message);
+           case userMessage === `${prefix}name`:
+                await shazamCommand(sock, chatId, message);
+                break;
+              case userMessage === `${prefix}find`:
+                await shazamCommand(sock, chatId, message);
+                break;
+           case userMessage === `${prefix}shazam`:
+                await shazamCommand(sock, chatId, message);
+                break;
+              case userMessage === `${prefix}save`:
+                await saveCommand(sock, chatId, message);
+                break;
+              case userMessage === `${prefix}reportbug`:
+                await reportbugCommand(sock, chatId, message);
                 break;
  /*━━━━━━━━━━━━━━━━━━━━*/
  /*********--ai&gemini cmd cases--
