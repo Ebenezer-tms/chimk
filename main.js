@@ -180,7 +180,7 @@ const unmuteCommand = require('./commands/unmute');
 const stickerCommand = require('./commands/sticker');
 const imgCommand = require('./commands/img');
 const shazamCommand = require('./commands/shazam');
-const reportbugCommand = require('./commands/reportbug);
+const reportbugCommand = require('./commands/reportbug');
 
 /*━━━━━━━━━━━━━━━━━━━━*/
 const warnCommand = require('./commands/warn');
