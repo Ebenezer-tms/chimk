@@ -96,7 +96,7 @@ const generateMenu = (pushname, currentMode, hostName, ping, uptimeFormatted, pr
 
     // Owner Menu
     menu += `┏❐ 《 *OWNER MENU* 》 ❐\n`;
-    menu += `┃├◆ .ban\n┃├◆ .restart\n┃├◆ .unban\n┃├◆.promote\n┃├◆ .demote\n┃├◆ .mute\n┃├◆ .unmute\n┃├◆ .delete\n┃├◆ .kick\n┃├◆ .warnings\n┃├◆ .antilink\n┃├◆ .antibadword\n┃├◆ .clear\n┃├◆ .chatbot\n`;
+    menu += `┃├◆ .autoreadreceipts\n┃├◆ .ban\n┃├◆ .block\n┃├◆ .restart\n┃├◆ .unban\n┃├◆ .unblock\n┃├◆.promote\n┃├◆ .delete\n┃├◆ .del\n┃├◆ .demote\n┃├◆ .mute\n┃├◆ .unmute\n┃├◆ .delete\n┃├◆ .kick\n┃├◆ .warnings\n┃├◆ .antilink\n┃├◆ .antibadword\n┃├◆ .clear\n┃├◆ .chatbot\n`;
     menu += `┗❐\n\n`;
 
     // Group Menu
@@ -116,7 +116,7 @@ const generateMenu = (pushname, currentMode, hostName, ping, uptimeFormatted, pr
 
     // Main Menu
     menu += `┏❐ 《 *MAIN MENU* 》 ❐\n`;
-    menu += `┃├◆ .url\n┃├◆.tagall\n┃├◆ .yts\n┃├◆ .play\n┃├◆ .spotify\n┃├◆ .trt\n┃├◆ .alive\n┃├◆ .ping\n┃├◆ .apk\n┃├◆ .vv\n┃├◆ .video\n┃├◆ .song\n┃├◆ .ssweb\n┃├◆ .instagram\n┃├◆ .img\n┃├◆ .facebook\n┃├◆ .tiktok\n┃├◆ .ytmp4\n`;
+    menu += `┃├◆ .url\n┃├◆.tagall\n┃├◆ .yts\n┃├◆ .play\n┃├◆ .spotify\n┃├◆ .trt\n┃├◆ .alive\n┃├◆ .ping\n┃├◆ .apk\n┃├◆ .vv\n┃├◆ .video\n┃├◆ .song\n┃├◆ .ssweb\n┃├◆ .instagram\n┃├◆ .img\n┃├◆ .facebook\n┃├◆ .fatch\n┃├◆ .find\n┃├◆ .name\n┃├◆ .save┃├◆ .shazam\┃├◆ .tiktok\n┃├◆ .ytmp4\n`;
     menu += `┗❐\n\n`;
 
     // Stick Menu
@@ -156,7 +156,7 @@ const generateMenu = (pushname, currentMode, hostName, ping, uptimeFormatted, pr
 
     //deploy Menu
     menu += `┏❐ 《 *GUIDE MENU* 》 ❐\n`;
-    menu += `┃├◆ .tutorial\n`
+    menu += `┃├◆ .tutorial\n┃├◆ .reportbug\n`
     menu += `┗❐`
     
     return menu;
