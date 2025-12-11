@@ -2,7 +2,7 @@ const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
 const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
-const UploadFileUgu = require('../lib/uploader');
+const { UploadFileUgu } = require('../lib/uploader');
 
 const DEBUG = true;
 
