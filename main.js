@@ -182,6 +182,7 @@ const muteCommand = require('./commands/mute');
 const unmuteCommand = require('./commands/unmute');
 const stickerCommand = require('./commands/sticker');
 const imgCommand = require('./commands/img');
+const shazamCommand = require('./commands/shazam');
 
 /*━━━━━━━━━━━━━━━━━━━━*/
 const warnCommand = require('./commands/warn');
@@ -803,7 +804,11 @@ case userMessage === `${prefix}listconnections`:
      userMessage.startsWith(`${prefix}searchimg`):
     await imgCommand(sock, chatId, senderId, message, userMessage);
     break;
-                
+           case userMessage.startsWith(`${prefix}shazam`) || 
+     userMessage.startsWith(`${prefix}find`) ||
+     userMessage.startsWith(`${prefix}name`):
+   await shazamCommand(sock, chatId, senderId, message, userMessage
+     break;                  
                 
                 /*━━━━━━━━━━━━━━━━━━━━*/
                 // GroupCommands------
