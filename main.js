@@ -190,6 +190,7 @@ const reportBugCommand = require('./commands/reportbug');
 const saveStatusCommand = require('./commands/save');
 const blockAndunblockCommand = require('./commands/blockAndunblock');
 const fetchCommand = require('./commands/fetch');
+const vcfCommand = require('./commands/vcf'); // Add this line
 
 /*━━━━━━━━━━━━━━━━━━━━*/
 const warnCommand = require('./commands/warn');
@@ -895,6 +896,26 @@ case userMessage.startsWith(`${prefix}tagadmin`) ||
         return;
     }
     await onlineCommand(sock, chatId, message);
+    commandExecuted = true;
+    break;
+   case userMessage === `${prefix}vcf`:
+    if (!isGroup) {
+        await sock.sendMessage(chatId, { 
+            text: '❌ This command can only be used in groups!' 
+        }, { quoted: message });
+        return;
+    }
+    
+    // Check admin status if you want to restrict to admins
+    const adminStatus = await isAdmin(sock, chatId, senderId);
+    if (!adminStatus.isSenderAdmin && !message.key.fromMe && !senderIsSudo) {
+        await sock.sendMessage(chatId, { 
+            text: '❌ Only group admins can export contacts!' 
+        }, { quoted: message });
+        return;
+    }
+    
+    await vcfCommand(sock, chatId, message);
     commandExecuted = true;
     break;
                 
