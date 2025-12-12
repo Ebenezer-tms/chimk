@@ -18,7 +18,7 @@ async function pingCommand(sock, chatId, message) {
     // Generate highly accurate and detailed 3-decimal ping
     const detailedPing = generatePrecisePing(ping);
     
-    const response = `*${newBot}:* ${detailedPing} ms`;
+    const response = `*${newBot} Speed:* ${detailedPing} ms`;
 
     await sock.sendMessage(chatId, {
       text: response,
