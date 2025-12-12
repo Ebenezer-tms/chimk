@@ -199,6 +199,7 @@ const warningsCommand = require('./commands/warnings');
 const ttsCommand = require('./commands/tts');
 const ownerCommand = require('./commands/owner');
 const deleteCommand = require('./commands/delete');
+const listonlineCommand = require('./commands/listonline');
 
 /*━━━━━━━━━━━━━━━━━━━━*/
 const memeCommand = require('./commands/meme');
@@ -1333,9 +1334,6 @@ case userMessage.startsWith(`${prefix}setownernumber`):
               case userMessage === `${prefix}save`:
                 await saveStatusCommand(sock, chatId, message);
                 break;
-              case userMessage === `${prefix}reportbug`:
-                await reportbugCommand(sock, chatId, message);
-                break;
               case userMessage === `${prefix}autoreadreciepts`:
                 await autoreadRecieptsCommand(sock, chatId, message);
                 break;
@@ -1347,7 +1345,27 @@ case userMessage.startsWith(`${prefix}setownernumber`):
                 break;
               case userMessage === `${prefix}unblock`:
                 await blockAndunblockCommand(sock, chatId, message);
-                break; 
+                break;
+              case userMessage === `${prefix}online` || 
+     userMessage === `${prefix}listonline` || 
+     userMessage === `${prefix}onlinelist`:
+    if (!isGroup) {
+        await sock.sendMessage(chatId, { text: 'This command can only be used in groups!', ...channelInfo }, { quoted: message });
+        return;
+    }
+    await listonlineCommand(sock, chatId, message);
+    commandExecuted = true;
+    break;
+
+   /*━━━━━━━━━━━━━━━━━━━━*/
+// Feedback & Report Commands
+/*━━━━━━━━━━━━━━━━━━━━*/
+case userMessage.startsWith(`${prefix}reportbug`):
+case userMessage.startsWith(`${prefix}bugreport`):
+case userMessage.startsWith(`${prefix}report`):
+    await reportBugCommand(sock, chatId, message, userMessage, settings);
+    commandExecuted = true;
+    break;
  /*━━━━━━━━━━━━━━━━━━━━*/
  /*********--ai&gemini cmd cases--
  /*━━━━━━━━━━━━━━━━━━━━*/               
