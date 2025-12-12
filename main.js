@@ -218,6 +218,7 @@ const kickCommand = require('./commands/kick');
 const simageCommand = require('./commands/simage');
 const attpCommand = require('./commands/attp');
 const { complimentCommand } = require('./commands/compliment');
+const onlineCommand = require('./commands/online');
 
 /*━━━━━━━━━━━━━━━━━━━━*/
 const { insultCommand } = require('./commands/insult');
@@ -884,6 +885,17 @@ case userMessage.startsWith(`${prefix}closetime`):
 case userMessage.startsWith(`${prefix}tagadmin`) || 
      userMessage.startsWith(`${prefix}tagadmins`):
     await tagadminCommand(sock, chatId, senderId, message, userMessage);
+    break;
+              case userMessage === `${prefix}online`:
+    if (!isGroup) {
+        await sock.sendMessage(chatId, { 
+            text: 'This command can only be used in groups!', 
+            ...channelInfo 
+        }, { quoted: message });
+        return;
+    }
+    await onlineCommand(sock, chatId, message);
+    commandExecuted = true;
     break;
                 
                 /*━━━━━━━━━━━━━━━━━━━━*/
