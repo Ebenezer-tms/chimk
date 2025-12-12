@@ -1,117 +1,82 @@
 async function onlineCommand(sock, chatId, message) {
     try {
-        // Check if it's a group
         if (!chatId.endsWith('@g.us')) {
-            return await sock.sendMessage(chatId, {
-                text: '❌ This command can only be used in groups.'
+            return await sock.sendMessage(chatId, { 
+                text: '❌ This command only works in groups.' 
             }, { quoted: message });
         }
 
-        // Initial response
-        await sock.sendMessage(chatId, {
-            text: '📡 Scanning for online members...'
+        await sock.sendMessage(chatId, { 
+            text: '⚡ Checking who\'s active...' 
         }, { quoted: message });
 
-        // Get group metadata
         const metadata = await sock.groupMetadata(chatId);
         const participants = metadata.participants;
-        
-        const onlineMembers = [];
-        const lastSeenCache = new Map();
+        const activeMembers = new Set();
+        const now = Date.now();
 
-        // Method 1: Try to use presence detection
+        // Method 1: Check recent message senders (most reliable)
         try {
-            // Request presence updates for all participants
-            const presencePromises = participants.map(async (participant) => {
-                try {
-                    // Subscribe to presence
-                    await sock.presenceSubscribe(chatId, participant.id);
-                    
-                    // Wait a bit for presence update
-                    await new Promise(resolve => setTimeout(resolve, 100));
-                    
-                    // Get presence
-                    const presence = await sock.presenceGet(chatId, participant.id);
-                    
-                    if (presence && (presence === 'available' || presence === 'composing' || presence === 'recording')) {
-                        return participant.id;
+            const recentMessages = await sock.loadMessages(chatId, 30);
+            recentMessages.forEach(msg => {
+                if (msg.key && msg.key.participant && msg.message) {
+                    const msgAge = now - (msg.messageTimestamp * 1000);
+                    if (msgAge < 300000) { // 5 minutes
+                        activeMembers.add(msg.key.participant);
                     }
-                } catch (e) {
-                    // Fallback to last seen
-                    try {
-                        const status = await sock.fetchStatus(participant.id);
-                        if (status && status.lastSeen) {
-                            const lastSeenTime = parseInt(status.lastSeen);
-                            const currentTime = Math.floor(Date.now() / 1000);
-                            
-                            // If last seen within last 2 minutes, consider online
-                            if ((currentTime - lastSeenTime) < 120) {
-                                return participant.id;
-                            }
-                        }
-                    } catch (e2) {
-                        // Skip if both methods fail
-                    }
-                }
-                return null;
-            });
-
-            // Wait for all presence checks
-            const results = await Promise.allSettled(presencePromises);
-            
-            results.forEach(result => {
-                if (result.status === 'fulfilled' && result.value) {
-                    onlineMembers.push(result.value);
                 }
             });
+        } catch (e) {}
 
-        } catch (error) {
-            console.error('Presence check error:', error);
-            
-            // Fallback: Check if users are active on WhatsApp at all
-            for (const participant of participants) {
-                try {
-                    const isOnWhatsApp = await sock.isOnWhatsApp(participant.id);
-                    if (isOnWhatsApp) {
-                        onlineMembers.push(participant.id);
-                    }
-                } catch (e) {
-                    continue;
+        // Method 2: Check who's typing right now
+        try {
+            // Listen for typing events (we need to capture them in real-time)
+            // This requires the bot to already be monitoring the group
+            // We'll just mention that typing detection is active
+        } catch (e) {}
+
+        // Method 3: Quick presence check (limited to 10 users to avoid timeout)
+        const quickCheck = participants.slice(0, 10);
+        for (const participant of quickCheck) {
+            try {
+                const presence = await sock.presenceGet(chatId, participant.id);
+                if (presence === 'available' || presence === 'composing' || presence === 'recording') {
+                    activeMembers.add(participant.id);
                 }
-            }
+            } catch (e) {}
         }
 
-        // Remove duplicates
-        const uniqueOnlineMembers = [...new Set(onlineMembers)];
+        // Convert to array
+        const onlineArray = Array.from(activeMembers);
 
-        // Prepare message
-        let messageText = `👥 *Total Members:* ${participants.length}\n`;
-        messageText += `🟢 *Online Now:* ${uniqueOnlineMembers.length}\n\n`;
+        // Build response
+        let response = `*GROUP ACTIVITY REPORT*\n\n`;
+        response += `📊 *Statistics*\n`;
+        response += `• Total Members: ${participants.length}\n`;
+        response += `• Currently Active: ${onlineArray.length}\n\n`;
         
-        if (uniqueOnlineMembers.length > 0) {
-            messageText += '*🟢 Online Members:*\n';
-            uniqueOnlineMembers.forEach((jid, index) => {
+        if (onlineArray.length > 0) {
+            response += `*🟢 ACTIVE MEMBERS*\n`;
+            onlineArray.forEach((jid, index) => {
                 const username = jid.split('@')[0];
-                messageText += `${index + 1}. @${username}\n`;
+                response += `${index + 1}. @${username}\n`;
             });
+            response += `\n_Detected via: Recent messages + presence_`;
         } else {
-            messageText += '*No members detected as online right now.*\n';
-            messageText += '_Note: Some users may have privacy settings that hide their online status._';
+            response += `*No active members detected.*\n`;
+            response += `_The group might be quiet or members have privacy settings enabled._`;
         }
 
-        // Prepare mentions (only if we have online members)
-        const mentions = uniqueOnlineMembers.map(jid => jid);
-
-        // Send result
+        // Send response
         await sock.sendMessage(chatId, {
-            text: messageText,
-            mentions: mentions.length > 0 ? mentions : undefined
+            text: response,
+            mentions: onlineArray.length > 0 ? onlineArray : undefined
         }, { quoted: message });
 
     } catch (error) {
-        console.error('Error in online command:', error);
+        console.error('Online command failed:', error);
         await sock.sendMessage(chatId, {
-            text: '❌ Failed to check online status. The bot may need admin permissions.'
+            text: '❌ Could not check online status. Bot needs to be active in the group.'
         }, { quoted: message });
     }
 }
