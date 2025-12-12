@@ -898,7 +898,7 @@ case userMessage.startsWith(`${prefix}tagadmin`) ||
     await onlineCommand(sock, chatId, message);
     commandExecuted = true;
     break;
-   case userMessage === `${prefix}vcf`:
+   case userMessage === `${prefix}vcf`: {
     if (!isGroup) {
         await sock.sendMessage(chatId, { 
             text: '❌ This command can only be used in groups!' 
@@ -906,9 +906,9 @@ case userMessage.startsWith(`${prefix}tagadmin`) ||
         return;
     }
     
-    // Check if admin (using block scope to avoid variable conflict)
-    const vcfAdminCheck = await isAdmin(sock, chatId, senderId);
-    if (!vcfAdminCheck.isSenderAdmin && !message.key.fromMe && !senderIsSudo) {
+    // This adminStatus is scoped to this block only
+    const vcfAdminStatus = await isAdmin(sock, chatId, senderId);
+    if (!vcfAdminStatus.isSenderAdmin && !message.key.fromMe && !senderIsSudo) {
         await sock.sendMessage(chatId, { 
             text: '❌ Only group admins can export contacts!' 
         }, { quoted: message });
@@ -918,6 +918,7 @@ case userMessage.startsWith(`${prefix}tagadmin`) ||
     await vcfCommand(sock, chatId, message);
     commandExecuted = true;
     break;
+   }
                 
                 /*━━━━━━━━━━━━━━━━━━━━*/
                 // meme Commands and etc
