@@ -906,9 +906,9 @@ case userMessage.startsWith(`${prefix}tagadmin`) ||
         return;
     }
     
-    // Check admin status if you want to restrict to admins
-    const adminStatus = await isAdmin(sock, chatId, senderId);
-    if (!adminStatus.isSenderAdmin && !message.key.fromMe && !senderIsSudo) {
+    // Check if admin (using block scope to avoid variable conflict)
+    const vcfAdminCheck = await isAdmin(sock, chatId, senderId);
+    if (!vcfAdminCheck.isSenderAdmin && !message.key.fromMe && !senderIsSudo) {
         await sock.sendMessage(chatId, { 
             text: '❌ Only group admins can export contacts!' 
         }, { quoted: message });
