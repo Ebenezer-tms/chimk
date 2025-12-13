@@ -1,3 +1,4 @@
+// help.js - Fixed version
 const settings = require('../settings');
 const fs = require('fs');
 const path = require('path');
@@ -284,6 +285,7 @@ async function sendMenuWithStyle(sock, chatId, message, menulist, menustyle, thu
                             mentionedJid: [message.key.participant || message.key.remoteJid],
                             externalAdReply: {
                                 showAdAttribution: false,
+                                thumbnail: tylorkids,
                             },
                         },
                     },
@@ -326,16 +328,32 @@ async function helpCommand(sock, chatId, message) {
     let menulist = generateMenu(pushname, currentMode, hostName, ping, uptimeFormatted);
     menulist = applyWatermark(menulist);
 
-    // Random thumbnail selection from local files
-    const thumbnailFiles = [
-        'menu.jpg',
-        'menu.jpg', 
-        'menu.jpg',
-        'menu.jpg',
-        'menu.jpg'
-    ];
-    const randomThumbFile = thumbnailFiles[Math.floor(Math.random() * thumbnailFiles.length)];
-    const thumbnailPath = path.join(__dirname, '../assets', randomThumbFile);
+    // FIXED: Always use the custom menu image (menu.jpg) from assets folder
+    const customMenuImagePath = path.join(__dirname, '../assets', 'menu.jpg');
+    let thumbnailPath = customMenuImagePath;
+
+    // If the custom menu image doesn't exist, use fallback images
+    if (!fs.existsSync(customMenuImagePath)) {
+        const fallbackFiles = [
+            'menu1.jpg',
+            'menu2.jpg', 
+            'menu3.jpg',
+            'menu4.jpg',
+            'menu5.jpg'
+        ];
+        
+        // Check for any existing fallback file
+        for (const fallbackFile of fallbackFiles) {
+            const fallbackPath = path.join(__dirname, '../assets', fallbackFile);
+            if (fs.existsSync(fallbackPath)) {
+                thumbnailPath = fallbackPath;
+                console.log(`Using fallback image: ${fallbackFile}`);
+                break;
+            }
+        }
+    } else {
+        console.log('Using custom menu image:', customMenuImagePath);
+    }
 
     // Send reaction
     await sock.sendMessage(chatId, {
