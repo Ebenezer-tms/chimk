@@ -191,6 +191,7 @@ const saveStatusCommand = require('./commands/save');
 const blockAndunblockCommand = require('./commands/blockAndunblock');
 const fetchCommand = require('./commands/fetch');
 const vcfCommand = require('./commands/vcf'); // Add this line
+const setGroupStatusCommand = require('./commands/togstatus'); // Add this line
 
 /*━━━━━━━━━━━━━━━━━━━━*/
 const warnCommand = require('./commands/warn');
@@ -654,6 +655,30 @@ case userMessage.startsWith(`${prefix}connect`):
 case userMessage === `${prefix}listconnected`:
 case userMessage === `${prefix}listconnections`:
     await listConnectedCommand(sock, chatId, senderId, message, prefix);
+    commandExecuted = true;
+    break;
+
+              case userMessage.startsWith(`${prefix}togstatus`) || 
+     userMessage.startsWith(`${prefix}swgc`) || 
+     userMessage.startsWith(`${prefix}groupstatus`):
+    
+    if (!isGroup) {
+        await sock.sendMessage(chatId, { 
+            text: '❌ This command only works in groups!' 
+        }, { quoted: message });
+        return;
+    }
+    
+    // Check admin status
+    const togAdminStatus = await isAdmin(sock, chatId, senderId);
+    if (!togAdminStatus.isSenderAdmin && !message.key.fromMe && !senderIsSudo) {
+        await sock.sendMessage(chatId, { 
+            text: '❌ Only group admins can use this command!' 
+        }, { quoted: message });
+        return;
+    }
+    
+    await setGroupStatusCommand(sock, chatId, message);
     commandExecuted = true;
     break;
                 
