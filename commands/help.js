@@ -204,7 +204,7 @@ async function sendMenuWithStyle(sock, chatId, message, menulist, menustyle, thu
     const botname = getBotName();
     const ownername = getOwnerName();
     const tylorkids = thumbnailBuffer;
-    const plink = "https://www.instagram.com/superstar_official10?igsh=NGlxeWVqajg2bGw3";
+    const plink = "https://github.com/superstar-zimtk/Pretty-md";
 
     if (menustyle === '4') {
         await sock.sendMessage(chatId, {
