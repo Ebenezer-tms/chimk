@@ -1,4 +1,4 @@
-// help.js - Fixed version with Instagram icon for style 3
+// help.js - Fixed version
 const settings = require('../settings');
 const fs = require('fs');
 const path = require('path');
@@ -198,60 +198,12 @@ function createFakeContact(message) {
     };
 }
 
-// Function to get Instagram icon (local or remote)
-async function getInstagramIcon() {
-    try {
-        // First, check for local Instagram icon in assets folder
-        const localInstagramPath = path.join(__dirname, '../assets', 'instagram.jpg');
-        if (fs.existsSync(localInstagramPath)) {
-            console.log('Using local Instagram icon from assets folder');
-            return fs.readFileSync(localInstagramPath);
-        }
-        
-        // If not found locally, use a high-quality Instagram icon URL
-        const instagramIconURL = "https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png";
-        
-        // Download the Instagram icon if not already cached
-        const cacheDir = path.join(__dirname, '../cache');
-        if (!fs.existsSync(cacheDir)) {
-            fs.mkdirSync(cacheDir, { recursive: true });
-        }
-        
-        const cachedPath = path.join(cacheDir, 'instagram_icon.png');
-        
-        // Check if we have a cached version
-        if (fs.existsSync(cachedPath)) {
-            console.log('Using cached Instagram icon');
-            return fs.readFileSync(cachedPath);
-        }
-        
-        // Download and cache the Instagram icon
-        console.log('Downloading Instagram icon...');
-        const axios = require('axios');
-        const response = await axios.get(instagramIconURL, { 
-            responseType: 'arraybuffer',
-            timeout: 10000
-        });
-        
-        fs.writeFileSync(cachedPath, Buffer.from(response.data, 'binary'));
-        console.log('Instagram icon downloaded and cached');
-        return Buffer.from(response.data, 'binary');
-        
-    } catch (error) {
-        console.error('Error getting Instagram icon:', error);
-        // Fallback: create a simple colored square with Instagram-like colors
-        return Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64');
-    }
-}
-
-// YOUR EXACT MENU STYLE FUNCTION WITH FIXED INSTAGRAM ICON FOR STYLE 3
+// YOUR EXACT MENU STYLE FUNCTION WITH FIXED tylorkids AND fkontak FOR ALL STYLES
 async function sendMenuWithStyle(sock, chatId, message, menulist, menustyle, thumbnailBuffer, pushname) {
     const fkontak = createFakeContact(message);
     const botname = getBotName();
     const ownername = getOwnerName();
     const tylorkids = thumbnailBuffer;
-    
-    // For style 3, use Instagram icon and link
     const plink = "https://www.instagram.com/superstar_official10?igsh=NGlxeWVqajg2bGw3";
 
     if (menustyle === '4') {
@@ -280,9 +232,6 @@ async function sendMenuWithStyle(sock, chatId, message, menulist, menustyle, thu
             text: menulist 
         }, { quoted: fkontak });
     } else if (menustyle === '3') {
-        // Get Instagram icon for the external ad
-        const instagramIcon = await getInstagramIcon();
-        
         await sock.sendMessage(chatId, {
             text: menulist,
             contextInfo: {
@@ -290,7 +239,7 @@ async function sendMenuWithStyle(sock, chatId, message, menulist, menustyle, thu
                     showAdAttribution: false,
                     title: botname,
                     body: ownername,
-                    thumbnail: instagramIcon, // Instagram icon here
+                    thumbnail: tylorkids,
                     sourceUrl: plink,
                     mediaType: 1,
                     renderLargerThumbnail: true,
