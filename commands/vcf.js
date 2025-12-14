@@ -3,120 +3,77 @@ const path = require('path');
 
 async function vcfCommand(sock, chatId, message) {
     try {
-        // Check if it's a group
-        if (!chatId.endsWith('@g.us')) {
-            return await sock.sendMessage(chatId, {
-                text: '❌ This command only works in groups!'
-            }, { quoted: message });
-        }
-
-        await sock.sendMessage(chatId, {
-            text: '📇 Creating VCF contacts file...'
-        }, { quoted: message });
-
         // Get group metadata
-        const metadata = await sock.groupMetadata(chatId);
-        const participants = metadata.participants;
-        const groupName = metadata.subject || 'WhatsApp Group';
+        const groupMetadata = await sock.groupMetadata(chatId);
+        const participants = groupMetadata.participants || [];
         
         // Validate group size
         if (participants.length < 2) {
-            return await sock.sendMessage(chatId, {
-                text: '❌ Group must have at least 2 members'
+            await sock.sendMessage(chatId, { 
+                text: "❌ Group must have at least 2 members" 
             }, { quoted: message });
+            return;
         }
-
+        
         if (participants.length > 1000) {
-            return await sock.sendMessage(chatId, {
-                text: '❌ Group is too large (max 1000 members)'
+            await sock.sendMessage(chatId, { 
+                text: "❌ Group is too large (max 1000 members)" 
             }, { quoted: message });
+            return;
         }
 
         // Generate VCF content
         let vcfContent = '';
-        let contactCount = 0;
-        
         participants.forEach(participant => {
-            try {
-                // Extract phone number from JID
-                const phoneNumber = participant.id.split('@')[0];
-                
-                // Validate phone number format (7-15 digits)
-                if (phoneNumber && phoneNumber.length >= 7 && phoneNumber.length <= 15) {
-                    const displayName = participant.notify || `User ${phoneNumber}`;
-                    const formattedPhone = `+${phoneNumber}`;
-                    
-                    vcfContent += `BEGIN:VCARD
-VERSION:3.0
-FN:🔥 ${displayName}
-TEL;TYPE=CELL:${formattedPhone}
-NOTE:From ${groupName}
-END:VCARD
-
-`;
-                    contactCount++;
-                }
-            } catch (error) {
-                // Skip invalid entries
-            }
+            const phoneNumber = participant.id.split('@')[0];
+            const displayName = participant.notify || `User_${phoneNumber}`;
+            
+            vcfContent += `BEGIN:VCARD\n` +
+                          `VERSION:3.0\n` +
+                          `FN:${displayName}\n` +
+                          `TEL;TYPE=CELL:+${phoneNumber}\n` +
+                          `NOTE:From ${groupMetadata.subject}\n` +
+                          `END:VCARD\n\n`;
         });
 
-        if (contactCount === 0) {
-            return await sock.sendMessage(chatId, {
-                text: '❌ Could not extract any valid phone numbers'
-            }, { quoted: message });
-        }
-
-        // Create temp directory
+        // Create temp file
+        const sanitizedGroupName = groupMetadata.subject.replace(/[^\w]/g, '_');
         const tempDir = path.join(__dirname, '../temp');
+        
+        // Create temp directory if it doesn't exist
         if (!fs.existsSync(tempDir)) {
             fs.mkdirSync(tempDir, { recursive: true });
         }
+        
+        const vcfPath = path.join(tempDir, `${sanitizedGroupName}_${Date.now()}.vcf`);
+        fs.writeFileSync(vcfPath, vcfContent);
 
-        // Create filename
-        const sanitizedGroupName = groupName.replace(/[^\w\s]/gi, '').trim() || 'Group';
-        const fileName = `${sanitizedGroupName}_${contactCount}_contacts.vcf`;
-        const filePath = path.join(tempDir, fileName);
-
-        // Write VCF file
-        fs.writeFileSync(filePath, vcfContent, 'utf8');
-
-        // Get file size
-        const fileSize = (fs.statSync(filePath).size / 1024).toFixed(2);
-
-        // Send the file
+        // Send VCF file
         await sock.sendMessage(chatId, {
-            document: fs.readFileSync(filePath),
-            fileName: fileName,
+            document: fs.readFileSync(vcfPath),
             mimetype: 'text/vcard',
-            caption: `📇 *GROUP CONTACTS VCF*\n\n` +
-                     `👥 Group: ${groupName}\n` +
-                     `📞 Contacts: ${contactCount}\n` +
-                     `📁 Size: ${fileSize} KB\n` +
-                     `🔥 Names: All start with 🔥\n` +
-                     `📱 Numbers: International format (with +)\n\n` +
-                     `💡 *How to import:*\n` +
-                     `1. Save this .vcf file\n` +
-                     `2. Open Contacts app\n` +
-                     `3. Find import option\n` +
-                     `4. Select this file`
+            fileName: `${sanitizedGroupName}_contacts.vcf`,
+            caption: `📇 *Group Contacts*\n\n` +
+                     `• Group: ${groupMetadata.subject}\n` +
+                     `• Members: ${participants.length}\n` +
+                     `• Generated: ${new Date().toLocaleString()}`
         }, { quoted: message });
 
-        // Clean up after 10 seconds
+        // Cleanup
         setTimeout(() => {
             try {
-                if (fs.existsSync(filePath)) {
-                    fs.unlinkSync(filePath);
+                if (fs.existsSync(vcfPath)) {
+                    fs.unlinkSync(vcfPath);
                 }
-            } catch (error) {
-                // Ignore cleanup errors
+            } catch (cleanupError) {
+                console.error('Error cleaning up VCF file:', cleanupError);
             }
-        }, 10000);
+        }, 5000);
 
     } catch (error) {
-        console.error('VCF command error:', error);
-        await sock.sendMessage(chatId, {
-            text: '❌ Failed to create VCF file. Please try again.'
+        console.error('VCF Error:', error);
+        await sock.sendMessage(chatId, { 
+            text: "❌ Failed to generate VCF file. Please try again later." 
         }, { quoted: message });
     }
 }
