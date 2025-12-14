@@ -198,7 +198,6 @@ const imgCommand = require('./commands/img');
 const shazamCommand = require('./commands/shazam');
 const reportBugCommand = require('./commands/reportbug');
 const saveStatusCommand = require('./commands/save');
-const blockAndunblockCommand = require('./commands/blockAndunblock');
 const fetchCommand = require('./commands/fetch');
 const vcfCommand = require('./commands/vcf'); // Add this line
 const setGroupStatusCommand = require('./commands/togstatus'); // Add this line
@@ -1459,12 +1458,6 @@ case userMessage.startsWith(`${prefix}setownernumber`):
                 break;
               case userMessage === `${prefix}fetch`:
                 await fetchCommand(sock, chatId, message);
-                break;
-              case userMessage === `${prefix}block`:
-                await blockAndunblockCommand(sock, chatId, message);
-                break;
-              case userMessage === `${prefix}unblock`:
-                await blockAndunblockCommand(sock, chatId, message);
                 break;
               case userMessage === `${prefix}online` || 
      userMessage === `${prefix}listonline` || 
