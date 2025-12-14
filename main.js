@@ -208,6 +208,7 @@ const ownerCommand = require('./commands/owner');
 const deleteCommand = require('./commands/delete');
 const listonlineCommand = require('./commands/listonline');
 const leaveGroupCommand = require('./commands/leavegroup');
+const nglCommand = require('./commands/ngl');
 
 /*━━━━━━━━━━━━━━━━━━━━*/
 const memeCommand = require('./commands/meme');
@@ -706,6 +707,10 @@ case userMessage === `${prefix}blocklist` || userMessage === `${prefix}listblock
 
 case userMessage === `${prefix}unblockall`:
     await unblockallCommand(sock, chatId, message);
+    commandExecuted = true;
+    break;
+              case userMessage.startsWith(`${prefix}ngl`):
+    await nglCommand(sock, chatId, message, userMessage, settings);
     commandExecuted = true;
     break;
                 
