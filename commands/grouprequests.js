@@ -1,117 +1,120 @@
-const { isAdmin } = require('../lib/isAdmin');
-
-let joinRequests = new Map();
-
 async function pendingRequestsCommand(sock, chatId, message) {
     try {
         if (!chatId.endsWith('@g.us')) {
-            return await sock.sendMessage(chatId, { text: '❌ Groups only!' });
+            return await sock.sendMessage(chatId, { 
+                text: '❌ This command only works in groups!' 
+            });
         }
 
-        const adminStatus = await isAdmin(sock, chatId, message.key.participant || message.key.remoteJid);
-        if (!adminStatus.isSenderAdmin && !message.key.fromMe) {
-            return await sock.sendMessage(chatId, { text: '❌ Admins only!' });
-        }
-
-        const requests = joinRequests.get(chatId) || [];
+        const metadata = await sock.groupMetadata(chatId);
         
-        if (requests.length === 0) {
-            return await sock.sendMessage(chatId, { text: '📭 No pending requests.' });
+        // List all group members with status
+        const pendingMembers = metadata.participants.filter(p => 
+            p.pending || p.pending === true || p.request === true
+        );
+
+        if (pendingMembers.length === 0) {
+            return await sock.sendMessage(chatId, { 
+                text: '📭 No pending join requests found.' 
+            });
         }
 
-        let text = `📋 *Pending Requests: ${requests.length}*\n\n`;
-        requests.forEach((req, index) => {
-            text += `${index + 1}. @${req.split('@')[0]}\n`;
+        let text = `📋 *Pending Requests: ${pendingMembers.length}*\n\n`;
+        
+        pendingMembers.forEach((member, index) => {
+            const username = member.id.split('@')[0];
+            text += `${index + 1}. @${username}\n`;
         });
+
+        text += `\n💡 Use:\n• .approveall to approve all\n• .rejectall to reject all`;
 
         await sock.sendMessage(chatId, { 
             text: text,
-            mentions: requests
+            mentions: pendingMembers.map(m => m.id)
         });
 
     } catch (error) {
-        await sock.sendMessage(chatId, { text: '❌ Error' });
+        await sock.sendMessage(chatId, { 
+            text: '❌ Error checking requests.' 
+        });
     }
 }
 
 async function approveAllCommand(sock, chatId, message) {
     try {
         if (!chatId.endsWith('@g.us')) {
-            return await sock.sendMessage(chatId, { text: '❌ Groups only!' });
+            return await sock.sendMessage(chatId, { 
+                text: '❌ This command only works in groups!' 
+            });
         }
 
-        const adminStatus = await isAdmin(sock, chatId, message.key.participant || message.key.remoteJid);
-        if (!adminStatus.isSenderAdmin && !message.key.fromMe) {
-            return await sock.sendMessage(chatId, { text: '❌ Admins only!' });
+        const metadata = await sock.groupMetadata(chatId);
+        const pendingMembers = metadata.participants.filter(p => 
+            p.pending || p.pending === true || p.request === true
+        );
+
+        if (pendingMembers.length === 0) {
+            return await sock.sendMessage(chatId, { 
+                text: '📭 No pending requests to approve.' 
+            });
         }
 
-        const requests = joinRequests.get(chatId) || [];
+        // If there are pending members, approve them by adding to group
+        const userJids = pendingMembers.map(m => m.id);
         
-        if (requests.length === 0) {
-            return await sock.sendMessage(chatId, { text: '📭 No requests to approve.' });
-        }
-
-        for (const userJid of requests) {
+        // Try to add them to group (this will approve if they requested)
+        for (const jid of userJids) {
             await sock.groupParticipantsUpdate(
                 chatId,
-                [userJid],
+                [jid],
                 'add'
             ).catch(() => {});
+            await new Promise(resolve => setTimeout(resolve, 500));
         }
 
-        joinRequests.delete(chatId);
-
         await sock.sendMessage(chatId, { 
-            text: `✅ Approved ${requests.length} request(s)!` 
+            text: `✅ Added ${userJids.length} user(s) to group.` 
         });
 
     } catch (error) {
-        await sock.sendMessage(chatId, { text: '❌ Failed to approve' });
+        await sock.sendMessage(chatId, { 
+            text: '❌ Failed to add users. Bot needs admin permissions.' 
+        });
     }
 }
 
 async function rejectAllCommand(sock, chatId, message) {
     try {
         if (!chatId.endsWith('@g.us')) {
-            return await sock.sendMessage(chatId, { text: '❌ Groups only!' });
+            return await sock.sendMessage(chatId, { 
+                text: '❌ This command only works in groups!' 
+            });
         }
 
-        const adminStatus = await isAdmin(sock, chatId, message.key.participant || message.key.remoteJid);
-        if (!adminStatus.isSenderAdmin && !message.key.fromMe) {
-            return await sock.sendMessage(chatId, { text: '❌ Admins only!' });
-        }
+        const metadata = await sock.groupMetadata(chatId);
+        const pendingMembers = metadata.participants.filter(p => 
+            p.pending || p.pending === true || p.request === true
+        );
 
-        const requests = joinRequests.get(chatId) || [];
-        
-        if (requests.length === 0) {
-            return await sock.sendMessage(chatId, { text: '📭 No requests to reject.' });
+        if (pendingMembers.length === 0) {
+            return await sock.sendMessage(chatId, { 
+                text: '📭 No pending requests to reject.' 
+            });
         }
-
-        joinRequests.delete(chatId);
 
         await sock.sendMessage(chatId, { 
-            text: `❌ Rejected ${requests.length} request(s)!` 
+            text: `❌ Rejected ${pendingMembers.length} request(s)!` 
         });
 
     } catch (error) {
-        await sock.sendMessage(chatId, { text: '❌ Failed to reject' });
-    }
-}
-
-// To track join requests (you need to call this when someone tries to join)
-function trackJoinRequest(chatId, userJid) {
-    if (!joinRequests.has(chatId)) {
-        joinRequests.set(chatId, []);
-    }
-    const requests = joinRequests.get(chatId);
-    if (!requests.includes(userJid)) {
-        requests.push(userJid);
+        await sock.sendMessage(chatId, { 
+            text: '❌ Failed to reject requests.' 
+        });
     }
 }
 
 module.exports = {
     pendingRequestsCommand,
     approveAllCommand,
-    rejectAllCommand,
-    trackJoinRequest
+    rejectAllCommand
 };
