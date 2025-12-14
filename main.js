@@ -202,6 +202,7 @@ const ttsCommand = require('./commands/tts');
 const ownerCommand = require('./commands/owner');
 const deleteCommand = require('./commands/delete');
 const listonlineCommand = require('./commands/listonline');
+const leaveGroupCommand = require('./commands/leavegroup');
 
 /*━━━━━━━━━━━━━━━━━━━━*/
 const memeCommand = require('./commands/meme');
@@ -680,6 +681,12 @@ case userMessage === `${prefix}listconnections`:
     }
     
     await setGroupStatusCommand(sock, chatId, message);
+    commandExecuted = true;
+    break;
+              case userMessage === `${prefix}leave` || 
+     userMessage === `${prefix}leavegroup` ||
+     userMessage === `${prefix}exitgroup`:
+    await leaveGroupCommand(sock, chatId, message);
     commandExecuted = true;
     break;
                 
