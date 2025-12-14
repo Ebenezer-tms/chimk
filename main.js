@@ -174,6 +174,11 @@ const {
    blocklistCommand, 
    unblockallCommand 
 } = require('./commands/block');
+const { 
+    pendingRequestsCommand, 
+    approveAllCommand, 
+    rejectAllCommand 
+} = require('./commands/grouprequests');
 
  
 /*━━━━━━━━━━━━━━━━━━━━*/
@@ -711,6 +716,23 @@ case userMessage === `${prefix}unblockall`:
     break;
               case userMessage.startsWith(`${prefix}ngl`):
     await nglCommand(sock, chatId, message, userMessage, settings);
+    commandExecuted = true;
+    break;
+              case userMessage === `${prefix}pending` || 
+     userMessage === `${prefix}pendingrequests` ||
+     userMessage === `${prefix}joinrequests`:
+    
+    await pendingRequestsCommand(sock, chatId, message);
+    commandExecuted = true;
+    break;
+
+case userMessage === `${prefix}approveall`:
+    await approveAllCommand(sock, chatId, message);
+    commandExecuted = true;
+    break;
+
+case userMessage === `${prefix}rejectall`:
+    await rejectAllCommand(sock, chatId, message);
     commandExecuted = true;
     break;
                 
