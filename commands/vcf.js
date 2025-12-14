@@ -3,85 +3,88 @@ const path = require('path');
 
 async function vcfCommand(sock, chatId, message) {
     try {
+        // Ensure it's a group
         if (!chatId.endsWith('@g.us')) {
             return await sock.sendMessage(chatId, {
                 text: '❌ This command only works in groups!'
             }, { quoted: message });
         }
 
-        const metadata = await sock.groupMetadata(chatId);
-        const participants = metadata.participants || [];
+        // Get group metadata
+        const groupMetadata = await sock.groupMetadata(chatId);
+        const participants = groupMetadata.participants || [];
 
-        let vcf = '';
-        let total = 0;
+        if (participants.length < 2) {
+            return await sock.sendMessage(chatId, {
+                text: '❌ Group must have at least 2 members'
+            }, { quoted: message });
+        }
 
-        for (const p of participants) {
-            // ✅ Support ALL Baileys formats
-            const jid = p.id || p.jid;
-            if (!jid) continue;
+        // Build VCF content
+        let vcfContent = '';
+        let validCount = 0;
 
-            // Must be WhatsApp user
-            if (!jid.includes('@s.whatsapp.net')) continue;
+        for (const participant of participants) {
+            if (!participant.id) continue;
 
-            // Remove device part ( :23 )
-            let number = jid.split('@')[0];
-            number = number.split(':')[0];
+            // Extract number from ID
+            const number = participant.id.split('@')[0];
 
-            // Digits only
-            number = number.replace(/\D/g, '');
-
-            // Final validation
-            if (number.length < 8 || number.length > 15) continue;
+            // Skip invalid numbers
+            if (!/^\d+$/.test(number)) continue;
 
             const name =
-                p.notify ||
-                p.name ||
-                `Member ${total + 1}`;
+                participant.notify ||
+                participant.name ||
+                `Member ${validCount + 1}`;
 
-            vcf +=
+            vcfContent +=
 `BEGIN:VCARD
 VERSION:3.0
 FN:${name}
 TEL;TYPE=CELL:+${number}
-NOTE:From ${metadata.subject}
+NOTE:From ${groupMetadata.subject}
 END:VCARD
 
 `;
-            total++;
+            validCount++;
         }
 
-        if (total === 0) {
+        if (validCount === 0) {
             return await sock.sendMessage(chatId, {
-                text: '❌ No valid phone numbers found.\n\nMake sure this is a REAL WhatsApp group.'
+                text: '❌ No valid phone numbers found in this group!'
             }, { quoted: message });
         }
 
-        const tmp = path.join(__dirname, '../tmp');
-        if (!fs.existsSync(tmp)) fs.mkdirSync(tmp);
+        // Temp folder
+        const tempDir = path.join(__dirname, '../tmp');
+        if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir);
 
-        const safeName = metadata.subject.replace(/[^\w]/g, '_');
-        const file = path.join(tmp, `${safeName}_${Date.now()}.vcf`);
+        const safeName = groupMetadata.subject.replace(/[^\w]/g, '_');
+        const filePath = path.join(tempDir, `${safeName}_${Date.now()}.vcf`);
 
-        fs.writeFileSync(file, vcf);
+        fs.writeFileSync(filePath, vcfContent);
 
+        // Send file
         await sock.sendMessage(chatId, {
-            document: fs.readFileSync(file),
+            document: fs.readFileSync(filePath),
             mimetype: 'text/vcard',
             fileName: `${safeName}_contacts.vcf`,
             caption:
-`📇 *VCF Export Successful*
+`📇 *Group Contacts Exported*
 
-• Group: ${metadata.subject}
-• Contacts: ${total}
+• Group: ${groupMetadata.subject}
+• Contacts: ${validCount}
 • Generated: ${new Date().toLocaleString()}`
         }, { quoted: message });
 
-        fs.unlinkSync(file);
+        // Cleanup
+        fs.unlinkSync(filePath);
 
-    } catch (e) {
-        console.error('VCF ERROR:', e);
+    } catch (err) {
+        console.error('VCF COMMAND ERROR:', err);
         await sock.sendMessage(chatId, {
-            text: '❌ Failed to generate VCF'
+            text: '❌ Failed to generate VCF file!'
         }, { quoted: message });
     }
 }
