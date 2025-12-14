@@ -97,12 +97,12 @@ const generateMenu = (pushname, currentMode, hostName, ping, uptimeFormatted, pr
 
     // Owner Menu
     menu += `┏❐ 《 *OWNER MENU* 》 ❐\n`;
-    menu += `┃├◆ .autoreadreceipts\n┃├◆ .ban\n┃├◆ .block\n┃├◆ .restart\n┃├◆ .unban\n┃├◆ .unblock\n┃├◆.promote\n┃├◆ .delete\n┃├◆ .del\n┃├◆ .demote\n┃├◆ .mute\n┃├◆ .unmute\n┃├◆ .delete\n┃├◆ .kick\n┃├◆ .warnings\n┃├◆ .antilink\n┃├◆ .antibadword\n┃├◆ .clear\n┃├◆ .chatbot\n`;
+    menu += `┃├◆ .autoreadreceipts\n┃├◆ .ban\n┃├◆ .block\n┃├◆ .blocklist\n┃├◆ .leave\n┃├◆ .restart\n┃├◆ .unban\n┃├◆ .unblock\n┃├◆.promote\n┃├◆ .delete\n┃├◆ .del\n┃├◆ .demote\n┃├◆ .mute\n┃├◆ .togstatus\n┃├◆ .unmute\n┃├◆ .delete\n┃├◆ .kick\n┃├◆ .kickall\n┃├◆ .warnings\n┃├◆ .antilink\n┃├◆ .antibadword\n┃├◆ .clear\n┃├◆ .chatbot\n`;
     menu += `┗❐\n\n`;
 
     // Group Menu
     menu += `┏❐ 《 *GROUP MENU* 》 ❐\n`;
-    menu += `┃├◆ .promote\n┃├◆ .demote\n┃├◆ .settings\n┃├◆ .welcome\n┃├◆ .setgpp\n┃├◆ .getgpp\n┃├◆ .listadmin\n┃├◆ .goodbye\n┃├◆ .tagnoadmin\n┃├◆ .tag\n┃├◆ .antilink\n┃├◆ .set welcome\n┃├◆ .listadmin\n┃├◆ .groupinfo\n┃├◆ .admins\n┃├◆ .warn\n┃├◆ .revoke\n┃├◆ .resetlink\n┃├◆ .open\n┃├◆ .close\n┃├◆ .mention\n`;
+    menu += `┃├◆ .promote\n┃├◆ .demote\n┃├◆ .groupstatus\n┃├◆ .settings\n┃├◆ .welcome\n┃├◆ .setgpp\n┃├◆ .getgpp\n┃├◆ .listadmin\n┃├◆ .goodbye\n┃├◆ .tagnoadmin\n┃├◆ .tag\n┃├◆ .antilink\n┃├◆ .set welcome\n┃├◆ .listadmin\n┃├◆ .groupinfo\n┃├◆ .admins\n┃├◆ .warn\n┃├◆ .revoke\n┃├◆ .resetlink\n┃├◆ .open\n┃├◆ .close\n┃├◆ .mention\n`;
     menu += `┗❐\n\n`;
 
     // AI Menu
@@ -157,7 +157,7 @@ const generateMenu = (pushname, currentMode, hostName, ping, uptimeFormatted, pr
 
     //deploy Menu
     menu += `┏❐ 《 *GUIDE MENU* 》 ❐\n`;
-    menu += `┃├◆ .tutorial\n┃├◆ .reportbug\n`
+    menu += `┃├◆ .tutorial\n┃├◆ .reportbug\n┃├◆ .ngl`
     menu += `┗❐`
     
     return menu;
