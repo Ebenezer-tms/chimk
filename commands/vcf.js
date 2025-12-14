@@ -27,11 +27,17 @@ async function vcfCommand(sock, chatId, message) {
         for (const participant of participants) {
             if (!participant.id) continue;
 
-            // Extract number from ID
-            const number = participant.id.split('@')[0];
+            // Extract number
+            let number = participant.id.split('@')[0];
 
             // Skip invalid numbers
             if (!/^\d+$/.test(number)) continue;
+
+            // Ensure it has country code
+            if (!number.startsWith('263')) {
+                // Here you can set default country code, e.g., Zimbabwe
+                number = `263${number.replace(/^0+/, '')}`;
+            }
 
             const name =
                 participant.notify ||
