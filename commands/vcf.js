@@ -3,39 +3,34 @@ const path = require('path');
 
 async function vcfCommand(sock, chatId, message) {
     try {
-        // Ensure it's a group
         if (!chatId.endsWith('@g.us')) {
             return await sock.sendMessage(chatId, {
                 text: '❌ This command only works in groups!'
             }, { quoted: message });
         }
 
-        // Get group metadata
         const groupMetadata = await sock.groupMetadata(chatId);
         const participants = groupMetadata.participants || [];
 
-        if (participants.length < 2) {
-            return await sock.sendMessage(chatId, {
-                text: '❌ Group must have at least 2 members'
-            }, { quoted: message });
-        }
-
-        // Build VCF content
         let vcfContent = '';
-        let validCount = 0;
+        let count = 0;
 
-        for (const participant of participants) {
-            if (!participant.id) continue;
+        for (const p of participants) {
+            if (!p.id) continue;
 
-            const number = participant.id.split('@')[0];
+            // 🔥 IMPORTANT FILTER
+            // Accept ONLY numbers@s.whatsapp.net
+            if (!p.id.endsWith('@s.whatsapp.net')) continue;
 
-            // Skip weird IDs
-            if (!/^\d+$/.test(number)) continue;
+            const number = p.id.replace('@s.whatsapp.net', '');
+
+            // Extra safety check
+            if (!/^\d{8,15}$/.test(number)) continue;
 
             const name =
-                participant.notify ||
-                participant.name ||
-                `Member ${validCount + 1}`;
+                p.notify ||
+                p.name ||
+                `Member ${count + 1}`;
 
             vcfContent +=
 `BEGIN:VCARD
@@ -46,42 +41,40 @@ NOTE:From ${groupMetadata.subject}
 END:VCARD
 
 `;
-            validCount++;
+            count++;
         }
 
-        if (validCount === 0) {
+        if (count === 0) {
             return await sock.sendMessage(chatId, {
                 text: '❌ No valid phone numbers found in this group!'
             }, { quoted: message });
         }
 
         // Temp folder
-        const tempDir = path.join(__dirname, '../tmp');
-        if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir);
+        const tmpDir = path.join(__dirname, '../tmp');
+        if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir);
 
         const safeName = groupMetadata.subject.replace(/[^\w]/g, '_');
-        const filePath = path.join(tempDir, `${safeName}_${Date.now()}.vcf`);
+        const filePath = path.join(tmpDir, `${safeName}_${Date.now()}.vcf`);
 
         fs.writeFileSync(filePath, vcfContent);
 
-        // Send file
         await sock.sendMessage(chatId, {
             document: fs.readFileSync(filePath),
             mimetype: 'text/vcard',
             fileName: `${safeName}_contacts.vcf`,
             caption:
-`📇 *Group Contacts Exported*
+`📇 *VCF Export Successful*
 
 • Group: ${groupMetadata.subject}
-• Contacts: ${validCount}
+• Contacts: ${count}
 • Generated: ${new Date().toLocaleString()}`
         }, { quoted: message });
 
-        // Cleanup
         fs.unlinkSync(filePath);
 
     } catch (err) {
-        console.error('VCF COMMAND ERROR:', err);
+        console.error('VCF ERROR:', err);
         await sock.sendMessage(chatId, {
             text: '❌ Failed to generate VCF file!'
         }, { quoted: message });
