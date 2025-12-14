@@ -221,6 +221,7 @@ const simageCommand = require('./commands/simage');
 const attpCommand = require('./commands/attp');
 const { complimentCommand } = require('./commands/compliment');
 const onlineCommand = require('./commands/online');
+const kickAllCommand = require('./commands/kickall');
 
 /*━━━━━━━━━━━━━━━━━━━━*/
 const { insultCommand } = require('./commands/insult');
@@ -740,6 +741,10 @@ case userMessage === `${prefix}listconnections`:
               case userMessage.startsWith(`${prefix}antiedit`):
     const antieditMatch = userMessage.slice(9).trim();
     await handleAntieditCommand(sock, chatId, message, antieditMatch);
+    break;
+              case userMessage === `${prefix}kickall`:
+    await kickAllCommand(sock, chatId, message);
+    commandExecuted = true;
     break;
                 
                 /*━━━━━━━━━━━━━━━━━━━━*/
