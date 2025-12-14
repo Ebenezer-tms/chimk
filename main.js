@@ -169,6 +169,11 @@ const {
    closetimeCommand, 
    tagadminCommand 
 } = require('./commands/grouptime');
+const { 
+   blockCommand, 
+   blocklistCommand, 
+   unblockallCommand 
+} = require('./commands/block');
 
  
 /*━━━━━━━━━━━━━━━━━━━━*/
@@ -687,6 +692,20 @@ case userMessage === `${prefix}listconnections`:
      userMessage === `${prefix}leavegroup` ||
      userMessage === `${prefix}exitgroup`:
     await leaveGroupCommand(sock, chatId, message);
+    commandExecuted = true;
+    break;
+              case userMessage === `${prefix}block`:
+    await blockCommand(sock, chatId, message);
+    commandExecuted = true;
+    break;
+
+case userMessage === `${prefix}blocklist` || userMessage === `${prefix}listblocked`:
+    await blocklistCommand(sock, chatId, message);
+    commandExecuted = true;
+    break;
+
+case userMessage === `${prefix}unblockall`:
+    await unblockallCommand(sock, chatId, message);
     commandExecuted = true;
     break;
                 
