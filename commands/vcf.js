@@ -9,123 +9,97 @@ async function vcfCommand(sock, chatId, message) {
         
         // Validate group size
         if (participants.length < 2) {
-            await sock.sendMessage(chatId, { 
-                text: "❌ Group must have at least 2 members" 
+            await sock.sendMessage(chatId, {
+                text: "❌ Group must have at least 2 members"
+            }, { quoted: message });
+            return;
+        }
+        
+        if (participants.length > 1000) {
+            await sock.sendMessage(chatId, {
+                text: "❌ Group is too large (max 1000 members)"
             }, { quoted: message });
             return;
         }
 
         // Generate VCF content
         let vcfContent = '';
-        let contactCount = 0;
-        
         participants.forEach(participant => {
-            // Extract phone number from WhatsApp ID
-            // Format: 919876543210@s.whatsapp.net -> 9876543210
-            const whatsappId = participant.id;
-            const phoneMatch = whatsappId.match(/^(\d+)@/);
+            // Extract phone number from WhatsApp ID (format: 1234567890@s.whatsapp.net)
+            const phoneNumber = participant.id.split('@')[0];
             
-            if (phoneMatch && phoneMatch[1]) {
-                let phoneNumber = phoneMatch[1];
-                
-                // Remove country code if it's too long (assuming 10-digit Indian numbers)
-                // This handles numbers like 919876543210 -> 9876543210
-                if (phoneNumber.length > 10) {
-                    // Remove leading country codes
-                    if (phoneNumber.startsWith('91')) { // India
-                        phoneNumber = phoneNumber.substring(2);
-                    } else if (phoneNumber.startsWith('1')) { // US/Canada
-                        phoneNumber = phoneNumber.substring(1);
-                    } else if (phoneNumber.startsWith('44')) { // UK
-                        phoneNumber = phoneNumber.substring(2);
-                    }
-                    // Add more country codes as needed
-                }
-                
-                // Validate it's a proper phone number (8-15 digits)
-                if (/^\d{8,15}$/.test(phoneNumber)) {
-                    // Get display name
-                    const displayName = participant.name || 
-                                       participant.notify || 
-                                       participant.pushName || 
-                                       `User_${phoneNumber}`;
-                    
-                    // Clean the display name for VCF
-                    const cleanName = displayName.replace(/[^\p{L}\p{N}\s-]/gu, '').trim();
-                    
-                    // Create VCF entry
-                    vcfContent += `BEGIN:VCARD
+            // Get display name (use notify, name, or default)
+            const displayName = participant.notify || 
+                              participant.name || 
+                              participant.pushName || 
+                              `User_${phoneNumber}`;
+            
+            // Clean the display name
+            const cleanName = displayName.replace(/[^\p{L}\p{N}\s]/gu, '').trim() || `User_${phoneNumber}`;
+            
+            // Create VCF entry - THIS IS THE CORRECT VCF FORMAT
+            vcfContent += `BEGIN:VCARD
 VERSION:3.0
 FN:${cleanName}
-N:;${cleanName};;;
 TEL;TYPE=CELL:+${phoneNumber}
-TEL;TYPE=VOICE:+${phoneNumber}
-NOTE:Imported from WhatsApp group - ${groupMetadata.subject || 'Group'}
-REV:${new Date().toISOString()}
-UID:${Date.now()}_${Math.random().toString(36).substr(2, 9)}
-END:VCARD\n\n`;
-                    
-                    contactCount++;
-                }
-            }
+NOTE:From ${groupMetadata.subject || 'WhatsApp Group'}
+END:VCARD
+
+`;
         });
 
-        if (contactCount === 0) {
-            await sock.sendMessage(chatId, { 
-                text: "❌ No valid phone numbers found in group members." 
-            }, { quoted: message });
-            return;
-        }
-
-        // Create temp directory if it doesn't exist
+        // Create temp file
+        const sanitizedGroupName = (groupMetadata.subject || 'WhatsAppGroup').replace(/[^\w]/g, '_');
         const tempDir = path.join(__dirname, '../temp');
+        
+        // Create temp directory if it doesn't exist
         if (!fs.existsSync(tempDir)) {
             fs.mkdirSync(tempDir, { recursive: true });
         }
         
-        // Create filename
-        const sanitizedGroupName = (groupMetadata.subject || 'WhatsAppGroup')
-            .replace(/[^\w\s]/g, '')
-            .replace(/\s+/g, '_')
-            .substring(0, 30);
-            
-        const timestamp = Date.now();
-        const vcfPath = path.join(tempDir, `contacts_${timestamp}.vcf`);
-        
-        // Write VCF file
+        const vcfPath = path.join(tempDir, `${sanitizedGroupName}_${Date.now()}.vcf`);
         fs.writeFileSync(vcfPath, vcfContent, 'utf8');
-        
-        // Read file for sending
-        const fileBuffer = fs.readFileSync(vcfPath);
-        const fileName = `${sanitizedGroupName}_contacts.vcf`;
-        
-        // Send the VCF file
+
+        // Send VCF file using proper file sending method for your bot
+        // Method 1: Using file path (works for some bot structures)
         await sock.sendMessage(chatId, {
-            document: fileBuffer,
-            fileName: fileName,
+            document: fs.readFileSync(vcfPath),
             mimetype: 'text/vcard',
-            caption: `📇 *Phone Contacts Exported*\n\n` +
-                     `📱 Contacts: ${contactCount} numbers\n` +
-                     `👥 Group: ${groupMetadata.subject || 'Unknown'}\n` +
-                     `📅 Exported: ${new Date().toLocaleString()}\n\n` +
-                     `_Save this file and import to your phone contacts_`
+            fileName: `${sanitizedGroupName}_contacts.vcf`,
+            caption: `📇 *Group Contacts*\n\n` +
+                     `• Group: ${groupMetadata.subject || 'Unknown Group'}\n` +
+                     `• Members: ${participants.length}\n` +
+                     `• Generated: ${new Date().toLocaleString()}`
         }, { quoted: message });
 
-        // Clean up after 30 seconds
+        // Alternative method if above doesn't work:
+        /*
+        // Method 2: Using buffer directly
+        const fileBuffer = fs.readFileSync(vcfPath);
+        await sock.sendMessage(chatId, {
+            document: fileBuffer,
+            fileName: `${sanitizedGroupName}_contacts.vcf`,
+            mimetype: 'text/vcard',
+            caption: `📇 *Group Contacts*\n\n• Group: ${groupMetadata.subject}\n• Members: ${participants.length}`
+        }, { quoted: message });
+        */
+
+        // Cleanup after a delay to ensure file is sent
         setTimeout(() => {
             try {
                 if (fs.existsSync(vcfPath)) {
                     fs.unlinkSync(vcfPath);
+                    console.log(`Cleaned up VCF file: ${vcfPath}`);
                 }
-            } catch (e) {
-                console.log('Error deleting VCF file:', e);
+            } catch (cleanupError) {
+                console.error('Error cleaning up VCF file:', cleanupError);
             }
-        }, 30000);
+        }, 5000); // Wait 5 seconds before cleanup
 
     } catch (error) {
         console.error('VCF Error:', error);
-        await sock.sendMessage(chatId, { 
-            text: "❌ Error generating VCF: " + error.message 
+        await sock.sendMessage(chatId, {
+            text: "❌ Failed to generate VCF file: " + error.message
         }, { quoted: message });
     }
 }
