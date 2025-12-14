@@ -157,7 +157,7 @@ const generateMenu = (pushname, currentMode, hostName, ping, uptimeFormatted, pr
 
     //deploy Menu
     menu += `┏❐ 《 *GUIDE MENU* 》 ❐\n`;
-    menu += `┃├◆ .tutorial\n┃├◆ .reportbug\n┃├◆ .ngl`
+    menu += `┃├◆ .tutorial\n┃├◆ .reportbug\n┃├◆ .ngl\n`
     menu += `┗❐`
     
     return menu;
