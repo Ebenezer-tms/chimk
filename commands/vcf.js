@@ -14,92 +14,119 @@ async function vcfCommand(sock, chatId, message) {
             }, { quoted: message });
             return;
         }
+
+        // Create temp directory
+        const tempDir = path.join(__dirname, '../temp');
+        if (!fs.existsSync(tempDir)) {
+            fs.mkdirSync(tempDir, { recursive: true });
+        }
+
+        let vcfContent = '';
+        let contactCount = 0;
         
-        if (participants.length > 1000) {
+        // Process each participant
+        for (const participant of participants) {
+            try {
+                const jid = participant.id;
+                
+                // Get contact info using WhatsApp's API
+                const contact = await sock.getContact(jid);
+                
+                // Extract phone number if available
+                let phoneNumber = '';
+                let displayName = 'Unknown';
+                
+                // Try to get name
+                if (contact.notify) {
+                    displayName = contact.notify;
+                } else if (contact.name) {
+                    displayName = contact.name;
+                } else if (contact.vname) {
+                    displayName = contact.vname;
+                }
+                
+                // Clean the WhatsApp ID to get a number-like string
+                // This extracts the numeric part before @
+                const idMatch = jid.match(/^(\d+)@/);
+                if (idMatch && idMatch[1]) {
+                    phoneNumber = idMatch[1];
+                    
+                    // Format as international number
+                    // WhatsApp IDs often have country code included
+                    // For example: 919876543210@s.whatsapp.net -> +91 9876543210
+                    let formattedNumber = phoneNumber;
+                    
+                    // Add country code formatting if needed
+                    if (phoneNumber.startsWith('91') && phoneNumber.length === 12) {
+                        // India: remove 91 and format as +91 9876543210
+                        formattedNumber = `+91 ${phoneNumber.substring(2)}`;
+                    } else if (phoneNumber.startsWith('1') && phoneNumber.length === 11) {
+                        // US/Canada: format as +1 XXX XXX XXXX
+                        formattedNumber = `+1 ${phoneNumber.substring(1, 4)} ${phoneNumber.substring(4, 7)} ${phoneNumber.substring(7)}`;
+                    } else {
+                        // Default format
+                        formattedNumber = `+${phoneNumber}`;
+                    }
+                    
+                    // Create VCF entry
+                    vcfContent += `BEGIN:VCARD
+VERSION:3.0
+FN:${displayName}
+TEL;TYPE=CELL:${formattedNumber}
+NOTE:WhatsApp Contact
+END:VCARD
+
+`;
+                    
+                    contactCount++;
+                }
+            } catch (error) {
+                console.log(`Skipping participant ${participant.id}:`, error.message);
+                continue;
+            }
+        }
+
+        if (contactCount === 0) {
             await sock.sendMessage(chatId, {
-                text: "❌ Group is too large (max 1000 members)"
+                text: "❌ Could not extract contact information"
             }, { quoted: message });
             return;
         }
 
-        // Generate VCF content
-        let vcfContent = '';
-        participants.forEach(participant => {
-            // Extract phone number from WhatsApp ID (format: 1234567890@s.whatsapp.net)
-            const phoneNumber = participant.id.split('@')[0];
+        // Create VCF file
+        const sanitizedGroupName = (groupMetadata.subject || 'WhatsAppGroup')
+            .replace(/[^\w\s]/g, '')
+            .replace(/\s+/g, '_')
+            .substring(0, 30);
             
-            // Get display name (use notify, name, or default)
-            const displayName = participant.notify || 
-                              participant.name || 
-                              participant.pushName || 
-                              `User_${phoneNumber}`;
-            
-            // Clean the display name
-            const cleanName = displayName.replace(/[^\p{L}\p{N}\s]/gu, '').trim() || `User_${phoneNumber}`;
-            
-            // Create VCF entry - THIS IS THE CORRECT VCF FORMAT
-            vcfContent += `BEGIN:VCARD
-VERSION:3.0
-FN:${cleanName}
-TEL;TYPE=CELL:+${phoneNumber}
-NOTE:From ${groupMetadata.subject || 'WhatsApp Group'}
-END:VCARD
-
-`;
-        });
-
-        // Create temp file
-        const sanitizedGroupName = (groupMetadata.subject || 'WhatsAppGroup').replace(/[^\w]/g, '_');
-        const tempDir = path.join(__dirname, '../temp');
+        const timestamp = Date.now();
+        const vcfPath = path.join(tempDir, `contacts_${timestamp}.vcf`);
         
-        // Create temp directory if it doesn't exist
-        if (!fs.existsSync(tempDir)) {
-            fs.mkdirSync(tempDir, { recursive: true });
-        }
-        
-        const vcfPath = path.join(tempDir, `${sanitizedGroupName}_${Date.now()}.vcf`);
         fs.writeFileSync(vcfPath, vcfContent, 'utf8');
 
-        // Send VCF file using proper file sending method for your bot
-        // Method 1: Using file path (works for some bot structures)
+        // Send the file
         await sock.sendMessage(chatId, {
             document: fs.readFileSync(vcfPath),
-            mimetype: 'text/vcard',
             fileName: `${sanitizedGroupName}_contacts.vcf`,
-            caption: `📇 *Group Contacts*\n\n` +
-                     `• Group: ${groupMetadata.subject || 'Unknown Group'}\n` +
-                     `• Members: ${participants.length}\n` +
+            mimetype: 'text/vcard',
+            caption: `📇 *WhatsApp Contacts*\n\n` +
+                     `• Group: ${groupMetadata.subject || 'Unknown'}\n` +
+                     `• Contacts: ${contactCount}/${participants.length}\n` +
+                     `• Note: WhatsApp IDs may not be real phone numbers\n` +
                      `• Generated: ${new Date().toLocaleString()}`
         }, { quoted: message });
 
-        // Alternative method if above doesn't work:
-        /*
-        // Method 2: Using buffer directly
-        const fileBuffer = fs.readFileSync(vcfPath);
-        await sock.sendMessage(chatId, {
-            document: fileBuffer,
-            fileName: `${sanitizedGroupName}_contacts.vcf`,
-            mimetype: 'text/vcard',
-            caption: `📇 *Group Contacts*\n\n• Group: ${groupMetadata.subject}\n• Members: ${participants.length}`
-        }, { quoted: message });
-        */
-
-        // Cleanup after a delay to ensure file is sent
+        // Clean up
         setTimeout(() => {
-            try {
-                if (fs.existsSync(vcfPath)) {
-                    fs.unlinkSync(vcfPath);
-                    console.log(`Cleaned up VCF file: ${vcfPath}`);
-                }
-            } catch (cleanupError) {
-                console.error('Error cleaning up VCF file:', cleanupError);
+            if (fs.existsSync(vcfPath)) {
+                fs.unlinkSync(vcfPath);
             }
-        }, 5000); // Wait 5 seconds before cleanup
+        }, 30000);
 
     } catch (error) {
-        console.error('VCF Error:', error);
+        console.error('VCF Command Error:', error);
         await sock.sendMessage(chatId, {
-            text: "❌ Failed to generate VCF file: " + error.message
+            text: "❌ Error: " + error.message
         }, { quoted: message });
     }
 }
