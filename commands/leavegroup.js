@@ -22,7 +22,7 @@ async function leaveGroupCommand(sock, chatId, message) {
         const participantsCount = chat.participants?.length || 0;
         
         await sock.sendMessage(chatId, { 
-            text: `👋 Goodbye everyone!\n\nThe bot is leaving ${groupName}.\n\nThank you for having me here!`,
+            text: `*👋 Goodbye everyone! it was nice being in ${groupName}.*`,
             quoted: message
         });
         
