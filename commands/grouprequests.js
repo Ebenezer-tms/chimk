@@ -1,4 +1,4 @@
-const { isAdmin } = require('./lib/isAdmin');
+const { isAdmin } = require('../lib/isAdmin');
 
 async function pendingRequestsCommand(sock, chatId, message) {
     try {
