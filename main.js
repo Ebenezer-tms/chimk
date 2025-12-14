@@ -177,7 +177,9 @@ const {
 const { 
     pendingRequestsCommand, 
     approveAllCommand, 
-    rejectAllCommand 
+    rejectAllCommand,
+    addRequestCommand,
+    clearRequestsCommand
 } = require('./commands/grouprequests');
 
  
