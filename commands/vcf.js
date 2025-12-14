@@ -9,74 +9,79 @@ async function vcfCommand(sock, chatId, message) {
             }, { quoted: message });
         }
 
-        const groupMetadata = await sock.groupMetadata(chatId);
-        const participants = groupMetadata.participants || [];
+        const metadata = await sock.groupMetadata(chatId);
+        const participants = metadata.participants || [];
 
-        let vcfContent = '';
-        let count = 0;
+        let vcf = '';
+        let total = 0;
 
         for (const p of participants) {
-            if (!p.id) continue;
+            // ✅ Support ALL Baileys formats
+            const jid = p.id || p.jid;
+            if (!jid) continue;
 
-            // 🔥 IMPORTANT FILTER
-            // Accept ONLY numbers@s.whatsapp.net
-            if (!p.id.endsWith('@s.whatsapp.net')) continue;
+            // Must be WhatsApp user
+            if (!jid.includes('@s.whatsapp.net')) continue;
 
-            const number = p.id.replace('@s.whatsapp.net', '');
+            // Remove device part ( :23 )
+            let number = jid.split('@')[0];
+            number = number.split(':')[0];
 
-            // Extra safety check
-            if (!/^\d{8,15}$/.test(number)) continue;
+            // Digits only
+            number = number.replace(/\D/g, '');
+
+            // Final validation
+            if (number.length < 8 || number.length > 15) continue;
 
             const name =
                 p.notify ||
                 p.name ||
-                `Member ${count + 1}`;
+                `Member ${total + 1}`;
 
-            vcfContent +=
+            vcf +=
 `BEGIN:VCARD
 VERSION:3.0
 FN:${name}
 TEL;TYPE=CELL:+${number}
-NOTE:From ${groupMetadata.subject}
+NOTE:From ${metadata.subject}
 END:VCARD
 
 `;
-            count++;
+            total++;
         }
 
-        if (count === 0) {
+        if (total === 0) {
             return await sock.sendMessage(chatId, {
-                text: '❌ No valid phone numbers found in this group!'
+                text: '❌ No valid phone numbers found.\n\nMake sure this is a REAL WhatsApp group.'
             }, { quoted: message });
         }
 
-        // Temp folder
-        const tmpDir = path.join(__dirname, '../tmp');
-        if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir);
+        const tmp = path.join(__dirname, '../tmp');
+        if (!fs.existsSync(tmp)) fs.mkdirSync(tmp);
 
-        const safeName = groupMetadata.subject.replace(/[^\w]/g, '_');
-        const filePath = path.join(tmpDir, `${safeName}_${Date.now()}.vcf`);
+        const safeName = metadata.subject.replace(/[^\w]/g, '_');
+        const file = path.join(tmp, `${safeName}_${Date.now()}.vcf`);
 
-        fs.writeFileSync(filePath, vcfContent);
+        fs.writeFileSync(file, vcf);
 
         await sock.sendMessage(chatId, {
-            document: fs.readFileSync(filePath),
+            document: fs.readFileSync(file),
             mimetype: 'text/vcard',
             fileName: `${safeName}_contacts.vcf`,
             caption:
 `📇 *VCF Export Successful*
 
-• Group: ${groupMetadata.subject}
-• Contacts: ${count}
+• Group: ${metadata.subject}
+• Contacts: ${total}
 • Generated: ${new Date().toLocaleString()}`
         }, { quoted: message });
 
-        fs.unlinkSync(filePath);
+        fs.unlinkSync(file);
 
-    } catch (err) {
-        console.error('VCF ERROR:', err);
+    } catch (e) {
+        console.error('VCF ERROR:', e);
         await sock.sendMessage(chatId, {
-            text: '❌ Failed to generate VCF file!'
+            text: '❌ Failed to generate VCF'
         }, { quoted: message });
     }
 }
