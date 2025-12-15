@@ -1,4 +1,33 @@
+// Raw Output Suppression Code
+const originalWrite = process.stdout.write;
+process.stdout.write = function (chunk, encoding, callback) {
+    const message = chunk.toString();
 
+    if (message.includes('Closing session: SessionEntry') || message.includes('SessionEntry {')) {
+        return;
+    }
+
+    return originalWrite.apply(this, arguments);
+};
+
+const originalWriteError = process.stderr.write;
+process.stderr.write = function (chunk, encoding, callback) {
+    const message = chunk.toString();
+    if (message.includes('Closing session: SessionEntry')) {
+        return;
+    }
+    return originalWriteError.apply(this, arguments);
+};
+
+const originalLog = console.log;
+console.log = function (message, ...optionalParams) {
+
+    if (typeof message === 'string' && message.startsWith('Closing session: SessionEntry')) {
+        return;
+    }
+    
+    originalLog.apply(console, [message, ...optionalParams]);
+};
 
 
 /*━━━━━━━━━━━━━━━━━━━━*/
