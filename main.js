@@ -210,6 +210,10 @@ const {
     addRequestCommand,
     clearRequestsCommand
 } = require('./commands/grouprequests');
+const { 
+    antidemoteCommand, 
+    antipromoteCommand 
+} = require('./commands/antipromote');
 
  
 /*━━━━━━━━━━━━━━━━━━━━*/
@@ -825,10 +829,23 @@ case userMessage === `${prefix}rejectall`:
     const antieditMatch = userMessage.slice(9).trim();
     await handleAntieditCommand(sock, chatId, message, antieditMatch);
     break;
-              case userMessage === `${prefix}kickall`:
+              case userMessage === `${prefix}removeall`:
     await kickAllCommand(sock, chatId, message);
     commandExecuted = true;
     break;
+
+case userMessage.startsWith(`${prefix}antidemote`):
+    if (!isGroup) return;
+    await antidemoteCommand(sock, chatId, message);
+    commandExecuted = true;
+    break;
+
+case userMessage.startsWith(`${prefix}antipromote`):
+    if (!isGroup) return;
+    await antipromoteCommand(sock, chatId, message);
+    commandExecuted = true;
+    break;
+                
                 
                 /*━━━━━━━━━━━━━━━━━━━━*/
                 // settings-------
