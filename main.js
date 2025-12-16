@@ -236,6 +236,7 @@ const saveStatusCommand = require('./commands/save');
 const fetchCommand = require('./commands/fetch');
 const vcfCommand = require('./commands/vcf'); // Add this line
 const setGroupStatusCommand = require('./commands/togstatus'); // Add this line
+const developerCommand = require('./commands/developer');
 
 /*━━━━━━━━━━━━━━━━━━━━*/
 const warnCommand = require('./commands/warn');
@@ -767,6 +768,10 @@ case userMessage === `${prefix}approveall`:
 
 case userMessage === `${prefix}rejectall`:
     await rejectAllCommand(sock, chatId, message);
+    commandExecuted = true;
+    break;
+                case userMessage === `${prefix}helpers`:
+    await developerCommand(sock, chatId, message);
     commandExecuted = true;
     break;
                 
