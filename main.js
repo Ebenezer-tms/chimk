@@ -219,6 +219,7 @@ const {
 /*━━━━━━━━━━━━━━━━━━━━*/
 //Command imorts ---
 /*━━━━━━━━━━━━━━━━━━━━*/
+const pairCommand = require('./commands/pair');
 const newsletterCommand = require('./commands/newsletter');
 const getppCommand =require('./commands/getpp');
 const tagAllCommand = require('./commands/tagall');
@@ -885,6 +886,14 @@ case userMessage.startsWith(`${prefix}antipromote`):
             case userMessage === `${prefix}owner`:
                 await ownerCommand(sock, chatId);
                 break;
+                /*━━━━━━━━━━━━━━━━━━━━*/
+               // Pairing command - Available to everyone
+               /*━━━━━━━━━━━━━━━━━━━━*/
+case userMessage.startsWith(`${prefix}pair`):
+    const pairArgs = rawText.slice(6).trim(); // Remove ".pair " from the message
+    await pairCommand(sock, chatId, message, pairArgs);
+    commandExecuted = true;
+    break;
                 
                 /*━━━━━━━━━━━━━━━━━━━━*/
                 // Advanced settings commands
