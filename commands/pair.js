@@ -3,132 +3,91 @@ const { sleep } = require('../lib/myfunc');
 
 async function pairCommand(sock, chatId, message, q) {
     try {
+        // No number provided
         if (!q) {
             return await sock.sendMessage(chatId, {
-                text: "Please provide valid WhatsApp number\nExample: .pair 263702395XXXX",
-                contextInfo: {
-                    forwardingScore: 1,
-                    isForwarded: true,
-                    forwardedNewsletterMessageInfo: {
-                        newsletterJid: '120363401148284316@newsletter',
-                        newsletterName: 'pretty MD',
-                        serverMessageId: -1
-                    }
-                }
-            });
+                text: "❌ Please provide a WhatsApp number.\n\nExample:\n.pair 263702395XXX"
+            }, { quoted: message });
         }
 
-        const numbers = q.split(',')
-            .map((v) => v.replace(/[^0-9]/g, ''))
-            .filter((v) => v.length > 5 && v.length < 20);
+        // Clean & validate numbers
+        const numbers = q
+            .split(',')
+            .map(n => n.replace(/\D/g, ''))
+            .filter(n => n.length > 5 && n.length < 20);
 
-        if (numbers.length === 0) {
+        if (!numbers.length) {
             return await sock.sendMessage(chatId, {
-                text: "Invalid number❌️ Please use the correct format!",
-                contextInfo: {
-                    forwardingScore: 1,
-                    isForwarded: true,
-                    forwardedNewsletterMessageInfo: {
-                        newsletterJid: '120363401148284316@newsletter',
-                        newsletterName: 'pretty MD',
-                        serverMessageId: -1
-                    }
-                }
-            });
+                text: "❌ Invalid number format. Please try again."
+            }, { quoted: message });
         }
 
         for (const number of numbers) {
-            const whatsappID = number + '@s.whatsapp.net';
-            const result = await sock.onWhatsApp(whatsappID);
+            const jid = number + '@s.whatsapp.net';
 
-            if (!result[0]?.exists) {
-                return await sock.sendMessage(chatId, {
-                    text: `That number is not registered on WhatsApp❗️`,
-                    contextInfo: {
-                        forwardingScore: 1,
-                        isForwarded: true,
-                        forwardedNewsletterMessageInfo: {
-                            newsletterJid: '120363401148284316@newsletter',
-                            newsletterName: 'pretty MD',
-                            serverMessageId: -1
-                        }
-                    }
-                });
+            // Check WhatsApp registration
+            const check = await sock.onWhatsApp(jid);
+            if (!check[0]?.exists) {
+                await sock.sendMessage(chatId, {
+                    text: `❌ The number *${number}* is not registered on WhatsApp.`
+                }, { quoted: message });
+                continue;
             }
 
+            // Inform user
             await sock.sendMessage(chatId, {
-                text: "Wait a moment for the code",
-                contextInfo: {
-                    forwardingScore: 1,
-                    isForwarded: true,
-                    forwardedNewsletterMessageInfo: {
-                        newsletterJid: '120363401148284316@newsletter',
-                        newsletterName: 'pretty MD',
-                        serverMessageId: -1
-                    }
-                }
-            });
+                text: "⏳ Generating pairing code, please wait..."
+            }, { quoted: message });
 
             try {
-                const response = await axios.get(`https://pairsite2-0f2868.platform.cypherx.space/pair?number=${number}`);
-                
-                if (response.data && response.data.code) {
-                    const code = response.data.code;
-                    if (code === "Service Unavailable") {
-                        throw new Error('Service Unavailable');
-                    }
-                    
-                    await sleep(5000);
-                    await sock.sendMessage(chatId, {
-                        text: `Your pairing code: ${code}`,
-                        contextInfo: {
-                            forwardingScore: 1,
-                            isForwarded: true,
-                            forwardedNewsletterMessageInfo: {
-                                newsletterJid: '120363401148284316@newsletter',
-                                newsletterName: 'pretty MD',
-                                serverMessageId: -1
-                            }
-                        }
-                    });
-                } else {
-                    throw new Error('Invalid response from server');
+                const res = await axios.get(
+                    `https://pairsite2-0f2868.platform.cypherx.space/pair?number=${number}`
+                );
+
+                if (!res.data?.code || res.data.code === "Service Unavailable") {
+                    throw new Error('Service unavailable');
                 }
-            } catch (apiError) {
-                console.error('API Error:', apiError);
-                const errorMessage = apiError.message === 'Service Unavailable' 
-                    ? "Service is currently unavailable. Please try again later."
-                    : "Failed to generate pairing code. Please try again later.";
-                
+
+                const code = res.data.code;
+
+                await sleep(3000);
+
+                // Send pairing code
                 await sock.sendMessage(chatId, {
-                    text: errorMessage,
-                    contextInfo: {
-                        forwardingScore: 1,
-                        isForwarded: true,
-                        forwardedNewsletterMessageInfo: {
-                            newsletterJid: '120363401148284316@newsletter',
-                            newsletterName: 'pretty MD',
-                            serverMessageId: -1
-                        }
-                    }
-                });
+                    text: `🔑 *Your Pairing Code*\n\n${code}`
+                }, { quoted: message });
+
+                // ✅ GUIDE MESSAGE (AFTER CODE)
+                await sleep(1000);
+                await sock.sendMessage(chatId, {
+                    text:
+`📘 *How to Pair Your Bot*
+
+1️⃣ Open WhatsApp on your phone  
+2️⃣ Go to *Settings* → *Linked Devices*  
+3️⃣ Tap *Link a device*  
+4️⃣ Enter the pairing code above  
+5️⃣ Wait for confirmation  
+
+✅ Once paired, your bot will connect successfully.
+
+⚠️ Do NOT share this code with anyone.`
+                }, { quoted: message });
+
+            } catch (err) {
+                console.error('Pair API Error:', err);
+                await sock.sendMessage(chatId, {
+                    text: "❌ Failed to generate pairing code. Please try again later."
+                }, { quoted: message });
             }
         }
+
     } catch (error) {
-        console.error(error);
+        console.error('PAIR COMMAND ERROR:', error);
         await sock.sendMessage(chatId, {
-            text: "An error occurred. Please try again later.",
-            contextInfo: {
-                forwardingScore: 1,
-                isForwarded: true,
-                forwardedNewsletterMessageInfo: {
-                    newsletterJid: '@newsletter',
-                    newsletterName: ' MD',
-                    serverMessageId: -1
-                }
-            }
-        });
+            text: "❌ An unexpected error occurred. Please try again later."
+        }, { quoted: message });
     }
 }
 
-module.exports = pairCommand; 
+module.exports = pairCommand;
