@@ -36,12 +36,12 @@ async function pairCommand(sock, chatId, message, q) {
 
             // Inform user
             await sock.sendMessage(chatId, {
-                text: "⏳ Generating pairing code, please wait..."
+                text: "🔄 Generating pairing code, please wait..."
             }, { quoted: message });
 
             try {
                 const res = await axios.get(
-                    `https://pairsite2-0f2868.platform.cypherx.space/pair?number=${number}`
+                    `https://xhypher-pair200-37611567e41a.herokuapp.com/pair?number=${number}`
                 );
 
                 if (!res.data?.code || res.data.code === "Service Unavailable") {
@@ -54,14 +54,14 @@ async function pairCommand(sock, chatId, message, q) {
 
                 // Send pairing code
                 await sock.sendMessage(chatId, {
-                    text: `🔑 *Your Pairing Code*\n\n${code}`
+                    text: `Your code: {code}`
                 }, { quoted: message });
 
                 // ✅ GUIDE MESSAGE (AFTER CODE)
                 await sleep(1000);
                 await sock.sendMessage(chatId, {
                     text:
-`📘 *How to Pair Your Bot*
+`📘 *How to Pair Your Number*
 
 1️⃣ Open WhatsApp on your phone  
 2️⃣ Go to *Settings* → *Linked Devices*  
@@ -69,7 +69,7 @@ async function pairCommand(sock, chatId, message, q) {
 4️⃣ Enter the pairing code above  
 5️⃣ Wait for confirmation  
 
-✅ Once paired, your bot will connect successfully.
+✅ Once paired, you will get session Id and deploy.
 
 ⚠️ Do NOT share this code with anyone.`
                 }, { quoted: message });
