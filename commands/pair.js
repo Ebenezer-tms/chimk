@@ -1,134 +1,67 @@
 const axios = require('axios');
-const { sleep } = require('../lib/myfunc');
 
 async function pairCommand(sock, chatId, message, q) {
     try {
         if (!q) {
             return await sock.sendMessage(chatId, {
-                text: "Please provide valid WhatsApp number\nExample: .pair 91702395XXXX",
-                contextInfo: {
-                    forwardingScore: 1,
-                    isForwarded: true,
-                    forwardedNewsletterMessageInfo: {
-                        newsletterJid: '120363161513685998@newsletter',
-                        newsletterName: 'KnightBot MD',
-                        serverMessageId: -1
-                    }
-                }
-            });
+                text: "❌ Usage:\n.pair 2637xxxxxxx"
+            }, { quoted: message });
         }
 
-        const numbers = q.split(',')
-            .map((v) => v.replace(/[^0-9]/g, ''))
-            .filter((v) => v.length > 5 && v.length < 20);
+        const number = q.replace(/[^0-9]/g, '');
 
-        if (numbers.length === 0) {
+        if (number.length < 7 || number.length > 15) {
             return await sock.sendMessage(chatId, {
-                text: "Invalid number❌️ Please use the correct format!",
-                contextInfo: {
-                    forwardingScore: 1,
-                    isForwarded: true,
-                    forwardedNewsletterMessageInfo: {
-                        newsletterJid: '120363161513685998@newsletter',
-                        newsletterName: 'KnightBot MD',
-                        serverMessageId: -1
-                    }
-                }
-            });
+                text: "❌ Invalid number format"
+            }, { quoted: message });
         }
 
-        for (const number of numbers) {
-            const whatsappID = number + '@s.whatsapp.net';
-            const result = await sock.onWhatsApp(whatsappID);
-
-            if (!result[0]?.exists) {
-                return await sock.sendMessage(chatId, {
-                    text: `That number is not registered on WhatsApp❗️`,
-                    contextInfo: {
-                        forwardingScore: 1,
-                        isForwarded: true,
-                        forwardedNewsletterMessageInfo: {
-                            newsletterJid: '120363161513685998@newsletter',
-                            newsletterName: 'KnightBot MD',
-                            serverMessageId: -1
-                        }
-                    }
-                });
-            }
-
-            await sock.sendMessage(chatId, {
-                text: "Wait a moment for the code",
-                contextInfo: {
-                    forwardingScore: 1,
-                    isForwarded: true,
-                    forwardedNewsletterMessageInfo: {
-                        newsletterJid: '120363161513685998@newsletter',
-                        newsletterName: 'KnightBot MD',
-                        serverMessageId: -1
-                    }
-                }
-            });
-
-            try {
-                const response = await axios.get(`https://xhypher-pair200-37611567e41a.herokuapp.com/pair/code?number=${number}`);
-                
-                if (response.data && response.data.code) {
-                    const code = response.data.code;
-                    if (code === "Service Unavailable") {
-                        throw new Error('Service Unavailable');
-                    }
-                    
-                    await sleep(5000);
-                    await sock.sendMessage(chatId, {
-                        text: `Your pairing code: ${code}`,
-                        contextInfo: {
-                            forwardingScore: 1,
-                            isForwarded: true,
-                            forwardedNewsletterMessageInfo: {
-                                newsletterJid: '120363161513685998@newsletter',
-                                newsletterName: 'KnightBot MD',
-                                serverMessageId: -1
-                            }
-                        }
-                    });
-                } else {
-                    throw new Error('Invalid response from server');
-                }
-            } catch (apiError) {
-                console.error('API Error:', apiError);
-                const errorMessage = apiError.message === 'Service Unavailable' 
-                    ? "Service is currently unavailable. Please try again later."
-                    : "Failed to generate pairing code. Please try again later.";
-                
-                await sock.sendMessage(chatId, {
-                    text: errorMessage,
-                    contextInfo: {
-                        forwardingScore: 1,
-                        isForwarded: true,
-                        forwardedNewsletterMessageInfo: {
-                            newsletterJid: '120363161513685998@newsletter',
-                            newsletterName: 'KnightBot MD',
-                            serverMessageId: -1
-                        }
-                    }
-                });
-            }
-        }
-    } catch (error) {
-        console.error(error);
         await sock.sendMessage(chatId, {
-            text: "An error occurred. Please try again later.",
-            contextInfo: {
-                forwardingScore: 1,
-                isForwarded: true,
-                forwardedNewsletterMessageInfo: {
-                    newsletterJid: '120363161513685998@newsletter',
-                    newsletterName: 'KnightBot MD',
-                    serverMessageId: -1
-                }
-            }
-        });
+            text: "⏳ Generating pairing code..."
+        }, { quoted: message });
+
+        const response = await axios.get(
+            'https://xhypher-pair200-37611567e41a.herokuapp.com/pair',
+            { params: { number } }
+        );
+
+        let code = null;
+
+        // 🧠 HANDLE HTML RESPONSE
+        if (typeof response.data === 'string') {
+            // Try extracting code from HTML
+            const match = response.data.match(/([A-Z0-9]{4,}-[A-Z0-9]{4,})/i);
+            if (match) code = match[1];
+        }
+
+        if (!code) {
+            throw new Error('Pair server returned HTML, not code');
+        }
+
+        // ✅ SEND CODE
+        await sock.sendMessage(chatId, {
+            text: `🔐 *PAIRING CODE*\n\n\`${code}\``
+        }, { quoted: message });
+
+        // 📘 GUIDE MESSAGE
+        await sock.sendMessage(chatId, {
+            text:
+`📘 *HOW TO PAIR*
+
+1️⃣ Open WhatsApp  
+2️⃣ Settings → Linked Devices  
+3️⃣ Link with phone number  
+4️⃣ Enter the code above  
+
+✅ Pairing successful`
+        }, { quoted: message });
+
+    } catch (err) {
+        console.error('PAIR ERROR:', err.message);
+        await sock.sendMessage(chatId, {
+            text: "❌ Failed to generate pairing code.\nYour pair server is returning HTML instead of a code."
+        }, { quoted: message });
     }
 }
 
-module.exports = pairCommand; 
+module.exports = pairCommand;
