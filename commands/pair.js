@@ -4,68 +4,75 @@ async function pairCommand(sock, chatId, message, q) {
     try {
         if (!q) {
             return await sock.sendMessage(chatId, {
-                text: "❌ Please provide a WhatsApp number\n\nExample:\n.pair 263702395XXX"
+                text: "❌ Usage:\n.pair 2637xxxxxxx"
             }, { quoted: message });
         }
 
-        // Clean number
         const number = q.replace(/[^0-9]/g, '');
 
         if (number.length < 7 || number.length > 15) {
             return await sock.sendMessage(chatId, {
-                text: "❌ Invalid number format\nUse country code, e.g: 2637xxxxxxx"
-            }, { quoted: message });
-        }
-
-        // Check if WhatsApp exists
-        const jid = number + '@s.whatsapp.net';
-        const exists = await sock.onWhatsApp(jid);
-
-        if (!exists[0]?.exists) {
-            return await sock.sendMessage(chatId, {
-                text: "❌ This number is not registered on WhatsApp"
+                text: "❌ Invalid number format"
             }, { quoted: message });
         }
 
         await sock.sendMessage(chatId, {
-            text: "⏳ Generating pairing code, please wait..."
+            text: "⏳ Generating pairing code..."
         }, { quoted: message });
 
-        // 🔥 YOUR PAIR SERVER
-        const response = await axios.get(
-            `https://xhypher-pair200-37611567e41a.herokuapp.com/pair`,
-            { params: { number } }
-        );
+        let response;
 
-        if (!response.data || !response.data.code) {
-            throw new Error('Invalid API response');
+        // 🔁 TRY GET FIRST
+        try {
+            response = await axios.get(
+                'https://xhypher-pair200-37611567e41a.herokuapp.com/pair',
+                { params: { number } }
+            );
+        } catch {
+            // 🔁 FALLBACK TO POST
+            response = await axios.post(
+                'https://xhypher-pair200-37611567e41a.herokuapp.com/pair',
+                { number }
+            );
         }
 
-        const code = response.data.code;
+        let code = null;
 
-        // Send code
+        // 🧠 SMART RESPONSE PARSING
+        if (typeof response.data === 'string') {
+            code = response.data.trim();
+        } else if (response.data.code) {
+            code = response.data.code;
+        } else if (response.data.pairingCode) {
+            code = response.data.pairingCode;
+        }
+
+        if (!code || code.length < 4) {
+            throw new Error('Invalid pairing code');
+        }
+
+        // ✅ SEND CODE
         await sock.sendMessage(chatId, {
             text: `🔐 *PAIRING CODE*\n\n\`${code}\``
         }, { quoted: message });
 
-        // 📘 GUIDE MESSAGE (AFTER CODE)
+        // 📘 GUIDE
         await sock.sendMessage(chatId, {
             text:
 `📘 *HOW TO PAIR*
 
 1️⃣ Open WhatsApp  
-2️⃣ Tap ⋮ → Linked Devices  
-3️⃣ Tap *Link a device*  
-4️⃣ Choose *Link with phone number*  
-5️⃣ Enter the pairing code above  
+2️⃣ Settings → Linked Devices  
+3️⃣ Link with phone number  
+4️⃣ Enter the code above  
 
-✅ Done!`
+✅ Pairing complete`
         }, { quoted: message });
 
     } catch (err) {
-        console.error('PAIR ERROR:', err);
+        console.error('PAIR ERROR:', err?.response?.data || err.message);
         await sock.sendMessage(chatId, {
-            text: "❌ Failed to generate pairing code.\nPlease try again later."
+            text: "❌ Failed to generate pairing code.\nYour pair server may be down or returning invalid data."
         }, { quoted: message });
     }
 }
