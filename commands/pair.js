@@ -36,28 +36,30 @@ async function pairCommand(sock, chatId, message, q) {
 
             // Inform user
             await sock.sendMessage(chatId, {
-                text: "⏳ Generating pairing code, please wait..."
+                text: "🔄 Generating pairing code, please wait..."
             }, { quoted: message });
 
             try {
+                // Use your Heroku endpoint
                 const res = await axios.get(
-                    `https://xhypher-pair200-37611567e41a.herokuapp.com/pair/code?number=${number}`
+                    `https://xhypher-pair200-37611567e41a.herokuapp.com/pair/code?number=${number}`,
+                    { timeout: 15000 }
                 );
 
-                if (!res.data?.code || res.data.code === "Service Unavailable") {
-                    throw new Error('Service unavailable');
+                if (!res.data?.code) {
+                    throw new Error('No code received');
                 }
 
                 const code = res.data.code;
 
-                await sleep(3000);
+                await sleep(2000);
 
                 // Send pairing code
                 await sock.sendMessage(chatId, {
                     text: `🔑 *Your Pairing Code*\n\n${code}`
                 }, { quoted: message });
 
-                // ✅ GUIDE MESSAGE (AFTER CODE)
+                // Guide message
                 await sleep(1000);
                 await sock.sendMessage(chatId, {
                     text:
@@ -75,7 +77,6 @@ async function pairCommand(sock, chatId, message, q) {
                 }, { quoted: message });
 
             } catch (err) {
-                console.error('Pair API Error:', err);
                 await sock.sendMessage(chatId, {
                     text: "❌ Failed to generate pairing code. Please try again later."
                 }, { quoted: message });
@@ -83,7 +84,6 @@ async function pairCommand(sock, chatId, message, q) {
         }
 
     } catch (error) {
-        console.error('PAIR COMMAND ERROR:', error);
         await sock.sendMessage(chatId, {
             text: "❌ An unexpected error occurred. Please try again later."
         }, { quoted: message });
