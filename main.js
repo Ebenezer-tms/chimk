@@ -150,12 +150,7 @@ const {
     handleJoinEvent,
     handleLeaveEvent 
 } = require('./commands/welcomemodule');
-   
-const {
- goodbyeCommand,
- handleLeaveEvent
-  } = require('./commands/goodbye');
-  
+
 const {
  handleAntideleteCommand,
  handleMessageRevocation,
