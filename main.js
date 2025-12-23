@@ -104,16 +104,6 @@ const {
  } = require('./commands/autoread');
  
  const { 
-    incrementMessageCount, 
-    topMembers, 
-    listOnlineCommand, 
-    listOfflineCommand,
-    handleUserActivity,
-    updateUserActivity,
-    getOnlineMembers 
-} = require('./commands/topmembers');
- 
- const { 
  setGroupDescription, 
  setGroupName, 
  setGroupPhoto 
