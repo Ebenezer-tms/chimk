@@ -104,9 +104,14 @@ const {
  } = require('./commands/autoread');
  
  const { 
- incrementMessageCount, 
- topMembers 
- } = require('./commands/topmembers');
+    incrementMessageCount, 
+    topMembers, 
+    listOnlineCommand, 
+    listOfflineCommand,
+    handleUserActivity,
+    updateUserActivity,
+    getOnlineMembers 
+} = require('./commands/topmembers');
  
  const { 
  setGroupDescription, 
@@ -134,16 +139,6 @@ const {
  handleAntiBadwordCommand,
  handleBadwordDetection
   } = require('./lib/antibadword');
-
-const { 
-  welcomeCommand,
-  handleJoinEvent
-   } = require('./commands/welcome');
-   
-const {
- goodbyeCommand,
- handleLeaveEvent
-  } = require('./commands/goodbye');
   
 const {
  handleAntideleteCommand,
@@ -219,6 +214,7 @@ const {
 /*━━━━━━━━━━━━━━━━━━━━*/
 //Command imorts ---
 /*━━━━━━━━━━━━━━━━━━━━*/
+const getpluginCommand = require('./commands/getplugin');
 const pairCommand = require('./commands/pair');
 const newsletterCommand = require('./commands/newsletter');
 const getppCommand =require('./commands/getpp');
@@ -247,7 +243,6 @@ const warningsCommand = require('./commands/warnings');
 const ttsCommand = require('./commands/tts');
 const ownerCommand = require('./commands/owner');
 const deleteCommand = require('./commands/delete');
-const listonlineCommand = require('./commands/listonline');
 const leaveGroupCommand = require('./commands/leavegroup');
 const nglCommand = require('./commands/ngl');
 
@@ -268,7 +263,6 @@ const kickCommand = require('./commands/kick');
 const simageCommand = require('./commands/simage');
 const attpCommand = require('./commands/attp');
 const { complimentCommand } = require('./commands/compliment');
-const onlineCommand = require('./commands/online');
 const kickAllCommand = require('./commands/kickall');
 
 /*━━━━━━━━━━━━━━━━━━━━*/
@@ -1031,15 +1025,29 @@ case userMessage.startsWith(`${prefix}tagadmin`) ||
      userMessage.startsWith(`${prefix}tagadmins`):
     await tagadminCommand(sock, chatId, senderId, message, userMessage);
     break;
-              case userMessage === `${prefix}online`:
+              // Online tracking commands
+case userMessage === `${prefix}online`:
+case userMessage === `${prefix}listonline`:
+case userMessage === `${prefix}onlinelist`:
+case userMessage === `${prefix}offline`:
+case userMessage === `${prefix}listoffline`:
+case userMessage === `${prefix}offlinelist`:
+case userMessage === `${prefix}topmembers`:
     if (!isGroup) {
         await sock.sendMessage(chatId, { 
-            text: 'This command can only be used in groups!', 
-            ...channelInfo 
+            text: '❌ This command can only be used in groups!' 
         }, { quoted: message });
         return;
     }
-    await onlineCommand(sock, chatId, message);
+    
+    if (userMessage === `${prefix}online` || userMessage === `${prefix}listonline` || userMessage === `${prefix}onlinelist`) {
+        await listOnlineCommand(sock, chatId, isGroup);
+    } else if (userMessage === `${prefix}offline` || userMessage === `${prefix}listoffline` || userMessage === `${prefix}offlinelist`) {
+        await listOfflineCommand(sock, chatId, isGroup);
+    } else if (userMessage === `${prefix}topmembers`) {
+        topMembers(sock, chatId, isGroup);
+    }
+    
     commandExecuted = true;
     break;
    case userMessage === `${prefix}vcf`:
@@ -1237,40 +1245,6 @@ case userMessage.startsWith(`${prefix}setownernumber`):
             case userMessage.startsWith(`${prefix}blur`):
                 const quotedMessage = message.message?.extendedTextMessage?.contextInfo?.quotedMessage;
                 await blurCommand(sock, chatId, message, quotedMessage);
-                break;
-            case userMessage.startsWith(`${prefix}welcome`):
-                if (isGroup) {
-                    // Check admin status if not already checked
-                    if (!isSenderAdmin) {
-                        const adminStatus = await isAdmin(sock, chatId, senderId);
-                        isSenderAdmin = adminStatus.isSenderAdmin;
-                    }
-
-                    if (isSenderAdmin || message.key.fromMe) {
-                        await welcomeCommand(sock, chatId, message);
-                    } else {
-                        await sock.sendMessage(chatId, { text: 'Sorry, only group admins can use this command.', ...channelInfo }, { quoted: message });
-                    }
-                } else {
-                    await sock.sendMessage(chatId, { text: 'This command can only be used in groups.', ...channelInfo }, { quoted: message });
-                }
-                break;
-            case userMessage.startsWith(`${prefix}goodbye`):
-                if (isGroup) {
-                    // Check admin status if not already checked
-                    if (!isSenderAdmin) {
-                        const adminStatus = await isAdmin(sock, chatId, senderId);
-                        isSenderAdmin = adminStatus.isSenderAdmin;
-                    }
-
-                    if (isSenderAdmin || message.key.fromMe) {
-                        await goodbyeCommand(sock, chatId, message);
-                    } else {
-                        await sock.sendMessage(chatId, { text: 'Sorry, only group admins can use this command.', ...channelInfo }, { quoted: message });
-                    }
-                } else {
-                    await sock.sendMessage(chatId, { text: 'This command can only be used in groups.', ...channelInfo }, { quoted: message });
-                }
                 break;
                 
                 
@@ -1521,16 +1495,13 @@ case userMessage.startsWith(`${prefix}setownernumber`):
               case userMessage === `${prefix}fetch`:
                 await fetchCommand(sock, chatId, message);
                 break;
-              case userMessage === `${prefix}online` || 
-     userMessage === `${prefix}listonline` || 
-     userMessage === `${prefix}onlinelist`:
-    if (!isGroup) {
-        await sock.sendMessage(chatId, { text: 'This command can only be used in groups!', ...channelInfo }, { quoted: message });
-        return;
-    }
-    await listonlineCommand(sock, chatId, message);
+              // Add this case to your switch statement:
+case userMessage.startsWith(`${prefix}getplugin`):
+    await getpluginCommand(sock, chatId, message, prefix);
     commandExecuted = true;
     break;
+    // Welcome commands
+
 
    /*━━━━━━━━━━━━━━━━━━━━*/
 // Feedback & Report Commands
@@ -1891,13 +1862,14 @@ async function handleGroupParticipantUpdate(sock, update) {
         }
 
         // Handle join events
-        if (action === 'add') {
-            await handleJoinEvent(sock, id, participants);
-        }
+if (action === 'add') {
+    await handleJoinEvent(sock, id, participants);
+}
 
-        // Handle leave events
-        if (action === 'remove') {
-            await handleLeaveEvent(sock, id, participants);
+// Handle leave events  
+if (action === 'remove') {
+    await handleLeaveEvent(sock, id, participants);
+}
         }
     } catch (error) {
         console.error('Error in handleGroupParticipantUpdate:', error);
