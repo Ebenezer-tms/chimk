@@ -104,6 +104,16 @@ const {
  } = require('./commands/autoread');
  
  const { 
+    incrementMessageCount, 
+    topMembers, 
+    listOnlineCommand, 
+    listOfflineCommand,
+    handleUserActivity,
+    updateUserActivity,
+    getOnlineMembers 
+} = require('./commands/topmembers');
+ 
+ const { 
  setGroupDescription, 
  setGroupName, 
  setGroupPhoto 
@@ -129,18 +139,7 @@ const {
  handleAntiBadwordCommand,
  handleBadwordDetection
   } = require('./lib/antibadword');
-
-const { 
-    welcomeCommand, 
-    goodbyeCommand, 
-    setwelcomeCommand, 
-    setgoodbyeCommand, 
-    showsettingsCommand, 
-    resetCommand,
-    handleJoinEvent,
-    handleLeaveEvent 
-} = require('./commands/welcomemodule');
-
+  
 const {
  handleAntideleteCommand,
  handleMessageRevocation,
@@ -1502,46 +1501,7 @@ case userMessage.startsWith(`${prefix}getplugin`):
     commandExecuted = true;
     break;
     // Welcome commands
-case userMessage.startsWith(`${prefix}welcome`):
-    await welcomeCommand(sock, chatId, message);
-    commandExecuted = true;
-    break;
 
-case userMessage.startsWith(`${prefix}setwelcome`):
-    await setwelcomeCommand(sock, chatId, senderId, message, userMessage);
-    commandExecuted = true;
-    break;
-
-case userMessage === `${prefix}showwelcome`:
-    await showsettingsCommand(sock, chatId, message, userMessage);
-    commandExecuted = true;
-    break;
-
-case userMessage === `${prefix}resetwelcome`:
-    await resetCommand(sock, chatId, senderId, message, userMessage);
-    commandExecuted = true;
-    break;
-
-// Goodbye commands
-case userMessage.startsWith(`${prefix}goodbye`):
-    await goodbyeCommand(sock, chatId, message);
-    commandExecuted = true;
-    break;
-
-case userMessage.startsWith(`${prefix}setgoodbye`):
-    await setgoodbyeCommand(sock, chatId, senderId, message, userMessage);
-    commandExecuted = true;
-    break;
-
-case userMessage === `${prefix}showgoodbye`:
-    await showsettingsCommand(sock, chatId, message, userMessage);
-    commandExecuted = true;
-    break;
-
-case userMessage === `${prefix}resetgoodbye`:
-    await resetCommand(sock, chatId, senderId, message, userMessage);
-    commandExecuted = true;
-    break;
 
    /*━━━━━━━━━━━━━━━━━━━━*/
 // Feedback & Report Commands
