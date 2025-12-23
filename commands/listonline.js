@@ -1,201 +1,237 @@
-const { getConfig } = require('../lib/configdb');
+const fs = require('fs');
+const path = require('path');
 
-async function listonlineCommand(sock, chatId, message) {
-    try {
-        // Check if it's a group
-        if (!chatId.endsWith('@g.us')) {
-            return await sock.sendMessage(chatId, {
-                text: '❌ This command can only be used in groups.',
-                ...global.channelInfo
-            }, { quoted: message });
+const dataFilePath = path.join(__dirname, '..', 'data', 'messageCount.json');
+const onlineStatusFilePath = path.join(__dirname, '..', 'data', 'onlineStatus.json');
+const OFFLINE_THRESHOLD_MINUTES = 5; // User considered offline after 5 minutes
+
+function loadJson(filePath) {
+    if (fs.existsSync(filePath)) {
+        const data = fs.readFileSync(filePath);
+        return JSON.parse(data);
+    }
+    return {};
+}
+
+function saveJson(filePath, data) {
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+}
+
+function loadMessageCounts() {
+    return loadJson(dataFilePath);
+}
+
+function saveMessageCounts(messageCounts) {
+    saveJson(dataFilePath, messageCounts);
+}
+
+function loadOnlineStatus() {
+    return loadJson(onlineStatusFilePath);
+}
+
+function saveOnlineStatus(onlineStatus) {
+    saveJson(onlineStatusFilePath, onlineStatus);
+}
+
+function incrementMessageCount(groupId, userId) {
+    const messageCounts = loadMessageCounts();
+
+    if (!messageCounts[groupId]) {
+        messageCounts[groupId] = {};
+    }
+
+    if (!messageCounts[groupId][userId]) {
+        messageCounts[groupId][userId] = 0;
+    }
+
+    messageCounts[groupId][userId] += 1;
+    saveMessageCounts(messageCounts);
+}
+
+function updateUserActivity(groupId, userId) {
+    const onlineStatus = loadOnlineStatus();
+    
+    if (!onlineStatus[groupId]) {
+        onlineStatus[groupId] = {};
+    }
+    
+    onlineStatus[groupId][userId] = {
+        lastSeen: Date.now(),
+        isOnline: true
+    };
+    
+    saveOnlineStatus(onlineStatus);
+}
+
+function getOnlineMembers(groupId) {
+    const onlineStatus = loadOnlineStatus();
+    const groupStatus = onlineStatus[groupId] || {};
+    const now = Date.now();
+    
+    const result = {
+        onlineMembers: [],
+        offlineMembers: []
+    };
+    
+    for (const [userId, status] of Object.entries(groupStatus)) {
+        const minutesAgo = Math.floor((now - status.lastSeen) / 60000);
+        const isOnline = minutesAgo <= OFFLINE_THRESHOLD_MINUTES;
+        
+        const memberInfo = {
+            userId: userId,
+            lastSeen: status.lastSeen,
+            minutesAgo: minutesAgo,
+            isCurrentlyOnline: isOnline
+        };
+        
+        if (isOnline) {
+            result.onlineMembers.push(memberInfo);
+        } else {
+            result.offlineMembers.push(memberInfo);
         }
+    }
+    
+    // Sort online members by most recent activity
+    result.onlineMembers.sort((a, b) => a.minutesAgo - b.minutesAgo);
+    
+    // Sort offline members by most recent first
+    result.offlineMembers.sort((a, b) => a.minutesAgo - b.minutesAgo);
+    
+    return result;
+}
 
-        await sock.sendMessage(chatId, {
-            text: '⏳ Fetching online members...',
-            ...global.channelInfo
-        }, { quoted: message });
+function formatTimeAgo(minutes) {
+    if (minutes === 0) return 'just now';
+    
+    if (minutes < 60) {
+        return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+    }
+    
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) {
+        return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+    }
+    
+    const days = Math.floor(hours / 24);
+    return `${days} day${days > 1 ? 's' : ''} ago`;
+}
 
-        // Get group metadata
-        const metadata = await sock.groupMetadata(chatId);
-        const participants = metadata.participants;
+function listOnlineCommand(sock, chatId, isGroup) {
+    if (!isGroup) {
+        sock.sendMessage(chatId, { text: 'This command is only available in group chats.' });
+        return;
+    }
 
-        // Arrays to store online/offline members
-        const onlineMembers = [];
-        const offlineMembers = [];
-        const unknownStatus = [];
+    const { onlineMembers } = getOnlineMembers(chatId);
+    
+    if (onlineMembers.length === 0) {
+        sock.sendMessage(chatId, { text: 'No members are currently online.' });
+        return;
+    }
 
-        // Get current time
-        const currentTime = Math.floor(Date.now() / 1000);
+    let message = '🟢 Online Members 🟢\n\n';
+    onlineMembers.forEach((member, index) => {
+        message += `${index + 1}. @${member.userId.split('@')[0]} - Last active: ${formatTimeAgo(member.minutesAgo)}\n`;
+    });
+    
+    message += `\nTotal online: ${onlineMembers.length}`;
 
-        // Get bot's presence status
-        const botPresence = await sock.fetchStatus(sock.user.id.split(':')[0] + '@s.whatsapp.net').catch(() => null);
+    sock.sendMessage(chatId, { 
+        text: message, 
+        mentions: onlineMembers.map(member => member.userId) 
+    });
+}
 
-        // Online status thresholds (in seconds)
-        const ONLINE_THRESHOLD = 60; // 1 minute
-        const RECENT_THRESHOLD = 300; // 5 minutes
+function listOfflineCommand(sock, chatId, isGroup) {
+    if (!isGroup) {
+        sock.sendMessage(chatId, { text: 'This command is only available in group chats.' });
+        return;
+    }
 
-        // Get user presence for each participant
-        for (const participant of participants) {
-            try {
-                // Skip bots
-                if (participant.id.includes('@s.whatsapp.net')) {
-                    // Get user's presence status
-                    const presence = await sock.presenceGet(chatId, participant.id).catch(() => null);
-                    
-                    // Get user's last seen
-                    const lastSeen = await sock.fetchStatus(participant.id).catch(() => null);
-                    
-                    // Parse last seen timestamp
-                    let isOnline = false;
-                    let status = '❓ Unknown';
-                    
-                    if (presence) {
-                        // Check presence status
-                        switch(presence) {
-                            case 'available':
-                                isOnline = true;
-                                status = '🟢 Online';
-                                break;
-                            case 'unavailable':
-                                status = '⚪️ Offline';
-                                break;
-                            case 'composing':
-                                isOnline = true;
-                                status = '✍️ Typing...';
-                                break;
-                            case 'recording':
-                                isOnline = true;
-                                status = '🎤 Recording...';
-                                break;
-                            default:
-                                status = `⚪️ ${presence}`;
-                        }
-                    }
-                    
-                    // If we have last seen time, use that as fallback
-                    if (!presence && lastSeen) {
-                        const lastSeenTime = lastSeen.lastSeen ? parseInt(lastSeen.lastSeen) : null;
-                        if (lastSeenTime) {
-                            const timeDiff = currentTime - lastSeenTime;
-                            
-                            if (timeDiff < ONLINE_THRESHOLD) {
-                                isOnline = true;
-                                status = `🟢 Online (${timeDiff}s ago)`;
-                            } else if (timeDiff < RECENT_THRESHOLD) {
-                                status = `🟡 Recently (${Math.floor(timeDiff/60)}m ago)`;
-                            } else {
-                                const hours = Math.floor(timeDiff / 3600);
-                                const minutes = Math.floor((timeDiff % 3600) / 60);
-                                
-                                if (hours > 0) {
-                                    status = `⚪️ Offline (${hours}h ${minutes}m ago)`;
-                                } else {
-                                    status = `⚪️ Offline (${minutes}m ago)`;
-                                }
-                            }
-                        }
-                    }
-                    
-                    // Format user info
-                    const userPushName = participant.notify || participant.id.split('@')[0];
-                    const userInfo = `• @${participant.id.split('@')[0]} (${userPushName}) - ${status}`;
-                    
-                    // Categorize
-                    if (isOnline) {
-                        onlineMembers.push({
-                            jid: participant.id,
-                            info: userInfo,
-                            status: status
-                        });
-                    } else if (status.includes('Offline') || status.includes('offline')) {
-                        offlineMembers.push({
-                            jid: participant.id,
-                            info: userInfo,
-                            status: status
-                        });
-                    } else {
-                        unknownStatus.push({
-                            jid: participant.id,
-                            info: userInfo,
-                            status: status
-                        });
-                    }
-                    
-                    // Small delay to avoid rate limiting
-                    await new Promise(resolve => setTimeout(resolve, 100));
-                }
-            } catch (error) {
-                console.error(`Error checking status for ${participant.id}:`, error.message);
+    const { offlineMembers } = getOnlineMembers(chatId);
+    
+    if (offlineMembers.length === 0) {
+        sock.sendMessage(chatId, { text: 'No members are currently offline.' });
+        return;
+    }
+
+    let message = '🔴 Offline Members 🔴\n\n';
+    offlineMembers.forEach((member, index) => {
+        message += `${index + 1}. @${member.userId.split('@')[0]} - Last seen: ${formatTimeAgo(member.minutesAgo)}\n`;
+    });
+    
+    message += `\nTotal offline: ${offlineMembers.length}`;
+
+    sock.sendMessage(chatId, { 
+        text: message, 
+        mentions: offlineMembers.map(member => member.userId) 
+    });
+}
+
+function topMembers(sock, chatId, isGroup) {
+    if (!isGroup) {
+        sock.sendMessage(chatId, { text: 'This command is only available in group chats.' });
+        return;
+    }
+
+    const messageCounts = loadMessageCounts();
+    const groupCounts = messageCounts[chatId] || {};
+
+    const sortedMembers = Object.entries(groupCounts)
+        .sort(([, a], [, b]) => b - a)
+        .slice(0, 5);
+
+    if (sortedMembers.length === 0) {
+        sock.sendMessage(chatId, { text: 'No message activity recorded yet.' });
+        return;
+    }
+
+    let message = '🏆 Top Members Based on Message Count:\n\n';
+    sortedMembers.forEach(([userId, count], index) => {
+        message += `${index + 1}. 🔹@${userId.split('@')[0]} - ${count} messages\n`;
+    });
+
+    sock.sendMessage(chatId, { text: message, mentions: sortedMembers.map(([userId]) => userId) });
+}
+
+// Function to update both message count and online status
+function handleUserActivity(groupId, userId) {
+    incrementMessageCount(groupId, userId);
+    updateUserActivity(groupId, userId);
+}
+
+// Optional: Cleanup function to periodically update offline status
+function cleanupOfflineUsers() {
+    const onlineStatus = loadOnlineStatus();
+    const now = Date.now();
+    let changed = false;
+    
+    for (const groupId in onlineStatus) {
+        for (const userId in onlineStatus[groupId]) {
+            const status = onlineStatus[groupId][userId];
+            const minutesAgo = Math.floor((now - status.lastSeen) / 60000);
+            
+            if (minutesAgo > OFFLINE_THRESHOLD_MINUTES && status.isOnline) {
+                onlineStatus[groupId][userId].isOnline = false;
+                changed = true;
             }
         }
-
-        // Prepare message
-        let messageText = `📊 *Group Online Status*\n`;
-        messageText += `👥 Total Members: ${participants.length}\n`;
-        messageText += `🟢 Online: ${onlineMembers.length}\n`;
-        messageText += `⚪️ Offline: ${offlineMembers.length}\n`;
-        messageText += `❓ Unknown: ${unknownStatus.length}\n\n`;
-        
-        // Add online members
-        if (onlineMembers.length > 0) {
-            messageText += `*🟢 ONLINE MEMBERS (${onlineMembers.length})*\n`;
-            onlineMembers.forEach(member => {
-                messageText += `${member.info}\n`;
-            });
-            messageText += '\n';
-        }
-        
-        // Add recently online members (within 5 minutes)
-        const recentMembers = unknownStatus.filter(m => 
-            m.status.includes('Recently') || 
-            m.status.includes('recently') ||
-            (m.status.includes('ago') && parseInt(m.status.match(/\d+/)?.[0] || 0) < 10)
-        );
-        
-        if (recentMembers.length > 0) {
-            messageText += `*🟡 RECENTLY ONLINE (${recentMembers.length})*\n`;
-            recentMembers.forEach(member => {
-                messageText += `${member.info}\n`;
-            });
-            messageText += '\n';
-        }
-        
-        // Add offline members (if less than 20)
-        if (offlineMembers.length > 0 && offlineMembers.length <= 20) {
-            messageText += `*⚪️ OFFLINE MEMBERS (${offlineMembers.length})*\n`;
-            offlineMembers.slice(0, 10).forEach(member => {
-                messageText += `${member.info}\n`;
-            });
-            if (offlineMembers.length > 10) {
-                messageText += `... and ${offlineMembers.length - 10} more\n`;
-            }
-            messageText += '\n';
-        } else if (offlineMembers.length > 20) {
-            messageText += `*⚪️ OFFLINE MEMBERS: ${offlineMembers.length}*\n`;
-        }
-        
-        // Add footer
-        messageText += `\n⏰ Last updated: ${new Date().toLocaleTimeString()}`;
-        messageText += `\n📌 *Note:* Status is approximate and based on last seen time.`;
-        
-        // Prepare mentions
-        const mentions = [
-            ...onlineMembers.map(m => m.jid),
-            ...recentMembers.map(m => m.jid)
-        ];
-
-        await sock.sendMessage(chatId, {
-            text: messageText,
-            mentions: mentions
-        }, { quoted: message });
-
-    } catch (error) {
-        console.error('Error in listonline command:', error);
-        await sock.sendMessage(chatId, {
-            text: '❌ Failed to fetch online members. Make sure the bot has admin permissions and try again.',
-            ...global.channelInfo
-        }, { quoted: message });
+    }
+    
+    if (changed) {
+        saveOnlineStatus(onlineStatus);
     }
 }
 
-module.exports = listonlineCommand;
+// Run cleanup every minute (optional)
+setInterval(cleanupOfflineUsers, 60000);
+
+module.exports = { 
+    incrementMessageCount, 
+    topMembers, 
+    listOnlineCommand, 
+    listOfflineCommand,
+    handleUserActivity,
+    updateUserActivity,
+    getOnlineMembers
+};
