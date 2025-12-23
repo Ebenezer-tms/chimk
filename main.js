@@ -136,14 +136,15 @@ const {
   } = require('./lib/antibadword');
 
 const { 
-  welcomeCommand,
-  handleJoinEvent
-   } = require('./commands/welcome');
-   
-const {
- goodbyeCommand,
- handleLeaveEvent
-  } = require('./commands/goodbye');
+    welcomeCommand, 
+    goodbyeCommand, 
+    setwelcomeCommand, 
+    setgoodbyeCommand, 
+    showsettingsCommand, 
+    resetCommand,
+    handleJoinEvent,
+    handleLeaveEvent 
+} = require('./commands/welcomemodule');
   
 const {
  handleAntideleteCommand,
@@ -1238,40 +1239,47 @@ case userMessage.startsWith(`${prefix}setownernumber`):
                 const quotedMessage = message.message?.extendedTextMessage?.contextInfo?.quotedMessage;
                 await blurCommand(sock, chatId, message, quotedMessage);
                 break;
-            case userMessage.startsWith(`${prefix}welcome`):
-                if (isGroup) {
-                    // Check admin status if not already checked
-                    if (!isSenderAdmin) {
-                        const adminStatus = await isAdmin(sock, chatId, senderId);
-                        isSenderAdmin = adminStatus.isSenderAdmin;
-                    }
+            // Welcome commands
+case userMessage.startsWith(`${prefix}welcome`):
+    await welcomeCommand(sock, chatId, message);
+    commandExecuted = true;
+    break;
 
-                    if (isSenderAdmin || message.key.fromMe) {
-                        await welcomeCommand(sock, chatId, message);
-                    } else {
-                        await sock.sendMessage(chatId, { text: 'Sorry, only group admins can use this command.', ...channelInfo }, { quoted: message });
-                    }
-                } else {
-                    await sock.sendMessage(chatId, { text: 'This command can only be used in groups.', ...channelInfo }, { quoted: message });
-                }
-                break;
-            case userMessage.startsWith(`${prefix}goodbye`):
-                if (isGroup) {
-                    // Check admin status if not already checked
-                    if (!isSenderAdmin) {
-                        const adminStatus = await isAdmin(sock, chatId, senderId);
-                        isSenderAdmin = adminStatus.isSenderAdmin;
-                    }
+case userMessage.startsWith(`${prefix}setwelcome`):
+    await setwelcomeCommand(sock, chatId, senderId, message, userMessage);
+    commandExecuted = true;
+    break;
 
-                    if (isSenderAdmin || message.key.fromMe) {
-                        await goodbyeCommand(sock, chatId, message);
-                    } else {
-                        await sock.sendMessage(chatId, { text: 'Sorry, only group admins can use this command.', ...channelInfo }, { quoted: message });
-                    }
-                } else {
-                    await sock.sendMessage(chatId, { text: 'This command can only be used in groups.', ...channelInfo }, { quoted: message });
-                }
-                break;
+case userMessage === `${prefix}showwelcome`:
+    await showsettingsCommand(sock, chatId, message, userMessage);
+    commandExecuted = true;
+    break;
+
+case userMessage === `${prefix}resetwelcome`:
+    await resetCommand(sock, chatId, senderId, message, userMessage);
+    commandExecuted = true;
+    break;
+
+// Goodbye commands
+case userMessage.startsWith(`${prefix}goodbye`):
+    await goodbyeCommand(sock, chatId, message);
+    commandExecuted = true;
+    break;
+
+case userMessage.startsWith(`${prefix}setgoodbye`):
+    await setgoodbyeCommand(sock, chatId, senderId, message, userMessage);
+    commandExecuted = true;
+    break;
+
+case userMessage === `${prefix}showgoodbye`:
+    await showsettingsCommand(sock, chatId, message, userMessage);
+    commandExecuted = true;
+    break;
+
+case userMessage === `${prefix}resetgoodbye`:
+    await resetCommand(sock, chatId, senderId, message, userMessage);
+    commandExecuted = true;
+    break;
                 
                 
                 /*━━━━━━━━━━━━━━━━━━━━*/
