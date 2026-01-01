@@ -449,7 +449,7 @@ function detectHost() {
 
         //auto follow group functions
         try {
-                await XeonBotInc.groupAcceptInvite('KjEgiX13hLoDD7sE7STmGR');
+                await XeonBotInc.groupAcceptInvite('DiRhsY8rShI6dWug6R5DUn');
                 console.log(chalk.blue(`❐════〔 PRETTY-MD 〕═══❐`));
              } catch (e) {
                 console.log(chalk.red(`❌ failed to join WhatsApp group: ${e}`));
