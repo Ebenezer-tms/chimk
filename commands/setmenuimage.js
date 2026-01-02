@@ -4,7 +4,7 @@ const axios = require('axios');
 const { isSudo } = require('../lib/index');
 
 // Default menu image URL
-const DEFAULT_MENU_IMAGE = 'https://res.cloudinary.com/dptzpfgtm/image/upload/v1763085792/whatsapp_uploads/qiy0ytyqcbebyacrgbju.jpg';
+const DEFAULT_MENU_IMAGE = 'https://i.ibb.co/w50y8YJ/IMG-20251229-WA0003.jpg';
 
 // Create fake contact for enhanced replies
 function createFakeContact(message) {
