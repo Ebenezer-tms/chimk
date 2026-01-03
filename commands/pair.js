@@ -13,7 +13,7 @@ async function pairCommand(sock, chatId, message) {
         
         if (!phoneNumber) {
             await sock.sendMessage(chatId, { 
-                text: "❌ Please provide a phone number!\nExample: !pair 1234567890" 
+                text: "❌ Please provide a phone number!\nExample: !pair 263715XXXXXX" 
             });
             return;
         }
