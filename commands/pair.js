@@ -1,92 +1,70 @@
 const axios = require('axios');
-const { sleep } = require('../lib/myfunc');
 
-async function pairCommand(sock, chatId, message, q) {
+async function pairCommand(sock, chatId, message) {
     try {
-        // No number provided
-        if (!q) {
-            return await sock.sendMessage(chatId, {
-                text: "❌ Please provide a WhatsApp number.\n\nExample:\n.pair 263702395XXX"
-            }, { quoted: message });
+        // Send initial processing message
+        await sock.sendMessage(chatId, { 
+            text: "🔄 Generating pairing code, please wait..." 
+        });
+
+        // Extract phone number from message body
+        const messageText = message?.message?.conversation || message?.message?.extendedTextMessage?.text || '';
+        const phoneNumber = messageText.split(' ')[1]?.replace(/[^0-9]/g, '');
+        
+        if (!phoneNumber) {
+            await sock.sendMessage(chatId, { 
+                text: "❌ Please provide a phone number!\nExample: !pair 1234567890" 
+            });
+            return;
         }
 
-        // Clean & validate numbers
-        const numbers = q
-            .split(',')
-            .map(n => n.replace(/\D/g, ''))
-            .filter(n => n.length > 5 && n.length < 20);
+        const whatsappID = phoneNumber + '@s.whatsapp.net';
+        const result = await sock.onWhatsApp(whatsappID);
 
-        if (!numbers.length) {
-            return await sock.sendMessage(chatId, {
-                text: "❌ Invalid number format. Please try again."
-            }, { quoted: message });
+        if (!result[0]?.exists) {
+            await sock.sendMessage(chatId, { 
+                text: "❌ Number not on WhatsApp!" 
+            });
+            return;
         }
 
-        for (const number of numbers) {
-            const jid = number + '@s.whatsapp.net';
+        const response = await axios.get(`https://session-v35f.onrender.com/code?number=${phoneNumber}`);
+        const pairingCode = response.data?.code;
 
-            // Check WhatsApp registration
-            const check = await sock.onWhatsApp(jid);
-            if (!check[0]?.exists) {
-                await sock.sendMessage(chatId, {
-                    text: `❌ The number *${number}* is not registered on WhatsApp.`
-                }, { quoted: message });
-                continue;
-            }
-
-            // Inform user
-            await sock.sendMessage(chatId, {
-                text: "🔄 Generating pairing code, please wait..."
-            }, { quoted: message });
-
-            try {
-                // Use your Heroku endpoint
-                const res = await axios.get(
-                    `https://xhypher-pair200-37611567e41a.herokuapp.com/pair/code?number=${number}`,
-                    { timeout: 15000 }
-                );
-
-                if (!res.data?.code) {
-                    throw new Error('No code received');
-                }
-
-                const code = res.data.code;
-
-                await sleep(2000);
-
-                // Send pairing code
-                await sock.sendMessage(chatId, {
-                    text: `🔑 *Your Pairing Code*\n\n${code}`
-                }, { quoted: message });
-
-                // Guide message
-                await sleep(1000);
-                await sock.sendMessage(chatId, {
-                    text:
-`📘 *How to Pair Your Bot*
-
-1️⃣ Open WhatsApp on your phone  
-2️⃣ Go to *Settings* → *Linked Devices*  
-3️⃣ Tap *Link a device*  
-4️⃣ Enter the pairing code above  
-5️⃣ Wait for confirmation  
-
-✅ Once paired, your bot will connect successfully.
-
-⚠️ Do NOT share this code with anyone.`
-                }, { quoted: message });
-
-            } catch (err) {
-                await sock.sendMessage(chatId, {
-                    text: "❌ Failed to generate pairing code. Please try again later."
-                }, { quoted: message });
-            }
+        if (!pairingCode) {
+            await sock.sendMessage(chatId, { 
+                text: "❌ Failed to get pairing code." 
+            });
+            return;
         }
+
+        // Send pairing code
+        await sock.sendMessage(chatId, { 
+            text: `📱 *PAIRING CODE*\n\nPhone: ${phoneNumber}\nCode: \`${pairingCode}\`` 
+        });
+
+        // Send code separately for easy copy
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        await sock.sendMessage(chatId, { text: `\`${pairingCode}\`` });
+
+        // Send simple guide
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        const guideMessage = `📚 *HOW TO USE*\n\n` +
+                            `1. Open WhatsApp → Menu → Linked Devices\n` +
+                            `2. Tap "Link a Device"\n` +
+                            `3. Select "Link with phone number"\n` +
+                            `4. Enter: Your password\n` +
+                            `5. Enter code: ${pairingCode}\n\n` +
+                            `Code valid for 2 minutes.`;
+        
+        await sock.sendMessage(chatId, { text: guideMessage });
 
     } catch (error) {
-        await sock.sendMessage(chatId, {
-            text: "❌ An unexpected error occurred. Please try again later."
-        }, { quoted: message });
+        console.error(error);
+        await sock.sendMessage(chatId, { 
+            text: "❌ Error. Try again later." 
+        });
     }
 }
 
