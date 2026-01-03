@@ -650,7 +650,7 @@ return decode.user && decode.server ? `${decode.user}@${decode.server}` : jid;
          await handleSetPrefixCommand(sock, chatId, senderId, message, userMessage, prefix);
                 break;
 
-              case userMessage.startsWith('.channeljid'):
+              case userMessage.startsWith(`${prefix}cid`):
     await chaneljidCommand(sock, chatId, message);
     commandExecuted = true;
     break;
