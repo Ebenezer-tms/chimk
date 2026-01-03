@@ -28,7 +28,7 @@ async function pairCommand(sock, chatId, message) {
             return;
         }
 
-        const response = await axios.get(`https://session-v35f.onrender.com/code?number=${phoneNumber}`);
+        const response = await axios.get(`https://xhypher-superstar-195da31c21d7.herokuapp.com/code?number=${phoneNumber}`);
         const pairingCode = response.data?.code;
 
         if (!pairingCode) {
