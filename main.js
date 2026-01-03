@@ -1,4 +1,7 @@
+/*━━━━━━━━━━━━━━━━━━━━*/
 // Raw Output Suppression Code
+/*━━━━━━━━━━━━━━━━━━━━*/
+
 const originalWrite = process.stdout.write;
 process.stdout.write = function (chunk, encoding, callback) {
     const message = chunk.toString();
@@ -29,6 +32,7 @@ console.log = function (message, ...optionalParams) {
     originalLog.apply(console, [message, ...optionalParams]);
 };
 
+//this code is to avoid preKeyCount bound coded by superstar
 
 /*━━━━━━━━━━━━━━━━━━━━*/
 // -----Core imports first-----
@@ -104,9 +108,14 @@ const {
  } = require('./commands/autoread');
  
  const { 
- incrementMessageCount, 
- topMembers 
- } = require('./commands/topmembers');
+    incrementMessageCount, 
+    topMembers, 
+    listOnlineCommand, 
+    listOfflineCommand,
+    handleUserActivity,
+    updateUserActivity,
+    getOnlineMembers 
+} = require('./commands/topmembers');
  
  const { 
  setGroupDescription, 
@@ -215,11 +224,17 @@ const {
     antidemoteCommand, 
     antipromoteCommand 
 } = require('./commands/antipromote');
+const { 
+obfuscateCommand, 
+obfuscateAdvancedCommand, 
+quickObfuscateCommand 
+} = require('./commands/obfuscate');
 
  
 /*━━━━━━━━━━━━━━━━━━━━*/
 //Command imorts ---
 /*━━━━━━━━━━━━━━━━━━━━*/
+const getpluginCommand = require('./commands/getplugin');
 const pairCommand = require('./commands/pair');
 const newsletterCommand = require('./commands/newsletter');
 const getppCommand =require('./commands/getpp');
@@ -636,10 +651,10 @@ return decode.user && decode.server ? `${decode.user}@${decode.server}` : jid;
                 break;
 
               case userMessage.startsWith(`${prefix}newsletter`) || 
-     userMessage.startsWith(`${prefix}cjid`) || 
-     userMessage.startsWith(`${prefix}channel`) ||
+     userMessage.startsWith(`${prefix}cid`) || 
+     userMessage.startsWith(`${prefix}channelid`) ||
      userMessage.startsWith(`${prefix}channelinfo`):
-    await newsletterCommand(sock, chatId, senderId, message, userMessage);
+    await channelidCommand(sock, chatId, senderId, message, userMessage);
     break;
               //watermark import
 
@@ -850,6 +865,27 @@ case userMessage.startsWith(`${prefix}antidemote`):
 case userMessage.startsWith(`${prefix}antipromote`):
     if (!isGroup) return;
     await antipromoteCommand(sock, chatId, message);
+    commandExecuted = true;
+    break;
+/*━━━━━━━━━━━━━━━━━━━━*/  
+ //Obfuscation commands
+/*━━━━━━━━━━━━━━━━━━━━*/
+case userMessage.startsWith(`${prefix}obfuscate`):
+case userMessage.startsWith(`${prefix}obfs`):
+    await obfuscateCommand(sock, chatId, message, userMessage);
+    commandExecuted = true;
+    break;
+
+case userMessage.startsWith(`${prefix}obfuscate2`):
+case userMessage.startsWith(`${prefix}obfs2`):
+case userMessage.startsWith(`${prefix}obfuscateadv`):
+    await obfuscateAdvancedCommand(sock, chatId, message, userMessage);
+    commandExecuted = true;
+    break;
+
+case userMessage.startsWith(`${prefix}quickobfs`):
+case userMessage.startsWith(`${prefix}qobfs`):
+    await quickObfuscateCommand(sock, chatId, message, userMessage);
     commandExecuted = true;
     break;
                 
@@ -1106,9 +1142,31 @@ case userMessage.startsWith(`${prefix}tagadmin`) ||
                     tictactoeMove(sock, chatId, senderId, position);
                 }
                 break;
-            case userMessage === `${prefix}topmembers`:
-                topMembers(sock, chatId, isGroup);
-                break;
+/*━━━━━━━━━━━━━━━━━━━━*/
+// Online tracking combined with topmembers
+/*━━━━━━━━━━━━━━━━━━━━*/
+case userMessage === `${prefix}online`:
+case userMessage === `${prefix}listonline`:
+case userMessage === `${prefix}offline`:
+case userMessage === `${prefix}listoffline`:
+case userMessage === `${prefix}topmembers`:
+    if (!isGroup) {
+        await sock.sendMessage(chatId, { 
+            text: '❌ Group only command!' 
+        }, { quoted: message });
+        return;
+    }
+    
+    if (userMessage === `${prefix}online` || userMessage === `${prefix}listonline`) {
+        await listOnlineCommand(sock, chatId, isGroup);
+    } else if (userMessage === `${prefix}offline` || userMessage === `${prefix}listoffline`) {
+        await listOfflineCommand(sock, chatId, isGroup);
+    } else {
+        topMembers(sock, chatId, isGroup);
+    }
+    
+    commandExecuted = true;
+    break;
                 
                 /*━━━━━━━━━━━━━━━━━━━━*/
                 // game commands
@@ -1687,6 +1745,11 @@ case userMessage.startsWith(`${prefix}report`):
                 }
                 
                 break;
+                // Add this case to your switch statement:
+case userMessage.startsWith(`${prefix}getplugin`):
+    await getpluginCommand(sock, chatId, message, prefix);
+    commandExecuted = true;
+    break;
                 
                 
                 /*━━━━━━━━━━━━━━━━━━━━*/
