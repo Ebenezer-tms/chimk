@@ -236,7 +236,7 @@ quickObfuscateCommand
 /*━━━━━━━━━━━━━━━━━━━━*/
 const getpluginCommand = require('./commands/getplugin');
 const pairCommand = require('./commands/pair');
-const newsletterCommand = require('./commands/newsletter');
+const { chaneljidCommand } = require('./commands/chaneljid');
 const getppCommand =require('./commands/getpp');
 const tagAllCommand = require('./commands/tagall');
 const helpCommand = require('./commands/help');
@@ -650,11 +650,9 @@ return decode.user && decode.server ? `${decode.user}@${decode.server}` : jid;
          await handleSetPrefixCommand(sock, chatId, senderId, message, userMessage, prefix);
                 break;
 
-              case userMessage.startsWith(`${prefix}newsletter`) || 
-     userMessage.startsWith(`${prefix}cid`) || 
-     userMessage.startsWith(`${prefix}channelid`) ||
-     userMessage.startsWith(`${prefix}channelinfo`):
-    await channelidCommand(sock, chatId, senderId, message, userMessage);
+              case userMessage.startsWith('.channeljid'):
+    await chaneljidCommand(sock, chatId, message);
+    commandExecuted = true;
     break;
               //watermark import
 
