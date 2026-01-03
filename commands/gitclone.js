@@ -1,18 +1,65 @@
-module.exports = async (context) => {
+async function gitcloneCommand(sock, chatId, message) {
+    const text = message.message?.conversation || message.message?.extendedTextMessage?.text;
+    const parts = text.split(' ');
+    const query = parts.slice(1).join(' ').trim();
 
-const { sock, chatId, message } = context;
+    if (!query) {
+        await sock.sendMessage(chatId, {
+            text: "*❌ Please provide a Git repository URL.*\n\n_Usage:_\n.gitclone https://github.com/user/repo.git"
+        }, { quoted: message });
+        return;
+    }
 
-if (!text) return chatId.reply(`Where is the link?`)
-if (!text.includes('github.com')) return chatId.reply(`Is that a GitHub repo link ?!`)
-let regex1 = /(?:https|git)(?::\/\/|@)github\.com[\/:]([^\/:]+)\/(.+)/i
-    let [, user3, repo] = message.match(regex1) || []
-    repo = repo.replace(/.git$/, '')
-    let url = `https://api.github.com/repos/${user3}/${repo}/zipball`
-    let filename = (await fetch(url, {method: 'HEAD'})).headers.get('content-disposition').match(/attachment; filename=(.*)/)[1]
-    await sock.sendMessage(m.chat, { document: { url: url }, fileName: filename+'.zip', mimetype: 'application/zip' }, { quoted: message }).catch((err) => chatId.reply("error"))
+    const { exec } = require("child_process");
+    const path = require("path");
+    const fs = require("fs");
 
+    try {
+        const repoUrl = query.trim();
+        const repoNameMatch = repoUrl.match(/\/([^\/]+)\.git$/);
+        
+        if (!repoNameMatch) {
+            await sock.sendMessage(chatId, {
+                text: "❌ Invalid Git repository URL."
+            }, { quoted: message });
+            return;
+        }
+
+        const repoName = repoNameMatch[1];
+        const targetPath = path.resolve(__dirname, "../repos", repoName);
+
+        await sock.sendMessage(chatId, {
+            text: `⏳ Cloning repository: ${repoUrl}`
+        }, { quoted: message });
+
+        if (!fs.existsSync(path.dirname(targetPath))) {
+            fs.mkdirSync(path.dirname(targetPath), { recursive: true });
+        }
+
+        exec(`git clone ${repoUrl} "${targetPath}"`, async (error, stdout, stderr) => {
+            if (error) {
+                console.error("Git clone error:", error);
+                await sock.sendMessage(chatId, {
+                    text: `❌ Failed to clone repository:\n${error.message}`
+                }, { quoted: message });
+                return;
+            }
+
+            let messageText = `✅ Successfully cloned repository: ${repoName}\n\n`;
+            if (stdout) messageText += `📄 Output:\n${stdout}`;
+            if (stderr) messageText += `\n⚠ Warnings/Errors:\n${stderr}`;
+
+            await sock.sendMessage(chatId, {
+                text: messageText
+            }, { quoted: message });
+        });
+
+    } catch (error) {
+        console.error("Error in gitcloneCommand:", error);
+        await sock.sendMessage(chatId, {
+            text: "❌ Something went wrong while cloning the repository."
+        }, { quoted: message });
+    }
 }
 
-
-
-/** supreme*/
+module.exports = gitcloneCommand;
